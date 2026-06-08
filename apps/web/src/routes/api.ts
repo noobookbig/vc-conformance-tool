@@ -7,10 +7,15 @@
  *   GET  /api/config                 → current run config
  *   PUT  /api/config                 → update run config
  *   POST /api/runs                   → start a new run
- *   GET  /api/runs                   → list all runs
+ *   GET  /api/runs                   → list all runs (newest first)
  *   GET  /api/runs/:id               → fetch a run
  *   GET  /api/runs/:id/report.json   → download JSON
  *   GET  /api/runs/:id/report.html   → download HTML
+ *   GET  /api/runs/:id/report.csv    → download CSV
+ *   GET  /api/runs/:id/curl          → curl commands for failing tests
+ *   GET  /api/runs/:id/diff?left=…   → diff two runs
+ *   GET  /api/runs/:id/logo.svg      → logo used inside reports
+ *   GET  /api/report/logo.svg        → same logo, no run id
  *   POST /api/wallet/keys/regenerate → issue a fresh key pair
  *   GET  /api/wallet/keys            → current key metadata (no private material)
  */
@@ -18,8 +23,10 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { CATALOG, listForMode } from '../wallet/catalog.js';
-import { runConformance, makeRunStore, type RunRequest, type RunStore, type Report } from '../runners/runner.js';
+import { runConformance, type RunRequest, type RunStore, type Report } from '../runners/runner.js';
 import { toHtml, toJson } from '../report/serialize.js';
+import { toCsv } from '../report/csv.js';
+import { diffReports } from '../report/diff.js';
 import { generateKeyStore, type KeyStore, type WalletKey } from '../crypto/keys.js';
 
 const ModeSchema = z.enum(['I->W', 'V->W', 'W->I', 'W->V']);
@@ -143,4 +150,55 @@ export async function registerApiRoutes(app: FastifyInstance, deps: ServerDeps):
     reply.header('content-disposition', `attachment; filename="${r.runId}.html"`);
     return toHtml(r);
   });
+
+  app.get<{ Params: { id: string } }>('/api/runs/:id/report.csv', async (req, reply) => {
+    const r = store.get(req.params.id);
+    if (!r) return reply.code(404).send({ error: 'not_found' });
+    reply.header('content-type', 'text/csv; charset=utf-8');
+    reply.header('content-disposition', `attachment; filename="${r.runId}.csv"`);
+    return toCsv(r);
+  });
+
+  app.get<{ Params: { id: string } }>('/api/runs/:id/curl', async (req, reply) => {
+    const r = store.get(req.params.id);
+    if (!r) return reply.code(404).send({ error: 'not_found' });
+    const items = r.results
+      .filter((t) => !t.pass)
+      .map((t) => ({ id: t.id, name: t.name, message: t.message, evidence: t.evidence ?? {} }));
+    return { runId: r.runId, items };
+  });
+
+  app.get<{ Params: { id: string }; Querystring: { left?: string; right?: string } }>('/api/runs/:id/diff', async (req, reply) => {
+    const rightId = req.params.id;
+    const leftId = req.query.left;
+    if (!leftId) return reply.code(400).send({ error: 'missing_left', message: 'Pass ?left=<runId> to diff against.' });
+    const left = store.get(leftId);
+    const right = store.get(rightId);
+    if (!left) return reply.code(404).send({ error: 'left_not_found', runId: leftId });
+    if (!right) return reply.code(404).send({ error: 'right_not_found', runId: rightId });
+    return diffReports(left, right);
+  });
+
+  app.get<{ Params: { id: string } }>('/api/runs/:id/logo.svg', async (req, reply) => {
+    reply.header('content-type', 'image/svg+xml; charset=utf-8');
+    return LOGO_SVG;
+  });
+
+  app.get('/api/report/logo.svg', async (_req, reply) => {
+    reply.header('content-type', 'image/svg+xml; charset=utf-8');
+    return LOGO_SVG;
+  });
 }
+
+const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d6e6e"/>
+      <stop offset="1" stop-color="#d2a23c"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="12" fill="url(#g)"/>
+  <path d="M16 20h12a8 8 0 0 1 0 16h-4v8h-8z" fill="#fff" opacity="0.95"/>
+  <circle cx="44" cy="44" r="6.4" fill="#fff" opacity="0.95"/>
+  <path d="M22 22h6a4 4 0 0 1 0 8h-6z" fill="#0d6e6e"/>
+</svg>`;
