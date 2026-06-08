@@ -61,6 +61,45 @@ Open the webapp, go to **Configuration**, and set:
 
 Save the config and click **Run** on the chosen test suite.
 
+> **Important — the URL must be the OID4VCI/OID4VP endpoint base, not the
+> bare server root.**
+>
+> `targetIssuer` must point at an **OID4VCI issuer root** — a URL that serves
+> a JSON `/.well-known/openid-credential-issuer` metadata document with at
+> least `credential_issuer` (issuer identifier), `credential_endpoint`,
+> `deferred_credential_endpoint`, and `notification_endpoint`. Pointing it
+> at the bare server root (e.g. `https://issuer.example.com` when the OID4VCI
+> endpoints actually live under a subpath, or when the server only serves an
+> SPA at `/`) makes the wallet fetch the SPA HTML as if it were metadata, and
+> every metadata-dependent case fails.
+>
+> `targetVerifier` must similarly be the base of an OID4VP presentation
+> definition endpoint (or the verifier's request-URI base) — not the server
+> root.
+>
+> **Concrete convention used by the in-process mock** (so you can copy the
+> shape when wiring your own issuer):
+>
+> ```bash
+> # In-process mock issuer base (serves /.well-known/openid-credential-issuer)
+> http://127.0.0.1:8080/.mock/issuer
+> # In-process mock verifier base
+> http://127.0.0.1:8080/.mock/verifier
+> ```
+>
+> If you have only a host name (e.g. an HTTPS deployment at
+> `https://issuer.example.go.th` where the OID4VCI endpoints are at the root
+> of that host), the URL in `targetIssuer` is fine; just confirm with
+>
+> ```bash
+> curl -sS https://issuer.example.go.th/.well-known/openid-credential-issuer
+> # → must return JSON with credential_endpoint, etc.
+> ```
+>
+> If that endpoint is on a **subpath** (e.g.
+> `https://example.go.th/oid4vci/.well-known/openid-credential-issuer`),
+> the `targetIssuer` URL must include that subpath as the base.
+
 ## Smoke test (after `docker compose up`)
 
 ```bash
