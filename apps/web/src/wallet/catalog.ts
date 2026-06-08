@@ -517,6 +517,7 @@ const WALLET_FETCH_META_VB_001: TestCase = {
   operation: 'Issue VC — Discovery',
   behavior: 'VB',
   modes: ['W->I', 'I->W'],
+  requires: ['issuerMetadata'],
   run: async (ctx) => timed('FT.WL.MT.W.V.VB.001', 'Fetch issuer metadata', async () => {
     const issuer = absIssuer(ctx);
     const url = `${issuer.replace(/\/$/, '')}/.well-known/openid-credential-issuer`;
@@ -537,6 +538,7 @@ const WALLET_ISSUE_VB_001: TestCase = {
   operation: 'Issue VC — Full flow',
   behavior: 'VB',
   modes: ['W->I', 'I->W'],
+  requires: ['issuerMetadata'],
   run: async (ctx) => timed('FT.WL.IC.W.I.VB.001', 'Wallet full issuance flow', async () => {
     // Step 1: discover metadata
     const issuer = absIssuer(ctx);
@@ -744,6 +746,7 @@ const IC_NO_IB_INVALID_ID: TestCase = {
   operation: 'Notification',
   behavior: 'IB',
   modes: ['I->W', 'W->I'],
+  requires: ['issuerMetadata'],
   run: async (ctx) => timed('FT.IC.NO.I.H.IB.002', 'Notification invalid_notification_id', async () => {
     if (!ctx.issuerMetadata?.notification_endpoint) fail('issuer does not advertise notification_endpoint');
     const errBody = { error: 'invalid_notification_id', error_description: 'unknown id' };
@@ -777,6 +780,7 @@ const IC_TE_IB_BAD_GRANT: TestCase = {
   operation: 'Issue VC — Token Exchange',
   behavior: 'IB',
   modes: ['I->W', 'W->I'],
+  requires: ['issuerMetadata'],
   run: async (ctx) => timed('FT.IC.TE.I.H.IB.006', 'Token unsupported grant_type', async () => {
     if (!ctx.issuerMetadata) fail('issuer metadata missing');
     const errBody = { error: 'unsupported_grant_type', error_description: 'only authorization_code is supported' };
@@ -794,6 +798,7 @@ const IC_CI_IB_UNSUPPORTED_FORMAT: TestCase = {
   operation: 'Issue VC — VC Issuance',
   behavior: 'IB',
   modes: ['I->W', 'W->I'],
+  requires: ['issuerMetadata'],
   run: async (ctx) => timed('FT.IC.CI.I.H.IB.003', 'Credential unsupported_credential_format', async () => {
     if (!ctx.issuerMetadata) fail('issuer metadata missing');
     const errBody = { error: 'unsupported_credential_format', error_description: 'jwt_vc_json only' };
@@ -811,6 +816,7 @@ const IC_CI_IB_UNSUPPORTED_TYPE: TestCase = {
   operation: 'Issue VC — VC Issuance',
   behavior: 'IB',
   modes: ['I->W', 'W->I'],
+  requires: ['issuerMetadata'],
   run: async (ctx) => timed('FT.IC.CI.I.H.IB.004', 'Credential unsupported_credential_type', async () => {
     if (!ctx.issuerMetadata) fail('issuer metadata missing');
     const errBody = { error: 'unsupported_credential_type', error_description: 'requested vct not offered' };
@@ -975,6 +981,7 @@ const IC_RF_VB_BASIC: TestCase = {
   operation: 'Issue VC — Refresh',
   behavior: 'VB',
   modes: ['I->W', 'W->I'],
+  requires: ['issuerMetadata'],
   run: async (ctx) => timed('FT.IC.RF.I.H.VB.001', 'Refresh basic flow', async () => {
     if (!ctx.issuerMetadata) fail('issuer metadata missing');
     const body = { grant_type: 'refresh_token', refresh_token: '__MOCK_REFRESH__', client_id: ctx.keys.es256.kid };
@@ -1007,6 +1014,7 @@ const IC_RF_VB_NEW_NONCE: TestCase = {
   operation: 'Issue VC — Refresh',
   behavior: 'VB',
   modes: ['I->W', 'W->I'],
+  requires: ['issuerMetadata'],
   run: async (ctx) => timed('FT.IC.RF.I.H.VB.002', 'Refresh rotates c_nonce', async () => {
     if (!ctx.issuerMetadata) fail('issuer metadata missing');
     const oldNonce = ctx.cnonce ?? 'old';
@@ -1041,6 +1049,7 @@ const WALLET_DC_POLL_VB: TestCase = {
   operation: 'Issue VC — Deferred Credential',
   behavior: 'VB',
   modes: ['W->I', 'I->W'],
+  requires: ['issuerMetadata'],
   run: async (ctx) => timed('FT.WL.DC.W.V.VB.001', 'Wallet deferred poll', async () => {
     if (!ctx.issuerMetadata?.deferred_credential_endpoint) fail('issuer does not advertise deferred_credential_endpoint');
     const interval = 5;

@@ -15,7 +15,7 @@ import fastifyStatic from '@fastify/static';
 import fastifyCors from '@fastify/cors';
 import { generateKeyStore, type KeyStore } from './crypto/keys.js';
 import { registerApiRoutes, defaultConfig, type Config } from './routes/api.js';
-import { makeRunStore, type RunStore } from './runners/runner.js';
+import { makePersistentRunStore, type PersistentRunStore } from './runners/persistence.js';
 import { mountMockFixtures } from './fixtures/routes.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -29,7 +29,7 @@ export interface ServerOptions {
   config?: Config;
 }
 
-export async function buildApp(opts: { keys?: KeyStore; config?: Config; logger?: boolean } = {}) {
+export async function buildApp(opts: { keys?: KeyStore; config?: Config; logger?: boolean; store?: PersistentRunStore } = {}) {
   const app = Fastify({
     logger: opts.logger === false
       ? false
@@ -48,7 +48,7 @@ export async function buildApp(opts: { keys?: KeyStore; config?: Config; logger?
   // Per-server mutable state
   let keys: KeyStore = opts.keys ?? await generateKeyStore();
   let config: Config = opts.config ?? defaultConfig();
-  const store: RunStore = makeRunStore();
+  const store: PersistentRunStore = opts.store ?? makePersistentRunStore();
 
   await app.register(async (instance) => {
     await registerApiRoutes(instance, {
@@ -65,9 +65,16 @@ export async function buildApp(opts: { keys?: KeyStore; config?: Config; logger?
     await mountMockFixtures(instance);
   });
 
-  // SPA fallback: any non-API GET → index.html so the SPA can do its routing
+  // SPA fallback: any non-API GET → index.html so the SPA can do its routing.
+  // /.well-known/* paths must 404 (not fall through to the SPA index.html), so
+  // OID4VCI §4.2 metadata fetches against the webapp's own host fail cleanly
+  // and tests with `requires: ['issuerMetadata']` SKIP instead of FAIL.
   app.setNotFoundHandler((req, reply) => {
-    if (req.url.startsWith('/api/') || req.url.startsWith('/.mock/')) {
+    if (
+      req.url.startsWith('/api/') ||
+      req.url.startsWith('/.mock/') ||
+      req.url.startsWith('/.well-known/')
+    ) {
       return reply.code(404).send({ error: 'not_found' });
     }
     if (req.method === 'GET') {
