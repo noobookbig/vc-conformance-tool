@@ -1,0 +1,32 @@
+# docker-compose for local dev + quick demo.
+#
+# Brings up the conformance test webapp on port 8080. No external services
+# required — the in-process mock issuer + verifier are mounted on the same
+# origin, so a brand-new user can `docker compose up` and immediately
+# exercise all four cross-modes.
+
+services:
+  webapp:
+    build:
+      context: ../..
+      dockerfile: ops/docker/Dockerfile
+    image: vc-conformance-test:0.1.0
+    container_name: vc-conformance-test
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - HOST=0.0.0.0
+      - LOG_LEVEL=info
+      - CONFORMANCE_BASE_URL=http://127.0.0.1:8080
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8080/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    # The container is read-only at runtime (state is in-memory only).
+    read_only: false
+    tmpfs:
+      - /tmp

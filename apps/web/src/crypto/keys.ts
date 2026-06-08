@@ -8,7 +8,7 @@
  * Built on Node's `crypto.subtle` via the `jose` library for JOSE wrapping.
  */
 
-import { generateKeyPair, exportJWK, importJWK, calculateJwkThumbprint, SignJWT, type JWK, type KeyLike, type CryptoKey } from 'jose';
+import { generateKeyPair, exportJWK, importJWK, calculateJwkThumbprint, SignJWT, type JWK, type KeyLike } from 'jose';
 import { createHash, randomBytes } from 'node:crypto';
 
 export type Alg = 'ES256' | 'EdDSA';

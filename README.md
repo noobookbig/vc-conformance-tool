@@ -15,25 +15,37 @@ The webapp produces an **in-app report** (table + filters) and lets the QA user
 **download the report as JSON or HTML** for archiving.
 
 Test cases are derived from the corrected Thailand VC OID4VCI / OID4VP 1.0
-conformance testcase v2.0 — see `references/testcase-source.md`.
+conformance testcase v2.0 — see `references/testcase-source.md` and
+`references/design.md` for design notes.
 
 ## Quick start (Docker)
 
 ```bash
+cd ops/docker
 docker compose up --build
 # open http://localhost:8080
 ```
 
-On first start the app auto-generates a fresh wallet key pair (ES256, then
-optionally EdDSA) and a self-contained OOB mock issuer + verifier for the
-"no-target" demo mode.
+On first start the app auto-generates a fresh wallet key pair (ES256 + EdDSA)
+and a self-contained in-process mock issuer + verifier. So `docker compose up`
+gives you a working tool with no external services.
 
 ## Quick start (local dev)
 
 ```bash
-pnpm install
-pnpm dev   # http://localhost:8080
+npm install
+npm run dev          # http://localhost:8080
 ```
+
+## Demo
+
+```bash
+# from the repo root
+bash ops/smoke/run.sh
+```
+
+Exercises all four cross-modes against the in-process mock and writes JSON +
+HTML reports to `/tmp/conformance-smoke-*`.
 
 ## Test against a real target
 
@@ -48,6 +60,17 @@ Open the webapp, go to **Configuration**, and set:
 | DCQL Query (optional) | `{"credentials":[...]}` — only for Verifier modes         |
 
 Save the config and click **Run** on the chosen test suite.
+
+## Smoke test (after `docker compose up`)
+
+```bash
+bash ops/smoke/run.sh
+# Expected: "All 4 cross-modes produced downloadable reports ✓"
+```
+
+The smoke script POSTs to `/api/runs` for each of the four modes (against
+the built-in mock targets), waits for the run to finish, and downloads the
+JSON + HTML report for each.
 
 ## Architecture
 

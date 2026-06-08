@@ -10,7 +10,18 @@
  */
 
 import { buildKbJwt, codeChallengeS256, generateCodeVerifier, randomNonce, type WalletKey } from '../crypto/keys.js';
+import { resolveTargetUrl } from '../runners/runner.js';
 import type { Mode, RunContext, TestCase, TestResult, IssuerMetadata, PresentationRequest, DCQLQuery } from './types.js';
+
+const MOCK_ISSUER_BASE = '/.mock/issuer';
+const MOCK_VERIFIER_BASE = '/.mock/verifier';
+
+function absIssuer(ctx: RunContext): string {
+  return resolveTargetUrl(ctx.targetIssuer, MOCK_ISSUER_BASE);
+}
+function absVerifier(ctx: RunContext): string {
+  return resolveTargetUrl(ctx.targetVerifier, MOCK_VERIFIER_BASE);
+}
 
 // ---------- Shared utility: timed ----------
 
@@ -75,9 +86,8 @@ function expect<T>(actual: T, predicate: (v: T) => boolean, msg: string): void {
   if (!predicate(actual)) fail(msg, { actual });
 }
 
-// ---------- Mock fixture (so the tool is self-contained for "no target" demo) ----------
-
-import { getMockIssuer, getMockVerifier } from '../fixtures/mocks.js';
+// ---------- Mock fixture URLs (so the tool is self-contained for "no target" demo) ----------
+// Real mock is mounted by the server. Catalog tests just build the right URL.
 
 // ---------- The catalog ----------
 
@@ -92,7 +102,7 @@ const IC_OFFER_001: TestCase = {
   behavior: 'VB',
   modes: ['I->W', 'W->I'],
   run: async (ctx) => timed('FT.IC.CO.I.H.VB.001', 'Credential Offer (by value)', async () => {
-    const issuer = ctx.targetIssuer ?? getMockIssuer().baseUrl;
+    const issuer = ctx.targetIssuer ?? MOCK_ISSUER_BASE;
     const offer = {
       credential_issuer: issuer,
       credential_configuration_ids: [ctx.credentialConfigurationId],
@@ -111,7 +121,7 @@ const IC_OFFER_002: TestCase = {
   behavior: 'VB',
   modes: ['I->W', 'W->I'],
   run: async (ctx) => timed('FT.IC.CO.I.H.VB.002', 'Credential Offer (by reference)', async () => {
-    const issuer = ctx.targetIssuer ?? getMockIssuer().baseUrl;
+    const issuer = ctx.targetIssuer ?? MOCK_ISSUER_BASE;
     const offer_uri = `${issuer}/offer/${randomNonce(8)}`;
     return { pass: true, message: 'Offer URI well-formed; holder would fetch it next.', evidence: { offer_uri } };
   }),
@@ -145,7 +155,7 @@ const IC_AU_VB_001: TestCase = {
   behavior: 'VB',
   modes: ['I->W', 'W->I'],
   run: async (ctx) => timed('FT.IC.AU.I.H.VB.001', 'Authorization request (valid)', async () => {
-    const issuer = ctx.targetIssuer ?? getMockIssuer().baseUrl;
+    const issuer = ctx.targetIssuer ?? MOCK_ISSUER_BASE;
     const authReq = {
       response_type: 'code',
       client_id: ctx.keys.es256.kid,
@@ -158,7 +168,7 @@ const IC_AU_VB_001: TestCase = {
       state: ctx.state,
       redirect_uri: 'http://localhost:8080/callback',
     };
-    const url = new URL(issuer + '/authorize');
+    const url = new URL(issuer + '/authorize', issuer.startsWith('http') ? undefined : 'http://placeholder.local');
     for (const [k, v] of Object.entries(authReq)) {
       if (typeof v === 'string') url.searchParams.set(k, v);
       else url.searchParams.set(k, JSON.stringify(v));
@@ -508,7 +518,7 @@ const WALLET_FETCH_META_VB_001: TestCase = {
   behavior: 'VB',
   modes: ['W->I', 'I->W'],
   run: async (ctx) => timed('FT.WL.MT.W.V.VB.001', 'Fetch issuer metadata', async () => {
-    const issuer = ctx.targetIssuer ?? getMockIssuer().baseUrl;
+    const issuer = absIssuer(ctx);
     const url = `${issuer.replace(/\/$/, '')}/.well-known/openid-credential-issuer`;
     const { status, body } = await httpCall({ method: 'GET', url, label: 'issuer-metadata', ctx });
     expectStatus(status, 200);
@@ -529,8 +539,8 @@ const WALLET_ISSUE_VB_001: TestCase = {
   modes: ['W->I', 'I->W'],
   run: async (ctx) => timed('FT.WL.IC.W.I.VB.001', 'Wallet full issuance flow', async () => {
     // Step 1: discover metadata
-    const issuer = ctx.targetIssuer ?? getMockIssuer().baseUrl;
-    const mdRes = await httpCall({ method: 'GET', url: `${issuer}/.well-known/openid-credential-issuer`, label: 'md', ctx });
+    const issuer = absIssuer(ctx);
+    const mdRes = await httpCall({ method: 'GET', url: `${issuer.replace(/\/$/, '')}/.well-known/openid-credential-issuer`, label: 'md', ctx });
     expectStatus(mdRes.status, 200);
     const md = mdRes.body as IssuerMetadata;
     ctx.issuerMetadata = md;
@@ -561,8 +571,8 @@ const WALLET_PRESENT_VB_001: TestCase = {
   modes: ['W->V', 'V->W'],
   requires: ['credential'],
   run: async (ctx) => timed('FT.WL.PR.W.V.VB.001', 'Wallet presentation response', async () => {
-    const verifier = ctx.targetVerifier ?? getMockVerifier().baseUrl;
-    const req = await httpCall({ method: 'POST', url: `${verifier}/presentation-request`, body: {
+    const verifier = absVerifier(ctx);
+    const req = await httpCall({ method: 'POST', url: `${verifier.replace(/\/$/, '')}/presentation-request`, body: {
       dcql_query: { credentials: [{ id: 'pid', format: 'dc+sd-jwt', meta: { vct_values: ['urn:eudi:pid:1'] } }] },
       nonce: randomNonce(12),
       state: ctx.state,

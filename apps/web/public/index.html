@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VC Conformance Test Webapp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">
+        <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#0d6e6e"/>
+              <stop offset="1" stop-color="#d2a23c"/>
+            </linearGradient>
+          </defs>
+          <rect width="32" height="32" rx="6" fill="url(#g)"/>
+          <path d="M8 10h6a4 4 0 0 1 0 8h-2v4h-4z" fill="#fff" opacity="0.95"/>
+          <circle cx="22" cy="22" r="3.2" fill="#fff" opacity="0.95"/>
+          <path d="M11 11h3a2 2 0 0 1 0 4h-3z" fill="#0d6e6e"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>Conformance<span class="dim">/</span><em>Webapp</em></h1>
+        <p>OID4VCI 1.0 · OID4VP 1.0 · Thailand VC</p>
+      </div>
+    </div>
+    <div class="status" id="health-pill" title="Server health"><span class="dot"></span><span id="health-text">checking…</span></div>
+  </header>
+
+  <main class="layout">
+    <nav class="sidebar">
+      <button class="nav active" data-view="run">▶ Run</button>
+      <button class="nav" data-view="config">⚙ Configure</button>
+      <button class="nav" data-view="history">⏱ History</button>
+      <button class="nav" data-view="catalog">🗂 Test Catalog</button>
+      <button class="nav" data-view="about">ⓘ About</button>
+      <div class="sidebar-foot">
+        <div class="hint">Test suite for issuers &amp; verifiers implementing <strong>OID4VCI 1.0 Final</strong> and <strong>OID4VP 1.0 Final</strong>.</div>
+      </div>
+    </nav>
+
+    <section class="content">
+      <!-- RUN VIEW -->
+      <article class="view active" id="view-run">
+        <header class="view-header">
+          <h2>Run</h2>
+          <p>Pick a cross-mode and a target. The webapp will dispatch the catalog of test cases against it (or the in-process mock if no target is set) and produce a downloadable report.</p>
+        </header>
+
+        <div class="cards">
+          <article class="card mode" data-mode="I->W">
+            <div class="card-emoji">🏛️ → 📱</div>
+            <h3>Issuer ↔ Wallet</h3>
+            <p>Drive a <em>target Issuer</em> with our wallet simulator. Use this to verify an Issuer you control.</p>
+            <div class="card-meta"><span class="badge" data-test-count="I->W">…</span></div>
+          </article>
+          <article class="card mode" data-mode="V->W">
+            <div class="card-emoji">🔍 → 📱</div>
+            <h3>Verifier ↔ Wallet</h3>
+            <p>Drive a <em>target Verifier</em> with our wallet simulator. Use this to verify a Verifier you control.</p>
+            <div class="card-meta"><span class="badge" data-test-count="V->W">…</span></div>
+          </article>
+          <article class="card mode" data-mode="W->I">
+            <div class="card-emoji">📱 → 🏛️</div>
+            <h3>Wallet ↔ Issuer</h3>
+            <p>Drive our wallet simulator with a <em>target Issuer</em>. Use this to verify a wallet against a real Issuer.</p>
+            <div class="card-meta"><span class="badge" data-test-count="W->I">…</span></div>
+          </article>
+          <article class="card mode" data-mode="W->V">
+            <div class="card-emoji">📱 → 🔍</div>
+            <h3>Wallet ↔ Verifier</h3>
+            <p>Drive our wallet simulator with a <em>target Verifier</em>. Use this to verify a wallet against a real Verifier.</p>
+            <div class="card-meta"><span class="badge" data-test-count="W->V">…</span></div>
+          </article>
+        </div>
+
+        <div class="run-panel">
+          <div class="run-form">
+            <label>
+              <span>Mode</span>
+              <select id="run-mode">
+                <option value="I->W">Issuer ↔ Wallet (drive target issuer)</option>
+                <option value="V->W">Verifier ↔ Wallet (drive target verifier)</option>
+                <option value="W->I" selected>Wallet ↔ Issuer (test wallet against target issuer)</option>
+                <option value="W->V">Wallet ↔ Verifier (test wallet against target verifier)</option>
+              </select>
+            </label>
+            <label>
+              <span>Credential configuration</span>
+              <select id="run-credential"><option>ThaiNationalID</option></select>
+            </label>
+            <label class="full">
+              <span>Target Issuer URL <em class="hint-inline">(leave blank to use built-in mock)</em></span>
+              <input id="run-issuer" type="url" placeholder="https://issuer.example.com" autocomplete="off">
+            </label>
+            <label class="full">
+              <span>Target Verifier URL <em class="hint-inline">(leave blank to use built-in mock)</em></span>
+              <input id="run-verifier" type="url" placeholder="https://verifier.example.com" autocomplete="off">
+            </label>
+            <div class="actions">
+              <button id="btn-run" class="primary">▶ Run conformance</button>
+              <button id="btn-load-cfg" class="ghost">Load saved config</button>
+            </div>
+          </div>
+          <aside class="run-side" id="run-side">
+            <div class="empty">No run yet. Click <strong>▶ Run conformance</strong> above.</div>
+          </aside>
+        </div>
+      </article>
+
+      <!-- CONFIG VIEW -->
+      <article class="view" id="view-config">
+        <header class="view-header">
+          <h2>Configure</h2>
+          <p>Edit run config, manage the wallet's signing keys, and discover supported credential configurations.</p>
+        </header>
+        <div class="config-grid">
+          <div class="panel">
+            <h3>Run config</h3>
+            <form id="config-form">
+              <label>
+                <span>Mode</span>
+                <select name="mode">
+                  <option value="I->W">Issuer ↔ Wallet</option>
+                  <option value="V->W">Verifier ↔ Wallet</option>
+                  <option value="W->I">Wallet ↔ Issuer</option>
+                  <option value="W->V">Wallet ↔ Verifier</option>
+                </select>
+              </label>
+              <label>
+                <span>Default credential configuration</span>
+                <input name="credentialConfigurationId" value="ThaiNationalID" required>
+              </label>
+              <label>
+                <span>Target Issuer URL <em class="hint-inline">(optional)</em></span>
+                <input name="targetIssuer" type="url" placeholder="https://issuer.example.com">
+              </label>
+              <label>
+                <span>Target Verifier URL <em class="hint-inline">(optional)</em></span>
+                <input name="targetVerifier" type="url" placeholder="https://verifier.example.com">
+              </label>
+              <button class="primary" type="submit">Save</button>
+            </form>
+          </div>
+          <div class="panel">
+            <h3>Wallet keys</h3>
+            <p class="dim">In-process key pair. Persists only for the lifetime of the server. Regenerate to get a fresh pair.</p>
+            <div id="keys-display" class="mono-block">…</div>
+            <button id="btn-regen" class="ghost">↻ Regenerate</button>
+          </div>
+          <div class="panel">
+            <h3>Environment overrides</h3>
+            <p class="dim">Set at container start.</p>
+            <ul class="mono-block">
+              <li><code>PORT</code> — listen port (default <code>8080</code>)</li>
+              <li><code>HOST</code> — listen address (default <code>0.0.0.0</code>)</li>
+              <li><code>LOG_LEVEL</code> — pino level (default <code>info</code>)</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <!-- HISTORY VIEW -->
+      <article class="view" id="view-history">
+        <header class="view-header">
+          <h2>History</h2>
+          <p>Every run is kept in memory. Click a row to open the report.</p>
+        </header>
+        <div id="history-list" class="history-list">No runs yet.</div>
+      </article>
+
+      <!-- CATALOG VIEW -->
+      <article class="view" id="view-catalog">
+        <header class="view-header">
+          <h2>Test catalog</h2>
+          <p>Every test case the webapp can execute, with its normative spec reference. Sourced from the corrected Thailand VC OID4VCI / OID4VP 1.0 conformance testcase v2.0.</p>
+        </header>
+        <div id="catalog-table">…</div>
+      </article>
+
+      <!-- ABOUT VIEW -->
+      <article class="view" id="view-about">
+        <header class="view-header">
+          <h2>About</h2>
+          <p>What this is, what it isn't, and how to read the report.</p>
+        </header>
+        <div class="prose">
+          <p>The VC Conformance Test Webapp is a self-contained tool for QA engineers who need to verify an <strong>OpenID for Verifiable Credential Issuance 1.0 Final</strong> issuer or an <strong>OpenID for Verifiable Presentations 1.0 Final</strong> verifier — and to verify <em>wallets</em> against real targets.</p>
+          <p>It is <strong>not</strong> a wallet product, a registry, or a trust-list authority. It does not store PII. It does not commit to a real Verifiable Data Registry. It is a <em>test harness</em>.</p>
+          <h3>Cross-modes</h3>
+          <ul>
+            <li><strong>Issuer ↔ Wallet</strong> — drive a target Issuer with our wallet simulator. Use this to verify an Issuer you control. Tests the OID4VCI issuance pipeline (offer → authorization → token → credential).</li>
+            <li><strong>Verifier ↔ Wallet</strong> — drive a target Verifier with our wallet simulator. Use this to verify a Verifier you control. Tests the OID4VP presentation request and response.</li>
+            <li><strong>Wallet ↔ Issuer</strong> — drive our wallet simulator with a target Issuer. Use this to test your wallet against a real Issuer.</li>
+            <li><strong>Wallet ↔ Verifier</strong> — drive our wallet simulator with a target Verifier. Use this to test your wallet against a real Verifier.</li>
+          </ul>
+          <h3>Coverage</h3>
+          <p>The webapp implements the <em>happy-path + canonical negative-path</em> of every operation the spec defines for each role. The current concrete suite is roughly 28 executable test cases covering credential offer, authorization (PKCE + authorization_details), token exchange, credential request (KB-JWT ES256 + EdDSA), deferred credential, notification, and OID4VP DCQL presentation. The number of <em>concrete</em> cases per mode is configurable.</p>
+          <h3>How to read a report</h3>
+          <p>Each row in the report is one test. ✅ means the spec-shaped request was built correctly by our simulator and the target accepted (or rejected, for negative tests). ⏭️ means a prerequisite for that test was not met (e.g. you ran Verifier mode but didn't supply a target verifier). ❌ means the simulator could not build the request per the spec, or the target returned an unexpected error.</p>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
