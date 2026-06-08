@@ -1,0 +1,417 @@
+{
+  "runId": "run-mq5jq7hx-KzFkgQ",
+  "mode": "I->W",
+  "startedAt": "2026-06-08T18:30:17.205Z",
+  "finishedAt": "2026-06-08T18:30:17.233Z",
+  "durationMs": 28,
+  "target": {
+    "issuer": "http://127.0.0.1:8090",
+    "credentialConfigurationId": "ThaiNationalID"
+  },
+  "results": [
+    {
+      "id": "FT.IC.CO.I.H.VB.001",
+      "name": "Credential Offer (by value)",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Credential offer shape validated against §4.1.1",
+      "evidence": {
+        "offer": {
+          "credential_issuer": "http://127.0.0.1:8090",
+          "credential_configuration_ids": [
+            "ThaiNationalID"
+          ],
+          "grants": {
+            "authorization_code": {
+              "issuer_state": "m3sLgf5jOtg"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "FT.IC.CO.I.H.VB.002",
+      "name": "Credential Offer (by reference)",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Offer URI well-formed; holder would fetch it next.",
+      "evidence": {
+        "offer_uri": "http://127.0.0.1:8090/offer/3WTmVk24Hl0"
+      }
+    },
+    {
+      "id": "FT.IC.CO.I.H.IB.001",
+      "name": "Credential Offer missing config ids",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Invalid offer rejected client-side per §4.1.1"
+    },
+    {
+      "id": "FT.IC.AU.I.H.VB.001",
+      "name": "Authorization request (valid)",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Authorization request built per §5.1.1",
+      "evidence": {
+        "url": "http://127.0.0.1:8090/authorize?response_type=code&client_id=es256-qGLPcu1ARXNNx8S3&code_challenge=JfeYjSGpRfapAKxZPxxrW2cAyF7fpNYL8JQo-iOUT68&code_challenge_method=S256&authorization_details=%5B%7B%22type%22%3A%22openid_credential%22%2C%22credential_configuration_id%22%3A%22ThaiNationalID%22%7D%5D&state=KX76-cridwM&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fcallback"
+      }
+    },
+    {
+      "id": "FT.IC.AU.I.H.VB.AD.001",
+      "name": "authorization_details: credential_configuration_id",
+      "durationMs": 0,
+      "pass": true,
+      "message": "authorization_details shape valid per §5.1.1"
+    },
+    {
+      "id": "FT.IC.AU.I.H.IB.PKCE.001",
+      "name": "PKCE missing code_challenge",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Missing code_challenge correctly flagged per §3.5"
+    },
+    {
+      "id": "FT.IC.AU.I.H.IB.PKCE.003",
+      "name": "PKCE downgrade to plain",
+      "durationMs": 0,
+      "pass": true,
+      "message": "plain PKCE method correctly identified as downgrade"
+    },
+    {
+      "id": "FT.IC.AU.I.H.IB.AD.001",
+      "name": "authorization_details missing type",
+      "durationMs": 0,
+      "pass": true,
+      "message": "authorization_details entry missing type correctly flagged"
+    },
+    {
+      "id": "FT.IC.AU.I.H.IB.AD.003",
+      "name": "authorization_details malformed JSON",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Malformed JSON correctly identified"
+    },
+    {
+      "id": "FT.IC.TE.I.H.VB.001",
+      "name": "Token Exchange with PKCE verifier",
+      "pass": true,
+      "message": "SKIPPED (prerequisite not met)",
+      "durationMs": 0
+    },
+    {
+      "id": "FT.IC.TE.I.H.IB.005",
+      "name": "Token exchange missing code_verifier",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Missing code_verifier correctly identified"
+    },
+    {
+      "id": "FT.IC.CI.I.H.VB.001",
+      "name": "Credential Request with KB-JWT (ES256)",
+      "pass": true,
+      "message": "SKIPPED (prerequisite not met)",
+      "durationMs": 0
+    },
+    {
+      "id": "FT.IC.CI.I.H.VB.002",
+      "name": "Credential Request with KB-JWT (EdDSA)",
+      "pass": true,
+      "message": "SKIPPED (prerequisite not met)",
+      "durationMs": 0
+    },
+    {
+      "id": "FT.IC.CI.I.H.IB.001",
+      "name": "Credential request missing proof",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Missing proof correctly identified"
+    },
+    {
+      "id": "FT.IC.CI.I.H.IB.002",
+      "name": "Credential request bad c_nonce",
+      "durationMs": 0,
+      "pass": true,
+      "message": "c_nonce binding rule noted per §7.2 (rejection by issuer expected)"
+    },
+    {
+      "id": "FT.IC.DC.I.H.VB.001",
+      "name": "Deferred Credential polling → transaction_id",
+      "pass": true,
+      "message": "SKIPPED (prerequisite not met)",
+      "durationMs": 0
+    },
+    {
+      "id": "FT.IC.DC.I.H.IB.001",
+      "name": "Deferred credential invalid transaction_id",
+      "durationMs": 0,
+      "pass": true,
+      "message": "invalid transaction_id rejection path noted per §8.3"
+    },
+    {
+      "id": "FT.IC.NO.I.H.VB.001",
+      "name": "Notification with event=credential_accepted",
+      "pass": true,
+      "message": "SKIPPED (prerequisite not met)",
+      "durationMs": 0
+    },
+    {
+      "id": "FT.IC.NO.I.H.IB.001",
+      "name": "Notification unknown event",
+      "durationMs": 0,
+      "pass": true,
+      "message": "unknown event rejection path noted per §9.1"
+    },
+    {
+      "id": "FT.WL.MT.W.V.VB.001",
+      "name": "Fetch issuer metadata",
+      "durationMs": 7,
+      "pass": false,
+      "message": "Threw: credential_endpoint must be present and absolute",
+      "evidence": {
+        "stack": [
+          "Error: credential_endpoint must be present and absolute",
+          "    at fail (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:77:9)",
+          "    at expect (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:86:27)",
+          "    at <anonymous> (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:526:5)"
+        ]
+      }
+    },
+    {
+      "id": "FT.WL.IC.W.I.VB.001",
+      "name": "Wallet full issuance flow",
+      "durationMs": 7,
+      "pass": false,
+      "message": "Threw: Failed to parse URL from undefined",
+      "evidence": {
+        "stack": [
+          "TypeError: Failed to parse URL from undefined",
+          "    at node:internal/deps/undici/undici:14976:13",
+          "    at async httpCall (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:61:17)",
+          "    at async <anonymous> (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:550:21)"
+        ]
+      }
+    },
+    {
+      "id": "FT.IC.DC.I.H.VB.002",
+      "name": "Deferred pre-auth + numeric tx_code",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Pre-authorized + numeric tx_code shape valid per §8.1",
+      "evidence": {
+        "txCodeInputMode": "numeric"
+      }
+    },
+    {
+      "id": "FT.IC.DC.I.H.VB.003",
+      "name": "Deferred pre-auth + text tx_code",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Pre-authorized + alphanumeric tx_code shape valid per §8.1",
+      "evidence": {
+        "txCodeInputMode": "text"
+      }
+    },
+    {
+      "id": "FT.IC.DC.I.H.VB.004",
+      "name": "Deferred user_pin_required toggle",
+      "durationMs": 0,
+      "pass": true,
+      "message": "user_pin_required toggle in pre-authorized grant handled per §8.1"
+    },
+    {
+      "id": "FT.IC.DC.I.H.IB.002",
+      "name": "Deferred tx_code missing",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Missing tx_code correctly identified per §8.1"
+    },
+    {
+      "id": "FT.IC.DC.I.H.IB.003",
+      "name": "Deferred credential issuance_pending",
+      "durationMs": 0,
+      "pass": false,
+      "message": "Threw: issuer does not advertise deferred_credential_endpoint",
+      "evidence": {
+        "stack": [
+          "Error: issuer does not advertise deferred_credential_endpoint",
+          "    at fail (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:77:9)",
+          "    at <anonymous> (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:678:60)",
+          "    at timed (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:31:25)"
+        ]
+      }
+    },
+    {
+      "id": "FT.IC.DC.I.H.IB.004",
+      "name": "Deferred invalid transaction_id",
+      "durationMs": 0,
+      "pass": false,
+      "message": "Threw: issuer does not advertise deferred_credential_endpoint",
+      "evidence": {
+        "stack": [
+          "Error: issuer does not advertise deferred_credential_endpoint",
+          "    at fail (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:77:9)",
+          "    at <anonymous> (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:696:60)",
+          "    at timed (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:31:25)"
+        ]
+      }
+    },
+    {
+      "id": "FT.IC.NO.I.H.VB.002",
+      "name": "Notification credential_deleted",
+      "durationMs": 0,
+      "pass": false,
+      "message": "Threw: issuer does not advertise notification_endpoint",
+      "evidence": {
+        "stack": [
+          "Error: issuer does not advertise notification_endpoint",
+          "    at fail (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:77:9)",
+          "    at <anonymous> (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:715:53)",
+          "    at timed (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:31:25)"
+        ]
+      }
+    },
+    {
+      "id": "FT.IC.NO.I.H.VB.003",
+      "name": "Notification credential_failure",
+      "durationMs": 0,
+      "pass": false,
+      "message": "Threw: issuer does not advertise notification_endpoint",
+      "evidence": {
+        "stack": [
+          "Error: issuer does not advertise notification_endpoint",
+          "    at fail (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:77:9)",
+          "    at <anonymous> (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:732:53)",
+          "    at timed (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:31:25)"
+        ]
+      }
+    },
+    {
+      "id": "FT.IC.NO.I.H.IB.002",
+      "name": "Notification invalid_notification_id",
+      "durationMs": 0,
+      "pass": false,
+      "message": "Threw: issuer does not advertise notification_endpoint",
+      "evidence": {
+        "stack": [
+          "Error: issuer does not advertise notification_endpoint",
+          "    at fail (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:77:9)",
+          "    at <anonymous> (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:748:53)",
+          "    at timed (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:31:25)"
+        ]
+      }
+    },
+    {
+      "id": "FT.IC.NO.I.H.IB.003",
+      "name": "Notification missing notification_id",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Missing notification_id correctly flagged per §9.1"
+    },
+    {
+      "id": "FT.IC.TE.I.H.IB.006",
+      "name": "Token unsupported grant_type",
+      "durationMs": 0,
+      "pass": true,
+      "message": "unsupported_grant_type error envelope valid per RFC 6749 §5.2"
+    },
+    {
+      "id": "FT.IC.CI.I.H.IB.003",
+      "name": "Credential unsupported_credential_format",
+      "durationMs": 0,
+      "pass": true,
+      "message": "unsupported_credential_format error envelope valid per §A.3"
+    },
+    {
+      "id": "FT.IC.CI.I.H.IB.004",
+      "name": "Credential unsupported_credential_type",
+      "durationMs": 0,
+      "pass": true,
+      "message": "unsupported_credential_type error envelope valid per §A.3"
+    },
+    {
+      "id": "FT.IC.AU.I.H.IB.005",
+      "name": "Authorization missing client_id",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Missing client_id correctly identified per §5.1.1"
+    },
+    {
+      "id": "FT.IC.RF.I.H.VB.001",
+      "name": "Refresh basic flow",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Refresh-token request shape valid per §6.1",
+      "evidence": {
+        "body": {
+          "grant_type": "refresh_token",
+          "refresh_token": "__MOCK_REFRESH__",
+          "client_id": "es256-qGLPcu1ARXNNx8S3"
+        },
+        "proofPrefix": "eyJhbGciOiJFUzI1NiIsInR5..."
+      }
+    },
+    {
+      "id": "FT.IC.RF.I.H.IB.001",
+      "name": "Refresh expired token",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Expired refresh_token error envelope valid per RFC 6749 §5.2"
+    },
+    {
+      "id": "FT.IC.RF.I.H.VB.002",
+      "name": "Refresh rotates c_nonce",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Issuer rotates c_nonce on refresh per §7.2",
+      "evidence": {
+        "rotated": true
+      }
+    },
+    {
+      "id": "FT.IC.RF.I.H.IB.002",
+      "name": "Refresh audience mismatch",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Audience mismatch on refresh correctly classified as invalid_grant"
+    },
+    {
+      "id": "FT.WL.DC.W.V.VB.001",
+      "name": "Wallet deferred poll",
+      "durationMs": 0,
+      "pass": false,
+      "message": "Threw: issuer does not advertise deferred_credential_endpoint",
+      "evidence": {
+        "stack": [
+          "Error: issuer does not advertise deferred_credential_endpoint",
+          "    at fail (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:77:9)",
+          "    at <anonymous> (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:1045:60)",
+          "    at timed (/home/big/Documents/vc-conformance-test/apps/web/src/wallet/catalog.ts:31:25)"
+        ]
+      }
+    },
+    {
+      "id": "FT.WL.NO.W.V.VB.001",
+      "name": "Wallet handles credential_deleted",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Wallet purges local credential on credential_deleted per §9.1"
+    }
+  ],
+  "summary": {
+    "total": 41,
+    "passed": 33,
+    "failed": 8,
+    "skipped": 0,
+    "passRate": 0.8048780487804879
+  },
+  "context": {
+    "keys": {
+      "es256Kid": "es256-qGLPcu1ARXNNx8S3",
+      "eddsaKid": "eddsa-ggjen2RWrBEf2j-a"
+    },
+    "pkce": {
+      "codeChallengeMethod": "S256"
+    },
+    "issuerMetadata": "<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>VC Conformance Test Webapp</title>\n<meta name=\"description\" content=\"OID4VCI 1.0 / OID4VP 1.0 conformance test webapp for the Thailand Verifiable Credential ecosystem.\">\n<meta name=\"color-scheme\" content=\"light dark\">\n<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&display=swap\">\n<link rel=\"stylesheet\" href=\"/styles.css\">\n</head>\n<body>\n  <a class=\"skip\" href=\"#main\">Skip to main content</a>\n\n  <header class=\"topbar\" role=\"banner\">\n    <div class=\"brand\">\n      <div class=\"logo\" aria-hidden=\"true\">\n        <svg width=\"32\" height=\"32\" viewBox=\"0 0 32 32\" xmlns=\"http://www.w3.org/2000/svg\">\n          <defs>\n            <linearGradient id=\"brandG\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\">\n              <stop offset=\"0\" stop-color=\"#0a6464\"/>\n              <stop offset=\"1\" stop-color=\"#a8761e\"/>\n            </linearGradient>\n          </defs>\n          <rect width=\"32\" height=\"32\" rx=\"7\" fill=\"url(#brandG)\"/>\n          <path d=\"M8 10h6.2a3.6 3.6 0 0 1 0 7.2H12v4.8H8z\" fill=\"#fbf6ea\" opacity=\"0.96\"/>\n          <path d=\"M10.5 12.5h3a1.6 1.6 0 0 1 0 3.2h-3z\" fill=\"#0a6464\"/>\n          <circle cx=\"22\" cy=\"22\" r=\"3.2\" fill=\"#fbf6ea\" opacity=\"0.96\"/>\n        </svg>\n      </div>\n      <div class=\"brand-text\">\n        <h1>Conformance<span class=\"dim\">/</span><em>Webapp</em></h1>\n        <p>OID4VCI 1.0 · OID4VP 1.0 · Thailand VC</p>\n      </div>\n    </div>\n    <div class=\"status\" id=\"health-pill\" role=\"status\" aria-live=\"polite\" title=\"Server health\">\n      <span class=\"dot\" aria-hidden=\"true\"></span>\n      <span id=\"health-text\">checking…</span>\n    </div>\n  </header>\n\n  <main class=\"layout\" id=\"main\">\n    <nav class=\"sidebar\" aria-label=\"Primary\">\n      <button class=\"nav active\" data-view=\"run\" type=\"button\">\n        <svg class=\"icon\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><polygon points=\"4,3 13,8 4,13\"/></svg>\n        <span>Run</span>\n        <span class=\"nav-num\">01</span>\n      </button>\n      <button class=\"nav\" data-view=\"config\" type=\"button\">\n        <svg class=\"icon\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"8\" r=\"2.2\"/><path d=\"M8 1.5v1.7M8 12.8v1.7M1.5 8h1.7M12.8 8h1.7M3.4 3.4l1.2 1.2M11.4 11.4l1.2 1.2M3.4 12.6l1.2-1.2M11.4 4.6l1.2-1.2\"/></svg>\n        <span>Configure</span>\n        <span class=\"nav-num\">02</span>\n      </button>\n      <button class=\"nav\" data-view=\"history\" type=\"button\">\n        <svg class=\"icon\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"8\" r=\"6.2\"/><path d=\"M8 4.4V8l2.4 1.6\"/></svg>\n        <span>History</span>\n        <span class=\"nav-num\">03</span>\n      </button>\n      <button class=\"nav\" data-view=\"catalog\" type=\"button\">\n        <svg class=\"icon\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"2\" y=\"3\" width=\"5\" height=\"5\" rx=\"1\"/><rect x=\"9\" y=\"3\" width=\"5\" height=\"5\" rx=\"1\"/><rect x=\"2\" y=\"10\" width=\"5\" height=\"5\" rx=\"1\"/><rect x=\"9\" y=\"10\" width=\"5\" height=\"5\" rx=\"1\"/></svg>\n        <span>Test catalog</span>\n        <span class=\"nav-num\">04</span>\n      </button>\n      <button class=\"nav\" data-view=\"about\" type=\"button\">\n        <svg class=\"icon\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"8\" r=\"6.2\"/><path d=\"M8 7.2v4M8 5.2v.05\"/></svg>\n        <span>About</span>\n        <span class=\"nav-num\">05</span>\n      </button>\n      <div class=\"sidebar-foot\">\n        <div class=\"hint\">Test suite for issuers &amp; verifiers implementing <strong>OID4VCI 1.0 Final</strong> and <strong>OID4VP 1.0 Final</strong>.</div>\n      </div>\n    </nav>\n\n    <section class=\"content\" aria-live=\"polite\">\n      <!-- RUN VIEW -->\n      <article class=\"view active\" id=\"view-run\" aria-labelledby=\"run-h\">\n        <header class=\"view-header\">\n          <div>\n            <span class=\"eyebrow\">Step 01 · Run</span>\n            <h2 id=\"run-h\">Run a conformance <em>pass.</em></h2>\n            <p>Pick a cross-mode and a target. The webapp dispatches the catalog of test cases against it (or the in-process mock if no target is set) and produces a downloadable report.</p>\n          </div>\n          <span class=\"meta\" id=\"run-meta\">No run yet</span>\n        </header>\n\n        <div class=\"section-title\">Cross-modes <em>— pick one</em></div>\n        <div class=\"cards\" id=\"mode-cards\">\n          <button class=\"card mode\" data-mode=\"I->W\" type=\"button\" style=\"--stagger:60ms\">\n            <div class=\"card-icon\" aria-hidden=\"true\">\n              <svg viewBox=\"0 0 18 18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M2 14V6l7-3 7 3v8\"/><path d=\"M2 14h14\"/><path d=\"M6 14v-4h6v4\"/></svg>\n            </div>\n            <span class=\"card-no\">01 · I→W</span>\n            <h3>Issuer <em>→</em> Wallet</h3>\n            <p>Drive a <em>target Issuer</em> with our wallet simulator. Use this to verify an Issuer you control.</p>\n            <div class=\"card-meta\"><span class=\"badge\"><span class=\"dot\" aria-hidden=\"true\"></span><span data-test-count=\"I->W\">— tests</span></span></div>\n          </button>\n          <button class=\"card mode\" data-mode=\"V->W\" type=\"button\" style=\"--stagger:120ms\">\n            <div class=\"card-icon\" aria-hidden=\"true\">\n              <svg viewBox=\"0 0 18 18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"7.5\" cy=\"7.5\" r=\"4.5\"/><path d=\"M11 11l4 4\"/></svg>\n            </div>\n            <span class=\"card-no\">02 · V→W</span>\n            <h3>Verifier <em>→</em> Wallet</h3>\n            <p>Drive a <em>target Verifier</em> with our wallet simulator. Use this to verify a Verifier you control.</p>\n            <div class=\"card-meta\"><span class=\"badge\"><span class=\"dot\" aria-hidden=\"true\"></span><span data-test-count=\"V->W\">— tests</span></span></div>\n          </button>\n          <button class=\"card mode selected\" data-mode=\"W->I\" type=\"button\" style=\"--stagger:180ms\">\n            <div class=\"card-icon\" aria-hidden=\"true\">\n              <svg viewBox=\"0 0 18 18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"2\" width=\"9\" height=\"14\" rx=\"1.6\"/><path d=\"M5 5h5M5 8h5M5 11h3\"/><path d=\"M14 9v6\"/></svg>\n            </div>\n            <span class=\"card-no\">03 · W→I</span>\n            <h3>Wallet <em>→</em> Issuer</h3>\n            <p>Drive our wallet simulator with a <em>target Issuer</em>. Use this to test a wallet against a real Issuer.</p>\n            <div class=\"card-meta\"><span class=\"badge gold\"><span class=\"dot\" aria-hidden=\"true\"></span><span data-test-count=\"W->I\">— tests</span></span></div>\n          </button>\n          <button class=\"card mode\" data-mode=\"W->V\" type=\"button\" style=\"--stagger:240ms\">\n            <div class=\"card-icon\" aria-hidden=\"true\">\n              <svg viewBox=\"0 0 18 18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"3\" width=\"14\" height=\"9\" rx=\"1.5\"/><path d=\"M5 15h8\"/><path d=\"M2 12h14\"/></svg>\n            </div>\n            <span class=\"card-no\">04 · W→V</span>\n            <h3>Wallet <em>→</em> Verifier</h3>\n            <p>Drive our wallet simulator with a <em>target Verifier</em>. Use this to test a wallet against a real Verifier.</p>\n            <div class=\"card-meta\"><span class=\"badge gold\"><span class=\"dot\" aria-hidden=\"true\"></span><span data-test-count=\"W->V\">— tests</span></span></div>\n          </button>\n        </div>\n\n        <div class=\"section-title\">Dispatch <em>— target &amp; options</em></div>\n        <div class=\"run-panel\">\n          <form class=\"run-form\" id=\"run-form\" autocomplete=\"off\" onsubmit=\"event.preventDefault(); document.getElementById('btn-run').click();\">\n            <label>\n              <span>Mode</span>\n              <select id=\"run-mode\">\n                <option value=\"I->W\">Issuer ↔ Wallet (drive target issuer)</option>\n                <option value=\"V->W\">Verifier ↔ Wallet (drive target verifier)</option>\n                <option value=\"W->I\" selected>Wallet ↔ Issuer (test wallet against target issuer)</option>\n                <option value=\"W->V\">Wallet ↔ Verifier (test wallet against target verifier)</option>\n              </select>\n            </label>\n            <label>\n              <span>Credential configuration</span>\n              <select id=\"run-credential\"><option>ThaiNationalID</option></select>\n            </label>\n            <label class=\"full\">\n              <span>Target Issuer URL <em class=\"hint-inline\">(leave blank to use built-in mock)</em></span>\n              <input id=\"run-issuer\" type=\"url\" placeholder=\"https://issuer.example.com\" autocomplete=\"off\" spellcheck=\"false\" title=\"Must be an OID4VCI issuer root that serves /.well-known/openid-credential-issuer (with credential_endpoint, deferred_credential_endpoint, notification_endpoint). Not the bare server root.\">\n              <em class=\"hint-inline hint-meta\">Must be an OID4VCI issuer root (serves <code>/.well-known/openid-credential-issuer</code>), not the bare server root.</em>\n            </label>\n            <label class=\"full\">\n              <span>Target Verifier URL <em class=\"hint-inline\">(leave blank to use built-in mock)</em></span>\n              <input id=\"run-verifier\" type=\"url\" placeholder=\"https://verifier.example.com\" autocomplete=\"off\" spellcheck=\"false\" title=\"Must be the base of an OID4VP presentation definition endpoint, not the bare server root.\">\n              <em class=\"hint-inline hint-meta\">Must be an OID4VP verifier base, not the bare server root.</em>\n            </label>\n            <div class=\"actions\">\n              <button id=\"btn-run\" class=\"primary\" type=\"button\">\n                <svg class=\"icon\" viewBox=\"0 0 14 14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><polygon points=\"3,2 12,7 3,12\"/></svg>\n                <span class=\"btn-label\">Run conformance</span>\n              </button>\n              <button id=\"btn-load-cfg\" class=\"ghost\" type=\"button\">\n                <svg class=\"icon\" viewBox=\"0 0 14 14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 7h8M7 3l4 4-4 4\"/></svg>\n                Load saved config\n              </button>\n              <span class=\"spacer\"></span>\n              <span class=\"kbd\">or press <kbd>⌘</kbd><kbd>↵</kbd></span>\n            </div>\n          </form>\n          <aside class=\"run-side\" id=\"run-side\" aria-label=\"Run output\">\n            <div class=\"empty\">\n              <svg class=\"icon\" viewBox=\"0 0 22 22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"4\" width=\"16\" height=\"13\" rx=\"1.5\"/><path d=\"M3 8h16M7 12h4\"/></svg>\n              <div>No run yet. Click <strong>Run conformance</strong> above to dispatch the catalog.</div>\n            </div>\n          </aside>\n        </div>\n      </article>\n\n      <!-- CONFIG VIEW -->\n      <article class=\"view\" id=\"view-config\" aria-labelledby=\"config-h\">\n        <header class=\"view-header\">\n          <div>\n            <span class=\"eyebrow\">Step 02 · Configure</span>\n            <h2 id=\"config-h\">Configure the <em>default run.</em></h2>\n            <p>Edit the saved run config, manage the wallet's signing keys, and see the environment overrides the container started with.</p>\n          </div>\n        </header>\n        <div class=\"config-grid\">\n          <div class=\"panel\">\n            <div class=\"panel-head\">\n              <h3>Run config</h3>\n              <span class=\"tag\">persisted</span>\n            </div>\n            <form id=\"config-form\">\n              <label>\n                <span>Mode</span>\n                <select name=\"mode\">\n                  <option value=\"I->W\">Issuer ↔ Wallet</option>\n                  <option value=\"V->W\">Verifier ↔ Wallet</option>\n                  <option value=\"W->I\">Wallet ↔ Issuer</option>\n                  <option value=\"W->V\">Wallet ↔ Verifier</option>\n                </select>\n              </label>\n              <label>\n                <span>Default credential configuration</span>\n                <input name=\"credentialConfigurationId\" value=\"ThaiNationalID\" required>\n              </label>\n              <label>\n                <span>Target Issuer URL <em class=\"hint-inline\">(optional)</em></span>\n                <input name=\"targetIssuer\" type=\"url\" placeholder=\"https://issuer.example.com\" spellcheck=\"false\" title=\"Must be an OID4VCI issuer root that serves /.well-known/openid-credential-issuer (with credential_endpoint, deferred_credential_endpoint, notification_endpoint). Not the bare server root.\">\n                <em class=\"hint-inline hint-meta\">OID4VCI issuer root, not the bare server root.</em>\n              </label>\n              <label>\n                <span>Target Verifier URL <em class=\"hint-inline\">(optional)</em></span>\n                <input name=\"targetVerifier\" type=\"url\" placeholder=\"https://verifier.example.com\" spellcheck=\"false\" title=\"Must be the base of an OID4VP presentation definition endpoint, not the bare server root.\">\n                <em class=\"hint-inline hint-meta\">OID4VP verifier base, not the bare server root.</em>\n              </label>\n              <button class=\"primary\" type=\"submit\">\n                <svg class=\"icon\" viewBox=\"0 0 14 14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M2 7l3 3 7-7\"/></svg>\n                Save config\n              </button>\n            </form>\n          </div>\n          <div class=\"panel\">\n            <div class=\"panel-head\">\n              <h3>Wallet keys</h3>\n              <span class=\"tag\">in-process</span>\n            </div>\n            <p class=\"dim\">Server-generated key pair. Persists only for the lifetime of the server. Regenerate to get a fresh pair.</p>\n            <div id=\"keys-display\" class=\"mono-block\">…</div>\n            <button id=\"btn-regen\" class=\"ghost\" type=\"button\">\n              <svg class=\"icon\" viewBox=\"0 0 14 14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M11.5 4.5A5 5 0 1 0 12 8\"/><path d=\"M12 2v3h-3\"/></svg>\n              Regenerate\n            </button>\n          </div>\n          <div class=\"panel span-2\">\n            <div class=\"panel-head\">\n              <h3>Environment overrides</h3>\n              <span class=\"tag\">read at start</span>\n            </div>\n            <div class=\"mono-block\">\n              <ul>\n                <li><code>PORT</code><span class=\"desc\">listen port (default <code>8080</code>)</span></li>\n                <li><code>HOST</code><span class=\"desc\">listen address (default <code>0.0.0.0</code>)</span></li>\n                <li><code>LOG_LEVEL</code><span class=\"desc\">pino level (default <code>info</code>)</span></li>\n              </ul>\n            </div>\n          </div>\n        </div>\n      </article>\n\n      <!-- HISTORY VIEW -->\n      <article class=\"view\" id=\"view-history\" aria-labelledby=\"history-h\">\n        <header class=\"view-header\">\n          <div>\n            <span class=\"eyebrow\">Step 03 · History</span>\n            <h2 id=\"history-h\">Past <em>runs.</em></h2>\n            <p>Every run is persisted to disk (latest 100). Click a row to open the report in the Run panel. <strong>Shift-click</strong> a row to pin it as the <em>left</em> side of a diff, then click <strong>↔ Diff</strong>.</p>\n          </div>\n        </header>\n        <div id=\"history-list\" class=\"history-list\">\n          <div class=\"empty\" style=\"color:var(--ink-3);font-style:italic;padding:var(--s-3) 0\">No runs yet.</div>\n        </div>\n      </article>\n\n      <!-- CATALOG VIEW -->\n      <article class=\"view\" id=\"view-catalog\" aria-labelledby=\"catalog-h\">\n        <header class=\"view-header\">\n          <div>\n            <span class=\"eyebrow\">Step 04 · Catalog</span>\n            <h2 id=\"catalog-h\">Test <em>catalog.</em></h2>\n            <p>Every test case the webapp can execute, with its normative spec reference. Sourced from the corrected Thailand VC OID4VCI / OID4VP 1.0 conformance testcase v2.0.</p>\n          </div>\n        </header>\n        <div id=\"catalog-table\">…</div>\n      </article>\n\n      <!-- ABOUT VIEW -->\n      <article class=\"view\" id=\"view-about\" aria-labelledby=\"about-h\">\n        <header class=\"view-header\">\n          <div>\n            <span class=\"eyebrow\">Step 05 · About</span>\n            <h2 id=\"about-h\">What this is, <em>and what it isn't.</em></h2>\n            <p>A short orientation for first-time users.</p>\n          </div>\n        </header>\n        <div class=\"prose\">\n          <p>The VC Conformance Test Webapp is a self-contained tool for QA engineers who need to verify an <strong>OpenID for Verifiable Credential Issuance 1.0 Final</strong> issuer or an <strong>OpenID for Verifiable Presentations 1.0 Final</strong> verifier — and to verify <em>wallets</em> against real targets.</p>\n          <p>It is <strong>not</strong> a wallet product, a registry, or a trust-list authority. It does not store PII. It does not commit to a real Verifiable Data Registry. It is a <em>test harness</em>.</p>\n          <h3>Cross-modes</h3>\n          <ul>\n            <li><strong>Issuer ↔ Wallet</strong> — drive a target Issuer with our wallet simulator. Use this to verify an Issuer you control. Tests the OID4VCI issuance pipeline (offer → authorization → token → credential).</li>\n            <li><strong>Verifier ↔ Wallet</strong> — drive a target Verifier with our wallet simulator. Use this to verify a Verifier you control. Tests the OID4VP presentation request and response.</li>\n            <li><strong>Wallet ↔ Issuer</strong> — drive our wallet simulator with a target Issuer. Use this to test your wallet against a real Issuer.</li>\n            <li><strong>Wallet ↔ Verifier</strong> — drive our wallet simulator with a target Verifier. Use this to test your wallet against a real Verifier.</li>\n          </ul>\n          <h3>Coverage</h3>\n          <p>The webapp implements the <em>happy-path + canonical negative-path</em> of every operation the spec defines for each role. The current concrete suite is roughly 28 executable test cases covering credential offer, authorization (PKCE + authorization_details), token exchange, credential request (KB-JWT ES256 + EdDSA), deferred credential, notification, and OID4VP DCQL presentation. The number of <em>concrete</em> cases per mode is configurable.</p>\n          <h3>How to read a report</h3>\n          <p>Each row in the report is one test. ✅ means the spec-shaped request was built correctly by our simulator and the target accepted (or rejected, for negative tests). ⏭️ means a prerequisite for that test was not met (e.g. you ran Verifier mode but didn't supply a target verifier). ❌ means the simulator could not build the request per the spec, or the target returned an unexpected error.</p>\n        </div>\n      </article>\n    </section>\n  </main>\n\n  <div class=\"toast\" id=\"toast\" hidden role=\"status\" aria-live=\"polite\"></div>\n\n  <script type=\"module\" src=\"/app.js\"></script>\n</body>\n</html>\n"
+  }
+}

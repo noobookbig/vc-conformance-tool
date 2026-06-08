@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VC Conformance Test Webapp</title>
+<meta name="description" content="OID4VCI 1.0 / OID4VP 1.0 conformance test webapp for the Thailand Verifiable Credential ecosystem.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&display=swap">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+
+  <header class="topbar" role="banner">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">
+        <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="brandG" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#0a6464"/>
+              <stop offset="1" stop-color="#a8761e"/>
+            </linearGradient>
+          </defs>
+          <rect width="32" height="32" rx="7" fill="url(#brandG)"/>
+          <path d="M8 10h6.2a3.6 3.6 0 0 1 0 7.2H12v4.8H8z" fill="#fbf6ea" opacity="0.96"/>
+          <path d="M10.5 12.5h3a1.6 1.6 0 0 1 0 3.2h-3z" fill="#0a6464"/>
+          <circle cx="22" cy="22" r="3.2" fill="#fbf6ea" opacity="0.96"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>Conformance<span class="dim">/</span><em>Webapp</em></h1>
+        <p>OID4VCI 1.0 · OID4VP 1.0 · Thailand VC</p>
+      </div>
+    </div>
+    <div class="status" id="health-pill" role="status" aria-live="polite" title="Server health">
+      <span class="dot" aria-hidden="true"></span>
+      <span id="health-text">checking…</span>
+    </div>
+  </header>
+
+  <main class="layout" id="main">
+    <nav class="sidebar" aria-label="Primary">
+      <button class="nav active" data-view="run" type="button">
+        <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="4,3 13,8 4,13"/></svg>
+        <span>Run</span>
+        <span class="nav-num">01</span>
+      </button>
+      <button class="nav" data-view="config" type="button">
+        <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v1.7M8 12.8v1.7M1.5 8h1.7M12.8 8h1.7M3.4 3.4l1.2 1.2M11.4 11.4l1.2 1.2M3.4 12.6l1.2-1.2M11.4 4.6l1.2-1.2"/></svg>
+        <span>Configure</span>
+        <span class="nav-num">02</span>
+      </button>
+      <button class="nav" data-view="history" type="button">
+        <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M8 4.4V8l2.4 1.6"/></svg>
+        <span>History</span>
+        <span class="nav-num">03</span>
+      </button>
+      <button class="nav" data-view="catalog" type="button">
+        <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="5" height="5" rx="1"/><rect x="9" y="3" width="5" height="5" rx="1"/><rect x="2" y="10" width="5" height="5" rx="1"/><rect x="9" y="10" width="5" height="5" rx="1"/></svg>
+        <span>Test catalog</span>
+        <span class="nav-num">04</span>
+      </button>
+      <button class="nav" data-view="about" type="button">
+        <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M8 7.2v4M8 5.2v.05"/></svg>
+        <span>About</span>
+        <span class="nav-num">05</span>
+      </button>
+      <div class="sidebar-foot">
+        <div class="hint">Test suite for issuers &amp; verifiers implementing <strong>OID4VCI 1.0 Final</strong> and <strong>OID4VP 1.0 Final</strong>.</div>
+      </div>
+    </nav>
+
+    <section class="content" aria-live="polite">
+      <!-- RUN VIEW -->
+      <article class="view active" id="view-run" aria-labelledby="run-h">
+        <header class="view-header">
+          <div>
+            <span class="eyebrow">Step 01 · Run</span>
+            <h2 id="run-h">Run a conformance <em>pass.</em></h2>
+            <p>Pick a cross-mode and a target. The webapp dispatches the catalog of test cases against it (or the in-process mock if no target is set) and produces a downloadable report.</p>
+          </div>
+          <span class="meta" id="run-meta">No run yet</span>
+        </header>
+
+        <div class="section-title">Cross-modes <em>— pick one</em></div>
+        <div class="cards" id="mode-cards">
+          <button class="card mode" data-mode="I->W" type="button" style="--stagger:60ms">
+            <div class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 14V6l7-3 7 3v8"/><path d="M2 14h14"/><path d="M6 14v-4h6v4"/></svg>
+            </div>
+            <span class="card-no">01 · I→W</span>
+            <h3>Issuer <em>→</em> Wallet</h3>
+            <p>Drive a <em>target Issuer</em> with our wallet simulator. Use this to verify an Issuer you control.</p>
+            <div class="card-meta"><span class="badge"><span class="dot" aria-hidden="true"></span><span data-test-count="I->W">— tests</span></span></div>
+          </button>
+          <button class="card mode" data-mode="V->W" type="button" style="--stagger:120ms">
+            <div class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="7.5" r="4.5"/><path d="M11 11l4 4"/></svg>
+            </div>
+            <span class="card-no">02 · V→W</span>
+            <h3>Verifier <em>→</em> Wallet</h3>
+            <p>Drive a <em>target Verifier</em> with our wallet simulator. Use this to verify a Verifier you control.</p>
+            <div class="card-meta"><span class="badge"><span class="dot" aria-hidden="true"></span><span data-test-count="V->W">— tests</span></span></div>
+          </button>
+          <button class="card mode selected" data-mode="W->I" type="button" style="--stagger:180ms">
+            <div class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="2" width="9" height="14" rx="1.6"/><path d="M5 5h5M5 8h5M5 11h3"/><path d="M14 9v6"/></svg>
+            </div>
+            <span class="card-no">03 · W→I</span>
+            <h3>Wallet <em>→</em> Issuer</h3>
+            <p>Drive our wallet simulator with a <em>target Issuer</em>. Use this to test a wallet against a real Issuer.</p>
+            <div class="card-meta"><span class="badge gold"><span class="dot" aria-hidden="true"></span><span data-test-count="W->I">— tests</span></span></div>
+          </button>
+          <button class="card mode" data-mode="W->V" type="button" style="--stagger:240ms">
+            <div class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="14" height="9" rx="1.5"/><path d="M5 15h8"/><path d="M2 12h14"/></svg>
+            </div>
+            <span class="card-no">04 · W→V</span>
+            <h3>Wallet <em>→</em> Verifier</h3>
+            <p>Drive our wallet simulator with a <em>target Verifier</em>. Use this to test a wallet against a real Verifier.</p>
+            <div class="card-meta"><span class="badge gold"><span class="dot" aria-hidden="true"></span><span data-test-count="W->V">— tests</span></span></div>
+          </button>
+        </div>
+
+        <div class="section-title">Dispatch <em>— target &amp; options</em></div>
+        <div class="run-panel">
+          <form class="run-form" id="run-form" autocomplete="off" onsubmit="event.preventDefault(); document.getElementById('btn-run').click();">
+            <label>
+              <span>Mode</span>
+              <select id="run-mode">
+                <option value="I->W">Issuer ↔ Wallet (drive target issuer)</option>
+                <option value="V->W">Verifier ↔ Wallet (drive target verifier)</option>
+                <option value="W->I" selected>Wallet ↔ Issuer (test wallet against target issuer)</option>
+                <option value="W->V">Wallet ↔ Verifier (test wallet against target verifier)</option>
+              </select>
+            </label>
+            <label>
+              <span>Credential configuration</span>
+              <select id="run-credential"><option>ThaiNationalID</option></select>
+            </label>
+            <label class="full">
+              <span>Target Issuer URL <em class="hint-inline">(leave blank to use built-in mock)</em></span>
+              <input id="run-issuer" type="url" placeholder="https://issuer.example.com" autocomplete="off" spellcheck="false" title="Must be an OID4VCI issuer root that serves /.well-known/openid-credential-issuer (with credential_endpoint, deferred_credential_endpoint, notification_endpoint). Not the bare server root.">
+              <em class="hint-inline hint-meta">Must be an OID4VCI issuer root (serves <code>/.well-known/openid-credential-issuer</code>), not the bare server root.</em>
+            </label>
+            <label class="full">
+              <span>Target Verifier URL <em class="hint-inline">(leave blank to use built-in mock)</em></span>
+              <input id="run-verifier" type="url" placeholder="https://verifier.example.com" autocomplete="off" spellcheck="false" title="Must be the base of an OID4VP presentation definition endpoint, not the bare server root.">
+              <em class="hint-inline hint-meta">Must be an OID4VP verifier base, not the bare server root.</em>
+            </label>
+            <div class="actions">
+              <button id="btn-run" class="primary" type="button">
+                <svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3,2 12,7 3,12"/></svg>
+                <span class="btn-label">Run conformance</span>
+              </button>
+              <button id="btn-load-cfg" class="ghost" type="button">
+                <svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h8M7 3l4 4-4 4"/></svg>
+                Load saved config
+              </button>
+              <span class="spacer"></span>
+              <span class="kbd">or press <kbd>⌘</kbd><kbd>↵</kbd></span>
+            </div>
+          </form>
+          <aside class="run-side" id="run-side" aria-label="Run output">
+            <div class="empty">
+              <svg class="icon" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="16" height="13" rx="1.5"/><path d="M3 8h16M7 12h4"/></svg>
+              <div>No run yet. Click <strong>Run conformance</strong> above to dispatch the catalog.</div>
+            </div>
+          </aside>
+        </div>
+      </article>
+
+      <!-- CONFIG VIEW -->
+      <article class="view" id="view-config" aria-labelledby="config-h">
+        <header class="view-header">
+          <div>
+            <span class="eyebrow">Step 02 · Configure</span>
+            <h2 id="config-h">Configure the <em>default run.</em></h2>
+            <p>Edit the saved run config, manage the wallet's signing keys, and see the environment overrides the container started with.</p>
+          </div>
+        </header>
+        <div class="config-grid">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Run config</h3>
+              <span class="tag">persisted</span>
+            </div>
+            <form id="config-form">
+              <label>
+                <span>Mode</span>
+                <select name="mode">
+                  <option value="I->W">Issuer ↔ Wallet</option>
+                  <option value="V->W">Verifier ↔ Wallet</option>
+                  <option value="W->I">Wallet ↔ Issuer</option>
+                  <option value="W->V">Wallet ↔ Verifier</option>
+                </select>
+              </label>
+              <label>
+                <span>Default credential configuration</span>
+                <input name="credentialConfigurationId" value="ThaiNationalID" required>
+              </label>
+              <label>
+                <span>Target Issuer URL <em class="hint-inline">(optional)</em></span>
+                <input name="targetIssuer" type="url" placeholder="https://issuer.example.com" spellcheck="false" title="Must be an OID4VCI issuer root that serves /.well-known/openid-credential-issuer (with credential_endpoint, deferred_credential_endpoint, notification_endpoint). Not the bare server root.">
+                <em class="hint-inline hint-meta">OID4VCI issuer root, not the bare server root.</em>
+              </label>
+              <label>
+                <span>Target Verifier URL <em class="hint-inline">(optional)</em></span>
+                <input name="targetVerifier" type="url" placeholder="https://verifier.example.com" spellcheck="false" title="Must be the base of an OID4VP presentation definition endpoint, not the bare server root.">
+                <em class="hint-inline hint-meta">OID4VP verifier base, not the bare server root.</em>
+              </label>
+              <button class="primary" type="submit">
+                <svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 7l3 3 7-7"/></svg>
+                Save config
+              </button>
+            </form>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Wallet keys</h3>
+              <span class="tag">in-process</span>
+            </div>
+            <p class="dim">Server-generated key pair. Persists only for the lifetime of the server. Regenerate to get a fresh pair.</p>
+            <div id="keys-display" class="mono-block">…</div>
+            <button id="btn-regen" class="ghost" type="button">
+              <svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.5 4.5A5 5 0 1 0 12 8"/><path d="M12 2v3h-3"/></svg>
+              Regenerate
+            </button>
+          </div>
+          <div class="panel span-2">
+            <div class="panel-head">
+              <h3>Environment overrides</h3>
+              <span class="tag">read at start</span>
+            </div>
+            <div class="mono-block">
+              <ul>
+                <li><code>PORT</code><span class="desc">listen port (default <code>8080</code>)</span></li>
+                <li><code>HOST</code><span class="desc">listen address (default <code>0.0.0.0</code>)</span></li>
+                <li><code>LOG_LEVEL</code><span class="desc">pino level (default <code>info</code>)</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- HISTORY VIEW -->
+      <article class="view" id="view-history" aria-labelledby="history-h">
+        <header class="view-header">
+          <div>
+            <span class="eyebrow">Step 03 · History</span>
+            <h2 id="history-h">Past <em>runs.</em></h2>
+            <p>Every run is persisted to disk (latest 100). Click a row to open the report in the Run panel. <strong>Shift-click</strong> a row to pin it as the <em>left</em> side of a diff, then click <strong>↔ Diff</strong>.</p>
+          </div>
+        </header>
+        <div id="history-list" class="history-list">
+          <div class="empty" style="color:var(--ink-3);font-style:italic;padding:var(--s-3) 0">No runs yet.</div>
+        </div>
+      </article>
+
+      <!-- CATALOG VIEW -->
+      <article class="view" id="view-catalog" aria-labelledby="catalog-h">
+        <header class="view-header">
+          <div>
+            <span class="eyebrow">Step 04 · Catalog</span>
+            <h2 id="catalog-h">Test <em>catalog.</em></h2>
+            <p>Every test case the webapp can execute, with its normative spec reference. Sourced from the corrected Thailand VC OID4VCI / OID4VP 1.0 conformance testcase v2.0.</p>
+          </div>
+        </header>
+        <div id="catalog-table">…</div>
+      </article>
+
+      <!-- ABOUT VIEW -->
+      <article class="view" id="view-about" aria-labelledby="about-h">
+        <header class="view-header">
+          <div>
+            <span class="eyebrow">Step 05 · About</span>
+            <h2 id="about-h">What this is, <em>and what it isn't.</em></h2>
+            <p>A short orientation for first-time users.</p>
+          </div>
+        </header>
+        <div class="prose">
+          <p>The VC Conformance Test Webapp is a self-contained tool for QA engineers who need to verify an <strong>OpenID for Verifiable Credential Issuance 1.0 Final</strong> issuer or an <strong>OpenID for Verifiable Presentations 1.0 Final</strong> verifier — and to verify <em>wallets</em> against real targets.</p>
+          <p>It is <strong>not</strong> a wallet product, a registry, or a trust-list authority. It does not store PII. It does not commit to a real Verifiable Data Registry. It is a <em>test harness</em>.</p>
+          <h3>Cross-modes</h3>
+          <ul>
+            <li><strong>Issuer ↔ Wallet</strong> — drive a target Issuer with our wallet simulator. Use this to verify an Issuer you control. Tests the OID4VCI issuance pipeline (offer → authorization → token → credential).</li>
+            <li><strong>Verifier ↔ Wallet</strong> — drive a target Verifier with our wallet simulator. Use this to verify a Verifier you control. Tests the OID4VP presentation request and response.</li>
+            <li><strong>Wallet ↔ Issuer</strong> — drive our wallet simulator with a target Issuer. Use this to test your wallet against a real Issuer.</li>
+            <li><strong>Wallet ↔ Verifier</strong> — drive our wallet simulator with a target Verifier. Use this to test your wallet against a real Verifier.</li>
+          </ul>
+          <h3>Coverage</h3>
+          <p>The webapp implements the <em>happy-path + canonical negative-path</em> of every operation the spec defines for each role. The current concrete suite is roughly 28 executable test cases covering credential offer, authorization (PKCE + authorization_details), token exchange, credential request (KB-JWT ES256 + EdDSA), deferred credential, notification, and OID4VP DCQL presentation. The number of <em>concrete</em> cases per mode is configurable.</p>
+          <h3>How to read a report</h3>
+          <p>Each row in the report is one test. ✅ means the spec-shaped request was built correctly by our simulator and the target accepted (or rejected, for negative tests). ⏭️ means a prerequisite for that test was not met (e.g. you ran Verifier mode but didn't supply a target verifier). ❌ means the simulator could not build the request per the spec, or the target returned an unexpected error.</p>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

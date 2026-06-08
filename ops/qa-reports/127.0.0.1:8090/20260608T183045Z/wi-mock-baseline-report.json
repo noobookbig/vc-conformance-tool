@@ -1,0 +1,483 @@
+{
+  "runId": "run-mq5jqjj2-ASrbxA",
+  "mode": "W->I",
+  "startedAt": "2026-06-08T18:30:32.798Z",
+  "finishedAt": "2026-06-08T18:30:32.820Z",
+  "durationMs": 22,
+  "target": {
+    "credentialConfigurationId": "ThaiNationalID"
+  },
+  "results": [
+    {
+      "id": "FT.IC.CO.I.H.VB.001",
+      "name": "Credential Offer (by value)",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Credential offer shape validated against §4.1.1",
+      "evidence": {
+        "offer": {
+          "credential_issuer": "/.mock/issuer",
+          "credential_configuration_ids": [
+            "ThaiNationalID"
+          ],
+          "grants": {
+            "authorization_code": {
+              "issuer_state": "X5mfuhq4t2k"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "FT.IC.CO.I.H.VB.002",
+      "name": "Credential Offer (by reference)",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Offer URI well-formed; holder would fetch it next.",
+      "evidence": {
+        "offer_uri": "/.mock/issuer/offer/qCQOlgv4M0E"
+      }
+    },
+    {
+      "id": "FT.IC.CO.I.H.IB.001",
+      "name": "Credential Offer missing config ids",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Invalid offer rejected client-side per §4.1.1"
+    },
+    {
+      "id": "FT.IC.AU.I.H.VB.001",
+      "name": "Authorization request (valid)",
+      "durationMs": 1,
+      "pass": true,
+      "message": "Authorization request built per §5.1.1",
+      "evidence": {
+        "url": "http://placeholder.local/.mock/issuer/authorize?response_type=code&client_id=es256-9OZXfkWwYaDL18GU&code_challenge=6R8Mnf9HFqOr-C1eZ1QQPF7EzyTxfziROtaiXkvB6Cg&code_challenge_method=S256&authorization_details=%5B%7B%22type%22%3A%22openid_credential%22%2C%22credential_configuration_id%22%3A%22ThaiNationalID%22%7D%5D&state=pimv5BdMqvU&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fcallback"
+      }
+    },
+    {
+      "id": "FT.IC.AU.I.H.VB.AD.001",
+      "name": "authorization_details: credential_configuration_id",
+      "durationMs": 0,
+      "pass": true,
+      "message": "authorization_details shape valid per §5.1.1"
+    },
+    {
+      "id": "FT.IC.AU.I.H.IB.PKCE.001",
+      "name": "PKCE missing code_challenge",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Missing code_challenge correctly flagged per §3.5"
+    },
+    {
+      "id": "FT.IC.AU.I.H.IB.PKCE.003",
+      "name": "PKCE downgrade to plain",
+      "durationMs": 0,
+      "pass": true,
+      "message": "plain PKCE method correctly identified as downgrade"
+    },
+    {
+      "id": "FT.IC.AU.I.H.IB.AD.001",
+      "name": "authorization_details missing type",
+      "durationMs": 0,
+      "pass": true,
+      "message": "authorization_details entry missing type correctly flagged"
+    },
+    {
+      "id": "FT.IC.AU.I.H.IB.AD.003",
+      "name": "authorization_details malformed JSON",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Malformed JSON correctly identified"
+    },
+    {
+      "id": "FT.IC.TE.I.H.VB.001",
+      "name": "Token exchange (PKCE)",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Token request shape valid per §6.1",
+      "evidence": {
+        "url": "http://127.0.0.1:8090/.mock/issuer/token",
+        "body": {
+          "grant_type": "authorization_code",
+          "code": "__MOCK_AUTH_CODE__",
+          "code_verifier": "CZ3ARFk1YxwwkRJWDg2lC4cc1j8jH9Neg1_5LBOuAHmyFPxIVLbDzbhUP6OA_--f",
+          "client_id": "es256-9OZXfkWwYaDL18GU"
+        }
+      }
+    },
+    {
+      "id": "FT.IC.TE.I.H.IB.005",
+      "name": "Token exchange missing code_verifier",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Missing code_verifier correctly identified"
+    },
+    {
+      "id": "FT.IC.CI.I.H.VB.001",
+      "name": "Credential request KB-JWT (ES256)",
+      "durationMs": 1,
+      "pass": true,
+      "message": "KB-JWT (ES256) built per §7.2",
+      "evidence": {
+        "aud": "http://127.0.0.1:8090/.mock/issuer/credential",
+        "proofPrefix": "eyJhbGciOiJFUzI1NiIsInR5..."
+      }
+    },
+    {
+      "id": "FT.IC.CI.I.H.VB.002",
+      "name": "Credential request KB-JWT (EdDSA)",
+      "durationMs": 2,
+      "pass": true,
+      "message": "KB-JWT (EdDSA) built per §7.2.1",
+      "evidence": {
+        "aud": "http://127.0.0.1:8090/.mock/issuer/credential",
+        "proofPrefix": "eyJhbGciOiJFZERTQSIsInR5..."
+      }
+    },
+    {
+      "id": "FT.IC.CI.I.H.IB.001",
+      "name": "Credential request missing proof",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Missing proof correctly identified"
+    },
+    {
+      "id": "FT.IC.CI.I.H.IB.002",
+      "name": "Credential request bad c_nonce",
+      "durationMs": 0,
+      "pass": true,
+      "message": "c_nonce binding rule noted per §7.2 (rejection by issuer expected)"
+    },
+    {
+      "id": "FT.IC.DC.I.H.VB.001",
+      "name": "Deferred credential polling",
+      "durationMs": 0,
+      "pass": true,
+      "message": "deferred_credential_endpoint advertised per §8.1",
+      "evidence": {
+        "endpoint": "http://127.0.0.1:8090/.mock/issuer/credential/deferred"
+      }
+    },
+    {
+      "id": "FT.IC.DC.I.H.IB.001",
+      "name": "Deferred credential invalid transaction_id",
+      "durationMs": 0,
+      "pass": true,
+      "message": "invalid transaction_id rejection path noted per §8.3"
+    },
+    {
+      "id": "FT.IC.NO.I.H.VB.001",
+      "name": "Notification credential_accepted",
+      "durationMs": 0,
+      "pass": true,
+      "message": "notification_endpoint advertised per §9.1"
+    },
+    {
+      "id": "FT.IC.NO.I.H.IB.001",
+      "name": "Notification unknown event",
+      "durationMs": 0,
+      "pass": true,
+      "message": "unknown event rejection path noted per §9.1"
+    },
+    {
+      "id": "FT.WL.MT.W.V.VB.001",
+      "name": "Fetch issuer metadata",
+      "durationMs": 2,
+      "pass": true,
+      "message": "Issuer metadata fetched and validated per §4.2",
+      "evidence": {
+        "url": "http://127.0.0.1:8090/.mock/issuer/.well-known/openid-credential-issuer",
+        "credential_endpoint": "http://127.0.0.1:8090/.mock/issuer/credential",
+        "configs": [
+          "ThaiNationalID",
+          "ThaiUniversityDegree"
+        ]
+      }
+    },
+    {
+      "id": "FT.WL.IC.W.I.VB.001",
+      "name": "Wallet full issuance flow",
+      "durationMs": 10,
+      "pass": true,
+      "message": "Credential request completed per §7",
+      "evidence": {
+        "credential_endpoint": "http://127.0.0.1:8090/.mock/issuer/credential",
+        "response_keys": [
+          "format",
+          "credential",
+          "c_nonce",
+          "c_nonce_expires_in"
+        ]
+      }
+    },
+    {
+      "id": "FT.IC.DC.I.H.VB.002",
+      "name": "Deferred pre-auth + numeric tx_code",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Pre-authorized + numeric tx_code shape valid per §8.1",
+      "evidence": {
+        "txCodeInputMode": "numeric"
+      }
+    },
+    {
+      "id": "FT.IC.DC.I.H.VB.003",
+      "name": "Deferred pre-auth + text tx_code",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Pre-authorized + alphanumeric tx_code shape valid per §8.1",
+      "evidence": {
+        "txCodeInputMode": "text"
+      }
+    },
+    {
+      "id": "FT.IC.DC.I.H.VB.004",
+      "name": "Deferred user_pin_required toggle",
+      "durationMs": 0,
+      "pass": true,
+      "message": "user_pin_required toggle in pre-authorized grant handled per §8.1"
+    },
+    {
+      "id": "FT.IC.DC.I.H.IB.002",
+      "name": "Deferred tx_code missing",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Missing tx_code correctly identified per §8.1"
+    },
+    {
+      "id": "FT.IC.DC.I.H.IB.003",
+      "name": "Deferred credential issuance_pending",
+      "durationMs": 0,
+      "pass": true,
+      "message": "issuance_pending error shape validated per §8.3",
+      "evidence": {
+        "errBody": {
+          "error": "issuance_pending",
+          "error_description": "Credential is not yet ready",
+          "interval": 5
+        }
+      }
+    },
+    {
+      "id": "FT.IC.DC.I.H.IB.004",
+      "name": "Deferred invalid transaction_id",
+      "durationMs": 0,
+      "pass": true,
+      "message": "invalid_transaction_id error shape validated per §8.3"
+    },
+    {
+      "id": "FT.IC.NO.I.H.VB.002",
+      "name": "Notification credential_deleted",
+      "durationMs": 0,
+      "pass": true,
+      "message": "credential_deleted event shape valid per §9.1"
+    },
+    {
+      "id": "FT.IC.NO.I.H.VB.003",
+      "name": "Notification credential_failure",
+      "durationMs": 0,
+      "pass": true,
+      "message": "credential_failure event shape valid per §9.1"
+    },
+    {
+      "id": "FT.IC.NO.I.H.IB.002",
+      "name": "Notification invalid_notification_id",
+      "durationMs": 0,
+      "pass": true,
+      "message": "invalid_notification_id error shape validated per §9.1"
+    },
+    {
+      "id": "FT.IC.NO.I.H.IB.003",
+      "name": "Notification missing notification_id",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Missing notification_id correctly flagged per §9.1"
+    },
+    {
+      "id": "FT.IC.TE.I.H.IB.006",
+      "name": "Token unsupported grant_type",
+      "durationMs": 0,
+      "pass": true,
+      "message": "unsupported_grant_type error envelope valid per RFC 6749 §5.2"
+    },
+    {
+      "id": "FT.IC.CI.I.H.IB.003",
+      "name": "Credential unsupported_credential_format",
+      "durationMs": 0,
+      "pass": true,
+      "message": "unsupported_credential_format error envelope valid per §A.3"
+    },
+    {
+      "id": "FT.IC.CI.I.H.IB.004",
+      "name": "Credential unsupported_credential_type",
+      "durationMs": 0,
+      "pass": true,
+      "message": "unsupported_credential_type error envelope valid per §A.3"
+    },
+    {
+      "id": "FT.IC.AU.I.H.IB.005",
+      "name": "Authorization missing client_id",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Missing client_id correctly identified per §5.1.1"
+    },
+    {
+      "id": "FT.IC.RF.I.H.VB.001",
+      "name": "Refresh basic flow",
+      "durationMs": 1,
+      "pass": true,
+      "message": "Refresh-token request shape valid per §6.1",
+      "evidence": {
+        "body": {
+          "grant_type": "refresh_token",
+          "refresh_token": "__MOCK_REFRESH__",
+          "client_id": "es256-9OZXfkWwYaDL18GU"
+        },
+        "proofPrefix": "eyJhbGciOiJFUzI1NiIsInR5..."
+      }
+    },
+    {
+      "id": "FT.IC.RF.I.H.IB.001",
+      "name": "Refresh expired token",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Expired refresh_token error envelope valid per RFC 6749 §5.2"
+    },
+    {
+      "id": "FT.IC.RF.I.H.VB.002",
+      "name": "Refresh rotates c_nonce",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Issuer rotates c_nonce on refresh per §7.2",
+      "evidence": {
+        "rotated": true
+      }
+    },
+    {
+      "id": "FT.IC.RF.I.H.IB.002",
+      "name": "Refresh audience mismatch",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Audience mismatch on refresh correctly classified as invalid_grant"
+    },
+    {
+      "id": "FT.WL.DC.W.V.VB.001",
+      "name": "Wallet deferred poll",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Wallet honors interval backoff per §8.3",
+      "evidence": {
+        "interval": 5,
+        "maxAttempts": 6
+      }
+    },
+    {
+      "id": "FT.WL.NO.W.V.VB.001",
+      "name": "Wallet handles credential_deleted",
+      "durationMs": 0,
+      "pass": true,
+      "message": "Wallet purges local credential on credential_deleted per §9.1"
+    }
+  ],
+  "summary": {
+    "total": 41,
+    "passed": 41,
+    "failed": 0,
+    "skipped": 0,
+    "passRate": 1
+  },
+  "context": {
+    "keys": {
+      "es256Kid": "es256-9OZXfkWwYaDL18GU",
+      "eddsaKid": "eddsa-1gbYcxzHGA4eQpsO"
+    },
+    "pkce": {
+      "codeChallengeMethod": "S256"
+    },
+    "issuerMetadata": {
+      "credential_issuer": "http://127.0.0.1:8090/.mock/issuer",
+      "authorization_servers": [
+        "http://127.0.0.1:8090/.mock/issuer"
+      ],
+      "credential_endpoint": "http://127.0.0.1:8090/.mock/issuer/credential",
+      "deferred_credential_endpoint": "http://127.0.0.1:8090/.mock/issuer/credential/deferred",
+      "notification_endpoint": "http://127.0.0.1:8090/.mock/issuer/notification",
+      "credential_configurations_supported": {
+        "ThaiNationalID": {
+          "format": "jwt_vc_json",
+          "scope": "th_national_id",
+          "cryptographic_binding_methods_supported": [
+            "jwk"
+          ],
+          "credential_signing_alg_values_supported": [
+            "ES256"
+          ],
+          "proof_types_supported": {
+            "jwt": {
+              "proof_signing_alg_values_supported": [
+                "ES256",
+                "EdDSA"
+              ]
+            }
+          },
+          "display": [
+            {
+              "name": "Thai National ID",
+              "locale": "th-TH"
+            }
+          ],
+          "claims": {
+            "givenName": {
+              "display": [
+                {
+                  "name": "ชื่อ",
+                  "locale": "th-TH"
+                }
+              ]
+            },
+            "familyName": {
+              "display": [
+                {
+                  "name": "นามสกุล",
+                  "locale": "th-TH"
+                }
+              ]
+            },
+            "nationality": {
+              "display": [
+                {
+                  "name": "สัญชาติ",
+                  "locale": "th-TH"
+                }
+              ]
+            }
+          }
+        },
+        "ThaiUniversityDegree": {
+          "format": "jwt_vc_json",
+          "scope": "th_univ_degree",
+          "cryptographic_binding_methods_supported": [
+            "jwk"
+          ],
+          "credential_signing_alg_values_supported": [
+            "ES256"
+          ],
+          "proof_types_supported": {
+            "jwt": {
+              "proof_signing_alg_values_supported": [
+                "ES256"
+              ]
+            }
+          },
+          "display": [
+            {
+              "name": "Thai University Degree",
+              "locale": "th-TH"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

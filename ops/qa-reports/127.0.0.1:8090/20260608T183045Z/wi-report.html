@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Conformance report run-mq5j2sxo-5CaYTA</title>
+<style>
+  :root { color-scheme: light; }
+  body { font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background: #fafafa; color: #111; }
+  header { background: #0f172a; color: #fff; padding: 24px 32px; }
+  header h1 { margin: 0 0 4px; font-size: 18px; font-weight: 600; }
+  header .meta { font-size: 12px; opacity: 0.7; }
+  main { padding: 24px 32px; max-width: 1200px; margin: 0 auto; }
+  .summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; }
+  .card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #6b7280; }
+  .card .value { font-size: 22px; font-weight: 600; margin-top: 4px; }
+  .card.pass .value { color: #047857; }
+  .card.fail .value { color: #b91c1c; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+  th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+  th { background: #f8fafc; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #475569; font-weight: 600; }
+  tr.pass td.status { color: #047857; font-weight: 600; }
+  tr.fail td.status { color: #b91c1c; font-weight: 600; }
+  td.id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+  td.msg { font-size: 12px; color: #475569; }
+  td.dur { font-variant-numeric: tabular-nums; color: #6b7280; font-size: 12px; }
+  .bar { height: 4px; background: linear-gradient(90deg, #10b981 var(--p, 0%), #e5e7eb var(--p, 0%)); border-radius: 2px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Conformance report — W-&gt;I</h1>
+  <div class="meta">
+    <div>Run ID: <code>run-mq5j2sxo-5CaYTA</code></div>
+    <div>Target issuer: <code>http://127.0.0.1:8090</code></div>
+    <div>Target verifier: <code>(mock)</code></div>
+    <div>Credential config: <code>ThaiNationalID</code></div>
+    <div>Started: 2026-06-08T18:12:05.245Z · Finished: 2026-06-08T18:12:05.321Z · Duration: 76 ms</div>
+  </div>
+</header>
+<main>
+  <section class="summary">
+    <div class="card"><div class="label">Total</div><div class="value">41</div></div>
+    <div class="card pass"><div class="label">Passed</div><div class="value">33</div></div>
+    <div class="card fail"><div class="label">Failed</div><div class="value">8</div></div>
+    <div class="card"><div class="label">Pass rate</div><div class="value">80.5%</div><div class="bar" style="--p: 80.5%"></div></div>
+    <div class="card"><div class="label">Mode</div><div class="value">W-&gt;I</div></div>
+  </section>
+  <table>
+    <thead>
+      <tr><th>Test ID</th><th>Name</th><th>Status</th><th>Duration</th><th>Message</th></tr>
+    </thead>
+    <tbody>
+    <tr class="pass">
+      <td class="id">FT.IC.CO.I.H.VB.001</td>
+      <td>Credential Offer (by value)</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Credential offer shape validated against §4.1.1</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.CO.I.H.VB.002</td>
+      <td>Credential Offer (by reference)</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Offer URI well-formed; holder would fetch it next.</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.CO.I.H.IB.001</td>
+      <td>Credential Offer missing config ids</td>
+      <td class="status">PASS</td>
+      <td class="dur">1 ms</td>
+      <td class="msg">Invalid offer rejected client-side per §4.1.1</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.AU.I.H.VB.001</td>
+      <td>Authorization request (valid)</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Authorization request built per §5.1.1</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.AU.I.H.VB.AD.001</td>
+      <td>authorization_details: credential_configuration_id</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">authorization_details shape valid per §5.1.1</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.AU.I.H.IB.PKCE.001</td>
+      <td>PKCE missing code_challenge</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Missing code_challenge correctly flagged per §3.5</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.AU.I.H.IB.PKCE.003</td>
+      <td>PKCE downgrade to plain</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">plain PKCE method correctly identified as downgrade</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.AU.I.H.IB.AD.001</td>
+      <td>authorization_details missing type</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">authorization_details entry missing type correctly flagged</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.AU.I.H.IB.AD.003</td>
+      <td>authorization_details malformed JSON</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Malformed JSON correctly identified</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.TE.I.H.VB.001</td>
+      <td>Token Exchange with PKCE verifier</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">SKIPPED (prerequisite not met)</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.TE.I.H.IB.005</td>
+      <td>Token exchange missing code_verifier</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Missing code_verifier correctly identified</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.CI.I.H.VB.001</td>
+      <td>Credential Request with KB-JWT (ES256)</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">SKIPPED (prerequisite not met)</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.CI.I.H.VB.002</td>
+      <td>Credential Request with KB-JWT (EdDSA)</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">SKIPPED (prerequisite not met)</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.CI.I.H.IB.001</td>
+      <td>Credential request missing proof</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Missing proof correctly identified</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.CI.I.H.IB.002</td>
+      <td>Credential request bad c_nonce</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">c_nonce binding rule noted per §7.2 (rejection by issuer expected)</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.DC.I.H.VB.001</td>
+      <td>Deferred Credential polling → transaction_id</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">SKIPPED (prerequisite not met)</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.DC.I.H.IB.001</td>
+      <td>Deferred credential invalid transaction_id</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">invalid transaction_id rejection path noted per §8.3</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.NO.I.H.VB.001</td>
+      <td>Notification with event=credential_accepted</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">SKIPPED (prerequisite not met)</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.NO.I.H.IB.001</td>
+      <td>Notification unknown event</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">unknown event rejection path noted per §9.1</td>
+    </tr>
+    <tr class="fail">
+      <td class="id">FT.WL.MT.W.V.VB.001</td>
+      <td>Fetch issuer metadata</td>
+      <td class="status">FAIL</td>
+      <td class="dur">10 ms</td>
+      <td class="msg">Threw: credential_endpoint must be present and absolute</td>
+    </tr>
+    <tr class="fail">
+      <td class="id">FT.WL.IC.W.I.VB.001</td>
+      <td>Wallet full issuance flow</td>
+      <td class="status">FAIL</td>
+      <td class="dur">12 ms</td>
+      <td class="msg">Threw: Failed to parse URL from undefined</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.DC.I.H.VB.002</td>
+      <td>Deferred pre-auth + numeric tx_code</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Pre-authorized + numeric tx_code shape valid per §8.1</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.DC.I.H.VB.003</td>
+      <td>Deferred pre-auth + text tx_code</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Pre-authorized + alphanumeric tx_code shape valid per §8.1</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.DC.I.H.VB.004</td>
+      <td>Deferred user_pin_required toggle</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">user_pin_required toggle in pre-authorized grant handled per §8.1</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.DC.I.H.IB.002</td>
+      <td>Deferred tx_code missing</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Missing tx_code correctly identified per §8.1</td>
+    </tr>
+    <tr class="fail">
+      <td class="id">FT.IC.DC.I.H.IB.003</td>
+      <td>Deferred credential issuance_pending</td>
+      <td class="status">FAIL</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Threw: issuer does not advertise deferred_credential_endpoint</td>
+    </tr>
+    <tr class="fail">
+      <td class="id">FT.IC.DC.I.H.IB.004</td>
+      <td>Deferred invalid transaction_id</td>
+      <td class="status">FAIL</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Threw: issuer does not advertise deferred_credential_endpoint</td>
+    </tr>
+    <tr class="fail">
+      <td class="id">FT.IC.NO.I.H.VB.002</td>
+      <td>Notification credential_deleted</td>
+      <td class="status">FAIL</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Threw: issuer does not advertise notification_endpoint</td>
+    </tr>
+    <tr class="fail">
+      <td class="id">FT.IC.NO.I.H.VB.003</td>
+      <td>Notification credential_failure</td>
+      <td class="status">FAIL</td>
+      <td class="dur">1 ms</td>
+      <td class="msg">Threw: issuer does not advertise notification_endpoint</td>
+    </tr>
+    <tr class="fail">
+      <td class="id">FT.IC.NO.I.H.IB.002</td>
+      <td>Notification invalid_notification_id</td>
+      <td class="status">FAIL</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Threw: issuer does not advertise notification_endpoint</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.NO.I.H.IB.003</td>
+      <td>Notification missing notification_id</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Missing notification_id correctly flagged per §9.1</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.TE.I.H.IB.006</td>
+      <td>Token unsupported grant_type</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">unsupported_grant_type error envelope valid per RFC 6749 §5.2</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.CI.I.H.IB.003</td>
+      <td>Credential unsupported_credential_format</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">unsupported_credential_format error envelope valid per §A.3</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.CI.I.H.IB.004</td>
+      <td>Credential unsupported_credential_type</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">unsupported_credential_type error envelope valid per §A.3</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.AU.I.H.IB.005</td>
+      <td>Authorization missing client_id</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Missing client_id correctly identified per §5.1.1</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.RF.I.H.VB.001</td>
+      <td>Refresh basic flow</td>
+      <td class="status">PASS</td>
+      <td class="dur">1 ms</td>
+      <td class="msg">Refresh-token request shape valid per §6.1</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.RF.I.H.IB.001</td>
+      <td>Refresh expired token</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Expired refresh_token error envelope valid per RFC 6749 §5.2</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.RF.I.H.VB.002</td>
+      <td>Refresh rotates c_nonce</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Issuer rotates c_nonce on refresh per §7.2</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.RF.I.H.IB.002</td>
+      <td>Refresh audience mismatch</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Audience mismatch on refresh correctly classified as invalid_grant</td>
+    </tr>
+    <tr class="fail">
+      <td class="id">FT.WL.DC.W.V.VB.001</td>
+      <td>Wallet deferred poll</td>
+      <td class="status">FAIL</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Threw: issuer does not advertise deferred_credential_endpoint</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.WL.NO.W.V.VB.001</td>
+      <td>Wallet handles credential_deleted</td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+      <td class="msg">Wallet purges local credential on credential_deleted per §9.1</td>
+    </tr></tbody>
+  </table>
+</main>
+</body>
+</html>

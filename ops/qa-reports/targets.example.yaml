@@ -1,0 +1,217 @@
+# Real-target fixtures for the vc-conformance-test:0.1.0 webapp.
+#
+# This file is consumed by QA (and any automation) that needs to point the
+# conformance tool at a real Thai issuer / verifier. Each entry is loaded
+# into the webapp's Configuration via the API (PUT /api/config or
+# POST /api/runs body), or typed into the UI's Target URL field.
+#
+# Schema (per target entry, under `targets:`):
+#   id:                short stable identifier (no spaces)
+#   label:             human-readable name shown in reports
+#   baseUrl:           base URL the tool hits — exactly the value placed in
+#                      targetIssuer / targetVerifier
+#   kind:              issuer | verifier
+#   category:          thai-public-sandbox | pilot-tenant | in-repo-local
+#                      | external-pid
+#   status:            reachable | requires-credentials | unreachable
+#   credentials:       list of credential_configurations_supported entries
+#     - configurationId:   the credential_configuration_id used in the
+#                          authorization_details / Credential Request
+#       vct:               SD-JWT VC type identifier (matches the
+#                          corrected v2.0 testcase convention for Thai
+#                          National ID)
+#       format:            jwt_vc_json | dc+sd-jwt | dc+jwt
+#       scope:             OAuth 2.0 scope the issuer requires
+#   issuerMetadata:    null for non-issuer entries; otherwise the JSON the
+#                      target serves at
+#                      ${baseUrl}/.well-known/openid-credential-issuer
+#                      (the tool auto-fetches this at run start, so
+#                      filling it in here is for QA reference only)
+#   auth:              how the holder reaches the issuer
+#     grant:            authorization_code | pre-authorized_code
+#     pkce:             true|false (always true per the corrected testcase)
+#     authorizationDetailsRequired: true|false
+#     txCode:           pre-authorized-code flow only — true if a tx_code
+#                       must be supplied by the user
+#     clientId:         client_id registered at the issuer (pre-authorized
+#                       flows often use a public client_id, no secret)
+#     clientSecretEnv:  env var name holding the client secret for
+#                       confidential clients. NEVER put the secret in
+#                       this file.
+#   trust:
+#     issuerDids:       DIDs the verifier / wallet trust as issuers
+#     verifierAcceptsKbJwtAlgs: [ES256, EdDSA, ...]
+#   notes:             free-form text — reachability caveats, auth quirks,
+#                      known issues
+#
+# See the README in this directory for how to plug an entry into the tool.
+
+version: 1
+schemaNote: |
+  Schema is intentionally permissive: extra keys are ignored, missing
+  required keys fail loudly at the API boundary. Do not commit real
+  client_secret values — reference them via clientSecretEnv.
+
+targets:
+
+  # ---------------------------------------------------------------------------
+  # Entry 1 — in-repo local mock (replacement for the previously mentioned
+  # in-repo apps/issuer + apps/verifier services, which are no longer
+  # present in the working tree). This is the SAME mock the conformance
+  # tool ships with by default; we document it here so QA has a config
+  # snippet that always works and so that a future swap to a real target
+  # is a one-line change (replace the baseUrl / configurationId).
+  # ---------------------------------------------------------------------------
+  - id: in-repo-mock
+    label: In-repo mock (default, no external dependency)
+    kind: issuer
+    category: in-repo-local
+    status: reachable
+    baseUrl: http://127.0.0.1:8080
+    credentials:
+      - configurationId: ThaiNationalID
+        vct: https://schemas.etda.or.th/thai-national-id/v1
+        format: jwt_vc_json
+        scope: th_national_id
+    issuerMetadata:
+      credential_issuer: http://127.0.0.1:8080/.mock/issuer
+      authorization_servers: [http://127.0.0.1:8080/.mock/issuer]
+      credential_endpoint: http://127.0.0.1:8080/.mock/issuer/credential
+      deferred_credential_endpoint: http://127.0.0.1:8080/.mock/issuer/credential/deferred
+      notification_endpoint: http://127.0.0.1:8080/.mock/issuer/notification
+      credential_configurations_supported:
+        ThaiNationalID:
+          format: jwt_vc_json
+          scope: th_national_id
+          cryptographic_binding_methods_supported: [jwk]
+          credential_signing_alg_values_supported: [ES256]
+          proof_types_supported:
+            jwt:
+              proof_signing_alg_values_supported: [ES256, EdDSA]
+    auth:
+      grant: authorization_code
+      pkce: true
+      authorizationDetailsRequired: false
+      txCode: false
+      clientId: vc-conformance-test-wallet
+      clientSecretEnv: null
+    trust:
+      issuerDids: [did:example:mock-issuer]
+      verifierAcceptsKbJwtAlgs: [ES256, EdDSA]
+    notes: |
+      The in-process mock is the lowest-risk target. It is the SAME
+      endpoint the webapp exercises in `bash ops/smoke/run.sh` (56/56
+      baseline). Use this for regression smoke and for verifying the
+      tool itself is healthy before pointing at any real target.
+
+  # ---------------------------------------------------------------------------
+  # Entry 2 — Public Thai national ID / eKYC sandbox (TEMPLATE — fields
+  # pending CEO/Product input, see notes).
+  #
+  # This entry is intentionally a TEMPLATE. No public Thai OID4VCI issuer
+  # is reachable from the development environment as of MAS-138 (probed
+  # 2026-06-08: ETDA marketing site 200 but no /.well-known/ endpoint,
+  # NDID host unresolvable, DOPA e-Service not on OID4VCI). MAS-132 was
+  # already blocked on the same input gap.
+  #
+  # CEO/Product to fill in:
+  #   - baseUrl, credentialEndpoint, tokenEndpoint
+  #   - clientId, clientSecretEnv (or "public client — no secret")
+  #   - txCode policy for pre-authorized flows
+  #   - trust: which issuer DIDs the verifier will accept
+  # ---------------------------------------------------------------------------
+  - id: th-public-sandbox-TEMPLATE
+    label: Thai public national-ID / eKYC sandbox (TEMPLATE — pending CEO)
+    kind: issuer
+    category: thai-public-sandbox
+    status: requires-credentials
+    baseUrl: REPLACE_ME
+    credentials:
+      - configurationId: ThaiNationalID
+        vct: https://schemas.etda.or.th/thai-national-id/v1
+        format: dc+sd-jwt
+        scope: th_national_id
+    issuerMetadata: null
+    auth:
+      grant: authorization_code
+      pkce: true
+      authorizationDetailsRequired: true
+      txCode: false
+      clientId: REPLACE_ME
+      clientSecretEnv: null
+    trust:
+      issuerDids: [REPLACE_ME]
+      verifierAcceptsKbJwtAlgs: [ES256, EdDSA]
+    notes: |
+      Triage done 2026-06-08:
+        * ETDA (etda.or.th) is a public-website only — no OID4VCI
+          /.well-known/openid-credential-issuer endpoint.
+        * NDID (ndid.or.th) host not resolvable from dev env.
+        * DOPA e-Service is not on OID4VCI 1.0.
+      CEO/Product to supply the sandbox baseUrl + clientId (and secret
+      env var name if confidential) before this entry is usable. Once
+      filled in, the webapp can run W->I and I->W against it with no
+      code change.
+
+  # ---------------------------------------------------------------------------
+  # Entry 3 — Verifier template (TEMPLATE — fields pending CEO/Product
+  # input). Verifier metadata differs from issuer metadata; the
+  # conformance tool does NOT require a /.well-known/draft document for
+  # the verifier, but it does need:
+  #   * the Authorization Request endpoint (or the URL the holder opens
+  #     in a wallet),
+  #   * the response_mode (direct_post, direct_post.jwt, or fragment),
+  #   * the dcql_query or presentation_definition the verifier posts,
+  #   * the client_id the holder must use in the request.
+  # ---------------------------------------------------------------------------
+  - id: th-public-verifier-TEMPLATE
+    label: Thai public verifier (TEMPLATE — pending CEO)
+    kind: verifier
+    category: thai-public-sandbox
+    status: requires-credentials
+    baseUrl: REPLACE_ME
+    authorizationRequestEndpoint: REPLACE_ME
+    responseMode: direct_post
+    responseUri: REPLACE_ME
+    clientId: REPLACE_ME
+    dcqlQuery:
+      credentials:
+        - id: thai-national-id
+          format: dc+sd-jwt
+          meta:
+            vct_values: [https://schemas.etda.or.th/thai-national-id/v1]
+    trust:
+      acceptedIssuerDids: [REPLACE_ME]
+      acceptedKbJwtAlgs: [ES256, EdDSA]
+    notes: |
+      CEO/Product to supply:
+        * baseUrl (the verifier's host),
+        * authorizationRequestEndpoint (the URL the holder opens),
+        * responseUri (the URL the wallet POSTs vp_token to),
+        * clientId the verifier expects in the request,
+        * the dcql_query shape the verifier uses (the one above matches
+          the corrected v2.0 testcase for Thai National ID).
+
+# ---------------------------------------------------------------------------
+# Data gap (2026-06-08) — what MAS-138 cannot ship without CEO/Product
+# ---------------------------------------------------------------------------
+# Probed and unreachable / not-on-OID4VCI from the dev environment:
+#
+#   Host                                  Result
+#   https://etda.or.th                    301 -> www.etda.or.th marketing site
+#                                         (no /.well-known/openid-credential-issuer)
+#   https://www.ndid.or.th                DNS NXDOMAIN from dev env
+#   https://www.dopa.go.th                200, but a citizen-info site, not OID4VCI
+#
+# No public Thai OID4VCI 1.0 Final issuer or verifier with a reachable
+# /.well-known/openid-credential-issuer endpoint is known to the team
+# at this time. The plan-§6 fallback ("apps/issuer + apps/verifier
+# services running on a publicly reachable host") is not shippable
+# either: those services are not present in the current working tree
+# (the README that references them is a stale MAS-61-era doc).
+#
+# Path forward for QA:
+#   1. CEO/Product supplies real Thai URLs + auth material.
+#   2. We fill in the two TEMPLATE entries above.
+#   3. The webapp runs W->I and W->V against them via config-only
+#      (no code change required — see README for the curl).
