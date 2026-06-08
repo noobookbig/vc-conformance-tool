@@ -8,6 +8,7 @@ coverage/
 data/
 reports/
 .wallet/
+.patches/
 .DS_Store
 .vscode/
 .idea/
