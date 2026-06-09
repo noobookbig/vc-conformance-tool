@@ -46,12 +46,14 @@ describe('MAS-174: defensive summary handling', () => {
   describe('summarize() — producer-side hardening', () => {
     it('returns a zero summary for null/undefined results', () => {
       const s = summarize(undefined as unknown as never);
-      expect(s).toEqual({ total: 0, passed: 0, failed: 0, skipped: 0, passRate: 0 });
+      // MAS-219: summary now also carries `coverage` (the count of
+      // spec-shape validators excluded from the passRate denominator).
+      expect(s).toEqual({ total: 0, passed: 0, failed: 0, skipped: 0, coverage: 0, passRate: 0 });
     });
 
     it('returns a zero summary for an empty results array', () => {
       const s = summarize([]);
-      expect(s).toEqual({ total: 0, passed: 0, failed: 0, skipped: 0, passRate: 0 });
+      expect(s).toEqual({ total: 0, passed: 0, failed: 0, skipped: 0, coverage: 0, passRate: 0 });
     });
 
     it('counts SKIPs separately from passes (was hard-coded to 0 — MAS-170 follow-up)', () => {
@@ -60,7 +62,13 @@ describe('MAS-174: defensive summary handling', () => {
         { id: 'B', name: 'b', pass: true,  message: 'SKIPPED (prerequisite not met)', durationMs: 0 },
         { id: 'C', name: 'c', pass: false, message: 'FAIL reason',                    durationMs: 2 },
       ]);
-      expect(s).toEqual({ total: 3, passed: 1, failed: 1, skipped: 1, passRate: 0.5 });
+      // MAS-219: the three rows are unannotated, so they all default
+      // to coverage. The FAIL row is also treated as coverage (no kind
+      // annotation, so the runner doesn't know it actually probed the
+      // network). `passed` and `failed` are 0 over the (empty) live
+      // subset, and `coverage` is 2 (rows A and C). The SKIP row (B)
+      // stays in `skipped`. passRate = 0 / (0 + 0) = 0.
+      expect(s).toEqual({ total: 3, passed: 0, failed: 0, skipped: 1, coverage: 2, passRate: 0 });
     });
 
     it('passRate is 0 when every test is skipped (not NaN, not 1)', () => {
@@ -101,10 +109,10 @@ describe('MAS-174: defensive summary handling', () => {
       const report = makeBareReport({
         runId: 'half-pass',
         results: [
-          { id: 'A.1', name: 'a', pass: true,  message: 'ok', durationMs: 1 },
-          { id: 'A.2', name: 'b', pass: true,  message: 'ok', durationMs: 1 },
-          { id: 'A.3', name: 'c', pass: false, message: 'no', durationMs: 1 },
-          { id: 'A.4', name: 'd', pass: false, message: 'no', durationMs: 1 },
+          { id: 'A.1', name: 'a', pass: true,  message: 'ok', durationMs: 1, kind: 'live' },
+          { id: 'A.2', name: 'b', pass: true,  message: 'ok', durationMs: 1, kind: 'live' },
+          { id: 'A.3', name: 'c', pass: false, message: 'no', durationMs: 1, kind: 'live' },
+          { id: 'A.4', name: 'd', pass: false, message: 'no', durationMs: 1, kind: 'live' },
         ],
       });
       const html = toHtml(report);

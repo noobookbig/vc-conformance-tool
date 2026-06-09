@@ -45,10 +45,17 @@ function rowFor(r: Report['results'][number]): string {
     ? `<button class="copy-curl" data-curl="${esc(curl)}" type="button" title="Copy curl for this test">⧉ copy curl</button>`
     : '';
   const ev = r.evidence ? `<details class="evidence"><summary>evidence</summary><pre>${esc(JSON.stringify(r.evidence, null, 2))}</pre></details>` : '';
+  // MAS-219: surface the kind in the row so a reviewer can distinguish
+  // "harness built a spec-shaped request" (COV) from "target accepted
+  // the request" (LIVE). A small badge next to the test name is enough;
+  // we keep the existing PASS/FAIL/SKIP status column for the verdict.
+  const kindBadge = r.kind === 'live'
+    ? '<span class="kind live" title="Live test: made a real HTTP call to the target">LIVE</span>'
+    : '<span class="kind cov" title="Coverage test: client-side shape validator, did not contact the target">COV</span>';
   return `
     <tr class="${r.pass ? 'pass' : 'fail'}">
       <td class="id">${esc(r.id)}</td>
-      <td>${esc(r.name)}<div class="msg">${esc(r.message)}${ev}</div></td>
+      <td>${esc(r.name)} ${kindBadge}<div class="msg">${esc(r.message)}${ev}</div></td>
       <td class="status">${status}${copyBtn}</td>
       <td class="dur">${r.durationMs} ms</td>
     </tr>`;
@@ -146,13 +153,20 @@ export function toHtml(report: Report): string {
   header button, .copy-curl { font: inherit; font-size: 12px; background: transparent; color: var(--ink-2); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: border-color 0.15s ease, color 0.15s ease; }
   header button:hover, .copy-curl:hover { color: var(--ink); border-color: var(--teal); }
   main { padding: 20px 28px 40px; max-width: 1200px; margin: 0 auto; }
-  .summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 18px; }
+  .summary { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 18px; }
   @media (max-width: 720px) { .summary { grid-template-columns: repeat(2, 1fr); } }
   .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
   .card .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); font-weight: 600; }
   .card .value { font-size: 22px; font-weight: 600; margin-top: 4px; font-family: var(--mono); }
   .card.pass .value { color: var(--green); }
   .card.fail .value { color: var(--rose); }
+  .card.cov .value { color: var(--teal); }
+  /* MAS-219: per-test kind badge. Distinct enough that a reviewer
+     scanning a row can tell at a glance which tests probed the
+     network (LIVE) and which were spec-shape validators (COV). */
+  .kind { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.05em; padding: 2px 6px; border-radius: 4px; margin-left: 4px; vertical-align: 1px; }
+  .kind.live { background: color-mix(in srgb, var(--green) 14%, transparent); color: var(--green); border: 1px solid color-mix(in srgb, var(--green) 28%, transparent); }
+  .kind.cov { background: color-mix(in srgb, var(--teal) 12%, transparent); color: var(--teal); border: 1px solid color-mix(in srgb, var(--teal) 24%, transparent); }
   .bar { height: 4px; background: linear-gradient(90deg, var(--green) var(--p, 0%), var(--line) var(--p, 0%)); border-radius: 2px; margin-top: 8px; }
   table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
   th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -187,6 +201,7 @@ export function toHtml(report: Report): string {
       <div class="card pass"><div class="label">Passed</div><div class="value">${summary.passed}</div></div>
       <div class="card fail"><div class="label">Failed</div><div class="value">${summary.failed}</div></div>
       <div class="card"><div class="label">Pass rate</div><div class="value">${passPct}%</div><div class="bar" style="--p: ${passPct}%"></div></div>
+      <div class="card cov"><div class="label">Coverage</div><div class="value">${summary.coverage}</div></div>
       <div class="card"><div class="label">Mode</div><div class="value">${esc(report.mode)}</div></div>
     </section>
     <section class="meta-card" style="background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: var(--ink-2);">
@@ -194,7 +209,10 @@ export function toHtml(report: Report): string {
       issuer <code>${esc(report.target.issuer ?? '(mock)')}</code> ·
       verifier <code>${esc(report.target.verifier ?? '(mock)')}</code> ·
       credential config <code>${esc(report.target.credentialConfigurationId)}</code>
-    </section>
+    </section>${report.error ? `
+    <section class="error-card" role="alert" style="background: color-mix(in srgb, var(--rose) 8%, var(--surface)); border: 1px solid color-mix(in srgb, var(--rose) 30%, var(--line)); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 13px; color: var(--rose);">
+      <strong>Run aborted</strong>: ${esc(report.error)}
+    </section>` : ''}
     <table>
       <thead>
         <tr><th>Test ID</th><th>Name</th><th>Status</th><th>Duration</th></tr>

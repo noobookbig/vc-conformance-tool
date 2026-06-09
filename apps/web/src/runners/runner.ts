@@ -59,7 +59,22 @@ export interface Report {
     failed: number;
     skipped: number;
     passRate: number;
+    /**
+     * MAS-219: number of TestResults classified as spec-coverage
+     * (client-side shape validators that did not contact the target).
+     * Reported alongside `passRate` so a reviewer can distinguish
+     * "harness built a spec-shaped request" from "target accepted the
+     * request". Excluded from the passRate denominator.
+     */
+    coverage: number;
   };
+  /**
+   * MAS-219: optional run-level error. Set when a precheck (currently
+   * the target-reachability precheck) aborts the run before the test
+   * loop. The results array still contains a synthesized failed row so
+   * the report UI can show a concrete failure alongside the error.
+   */
+  error?: string;
   context: {
     keys: { es256Kid: string; eddsaKid: string };
     pkce: { codeChallengeMethod: 'S256' };
@@ -95,12 +110,51 @@ function isSkipped(r: TestResult): boolean {
   return typeof r.message === 'string' && r.message.startsWith('SKIPPED');
 }
 
+/**
+ * MAS-219: target-reachability precheck. Returns a human-readable
+ * failure message when the run was given a real target URL that the
+ * runner has already confirmed is unreachable (via Step 0's metadata
+ * fetch for issuers, and a tight HEAD probe for verifiers), and
+ * `undefined` when the run should proceed.
+ *
+ * Three cases:
+ *   - W->I / I->W with a real `targetIssuer` and no `ctx.issuerMetadata`
+ *     → unreachable issuer.
+ *   - W->V with a real `targetVerifier` whose HEAD probe threw (i.e.
+ *     the verifier origin is unreachable: closed port, DNS failure,
+ *     connect timeout, etc.) → unreachable verifier.
+ *   - Mock runs (no `targetIssuer` / `targetVerifier`) → no precheck;
+ *     return undefined.
+ *
+ * The precheck is intentionally narrow: it is a stop-the-line safety
+ * net for the board's MAS-213 concern, not a deep health check. Tests
+ * that *want* a specific failure shape still get the chance to RUN
+ * (e.g. an `I->W` run with a reachable but broken issuer would
+ * precheck-pass and then exercise the catalog).
+ */
+function computeTargetPrecheckFailure(
+  req: RunRequest,
+  ctx: RunContext,
+  probe?: { verifierPrecheckFailed: boolean; verifierPrecheckUrl?: string },
+): string | undefined {
+  const realTargetIssuer = (req.mode === 'W->I' || req.mode === 'I->W') && req.targetIssuer;
+  if (realTargetIssuer && !ctx.issuerMetadata) {
+    const url = ctx.resolvedIssuerMetadataUrl ?? `${req.targetIssuer}/.well-known/openid-credential-issuer`;
+    return `target unreachable: issuer metadata fetch from ${url} did not return a valid OID4VCI 1.0 document`;
+  }
+  if ((req.mode === 'W->V' || req.mode === 'V->W') && req.targetVerifier && probe?.verifierPrecheckFailed) {
+    return `target unreachable: verifier HEAD probe to ${probe.verifierPrecheckUrl ?? req.targetVerifier} failed (closed port, DNS failure, or connect timeout)`;
+  }
+  return undefined;
+}
+
 export function summarize(results: TestResult[] | undefined | null): {
   total: number;
   passed: number;
   failed: number;
   skipped: number;
   passRate: number;
+  coverage: number;
 } {
   // MAS-174: be defensive. A null/undefined `results` (e.g. a partially
   // deserialised persisted run, a future code path that builds a report
@@ -109,15 +163,28 @@ export function summarize(results: TestResult[] | undefined | null): {
   // SKIPs are now counted properly (previously hard-coded to 0, which
   // made SKIP tests inflate `passed` — see MAS-170 follow-up note in
   // apps/web/src/runners/runner.ts history).
+  //
+  // MAS-219: coverage tests (kind === 'coverage') are excluded from the
+  // passRate denominator. They are client-side shape validators that
+  // pass regardless of target reachability and would inflate passRate
+  // to 1 even against a closed port. They are reported separately as
+  // `coverage` so a reviewer can still see how many spec-shapes the
+  // harness validated.
   const list = Array.isArray(results) ? results : [];
   const total = list.length;
   const skipped = list.filter(isSkipped).length;
-  const passed = list.filter((r) => r.pass && !isSkipped(r)).length;
-  const failed = list.filter((r) => !r.pass && !isSkipped(r)).length;
-  // passRate: skipped tests are not failures, so they don't count against
-  // the rate. If every test is skipped we report 0 (not NaN, not 1).
+  // A TestResult is "coverage" when its kind is `'coverage'` OR
+  // undefined (i.e. a hand-built or pre-MAS-219 result that never had
+  // a kind stamped on it). A skipped row never made it to the network
+  // regardless of kind, so it doesn't belong in the coverage bucket.
+  const coverage = list.filter((r) => (r.kind === undefined || r.kind === 'coverage') && !isSkipped(r)).length;
+  const live = list.filter((r) => r.kind === 'live' && !isSkipped(r));
+  const passed = live.filter((r) => r.pass).length;
+  const failed = live.filter((r) => !r.pass).length;
+  // passRate: coverage + skipped tests are excluded from the denominator.
+  // If every live test is skipped we report 0 (not NaN, not 1).
   const rateable = passed + failed;
-  return { total, passed, failed, skipped, passRate: rateable ? passed / rateable : 0 };
+  return { total, passed, failed, skipped, coverage, passRate: rateable ? passed / rateable : 0 };
 }
 
 async function buildContext(req: RunRequest): Promise<RunContext> {
@@ -503,6 +570,83 @@ export async function runConformance(req: RunRequest, opts: RunOptions = {}): Pr
     }
   }
 
+  // MAS-219: target-reachability precheck. When a real target URL is
+  // supplied, a single metadata fetch already reveals whether the
+  // target is reachable. If it isn't, the rest of the test loop is
+  // guaranteed to fail in confusing ways (or, with the SKIP branch,
+  // silently pass) — the board's MAS-213 concern is precisely that
+  // latter case ("success rate 100% even when URL is wrong").
+  //
+  // We precheck for the same three scenarios as the test loop's
+  // metadata fetch: W->I / I->W for issuer targets, W->V for verifier
+  // targets. The precheck is *advisory* on the in-process mock path
+  // (no targetIssuer / targetVerifier was supplied, so we let the
+  // existing Step 0 succeed and continue).
+  //
+  // For W->V, the OID4VP 1.0 Final spec does not require a verifier
+  // well-known (the wallet learns the verifier's endpoint from the
+  // presentation-request URL itself, §5.1). We probe the verifier's
+  // origin with a tight HEAD to detect a closed port / DNS failure,
+  // which is the exact failure mode the board wants surfaced.
+  let verifierPrecheckFailed = false;
+  let verifierPrecheckUrl: string | undefined;
+  if ((req.mode === 'W->V' || req.mode === 'V->W') && req.targetVerifier) {
+    verifierPrecheckUrl = req.targetVerifier.replace(/\/$/, '');
+    try {
+      const ac = new AbortController();
+      const t = setTimeout(() => ac.abort(), 5_000);
+      const probe = await fetch(verifierPrecheckUrl, {
+        method: 'HEAD',
+        signal: ac.signal,
+        redirect: 'manual',
+      });
+      clearTimeout(t);
+      // Any HTTP response (even 4xx/5xx) means the verifier is up.
+      // Network error / abort means the verifier is unreachable.
+      log(`verifier precheck: ${verifierPrecheckUrl} responded ${probe.status}`);
+    } catch (e) {
+      log(`verifier precheck: ${verifierPrecheckUrl} failed: ${(e as Error).message}`);
+      verifierPrecheckFailed = true;
+    }
+  }
+
+  const precheckFailure = computeTargetPrecheckFailure(req, ctx, { verifierPrecheckFailed, verifierPrecheckUrl });
+  if (precheckFailure) {
+    const finishedAt = new Date();
+    log(`ABORT ${runId} — ${precheckFailure}`);
+    const failedRow: TestResult = {
+      id: 'MAS-219-PRECHECK',
+      name: 'Target reachability precheck',
+      pass: false,
+      message: precheckFailure,
+      durationMs: 0,
+      kind: 'live',
+    };
+    const results: TestResult[] = [failedRow];
+    return {
+      runId,
+      mode: req.mode,
+      startedAt: startedAt.toISOString(),
+      finishedAt: finishedAt.toISOString(),
+      durationMs: finishedAt.getTime() - startedAt.getTime(),
+      target: {
+        issuer: req.targetIssuer,
+        verifier: req.targetVerifier,
+        credentialConfigurationId: req.credentialConfigurationId,
+        issuerMetadataUrl: req.issuerMetadataUrl,
+      },
+      results,
+      summary: summarize(results),
+      error: 'target unreachable',
+      context: {
+        keys: { es256Kid: ctx.keys.es256.kid, eddsaKid: ctx.keys.eddsa.kid },
+        pkce: { codeChallengeMethod: 'S256' },
+        issuerMetadata: ctx.issuerMetadata,
+        resolvedIssuerMetadataUrl: ctx.resolvedIssuerMetadataUrl,
+      },
+    };
+  }
+
   // Step 0.5: for W->I with a real target, drive the pre-authorized code
   // flow so the wallet-side full-issuance test has a real access token
   // (without this, the wallet falls back to `Bearer __SIM__` and any
@@ -522,13 +666,18 @@ export async function runConformance(req: RunRequest, opts: RunOptions = {}): Pr
   for (const tc of subset) {
     if (!allReqsSatisfied(ctx, tc)) {
       const reason = tc.skipReason ? `SKIPPED (prerequisite not met: ${tc.skipReason})` : 'SKIPPED (prerequisite not met)';
-      results.push({ id: tc.id, name: tc.name, pass: true, message: reason, durationMs: 0 });
+      results.push({ id: tc.id, name: tc.name, pass: true, message: reason, durationMs: 0, kind: tc.kind ?? 'coverage' });
       log(`SKIP ${tc.id} (prereq missing)${tc.skipReason ? ` — ${tc.skipReason}` : ''}`);
       continue;
     }
     log(`RUN  ${tc.id} — ${tc.name}`);
     try {
       const r = await tc.run(ctx);
+      // MAS-219: stamp the test's `kind` on its result so summarize()
+      // can split live from coverage without re-walking the catalog.
+      // Default to 'coverage' so a hand-written TestResult that omits
+      // `kind` is treated as a spec-shape check (not a live pass).
+      r.kind = r.kind ?? tc.kind ?? 'coverage';
       results.push(r);
       log(`${r.pass ? 'PASS' : 'FAIL'} ${tc.id} (${r.durationMs}ms) — ${r.message}`);
     } catch (e) {
@@ -539,7 +688,7 @@ export async function runConformance(req: RunRequest, opts: RunOptions = {}): Pr
       // stack is in the run log.
       const msg = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
       log(`ERROR ${tc.id} — ${msg}`);
-      results.push({ id: tc.id, name: tc.name, pass: false, message: `Threw: ${msg}`, durationMs: 0 });
+      results.push({ id: tc.id, name: tc.name, pass: false, message: `Threw: ${msg}`, durationMs: 0, kind: tc.kind ?? 'coverage' });
     }
   }
 

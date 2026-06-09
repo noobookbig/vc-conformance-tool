@@ -136,10 +136,14 @@ describe('runner: issuerMetadataUrl override (MAS-167)', () => {
     expect(report.target.issuerMetadataUrl).toBeUndefined();
   });
 
-  it('a 404 on the override URL keeps the legacy skip-clearly behavior (no false passes)', async () => {
-    // Use an unreachable URL — the runner should swallow the failure, leave
-    // issuerMetadata undefined, and SKIP any test that requires it. The
-    // override must not make the runner less robust.
+  it('an unreachable override URL triggers the target-reachability precheck (MAS-219)', async () => {
+    // MAS-219/220 added a target-reachability precheck that aborts the
+    // run before the test loop when a real `targetIssuer` is supplied
+    // and the metadata fetch cannot reach a valid OID4VCI 1.0 document.
+    // Pointing the override at a closed port (1) makes the precheck
+    // fire and the report surface `error: "target unreachable"` with
+    // `failed > 0` and `passRate < 1` — the exact defect the board
+    // reproduced in MAS-213.
     const report = await runConformance({
       mode: 'W->I',
       targetIssuer: baseUrl,
@@ -147,17 +151,10 @@ describe('runner: issuerMetadataUrl override (MAS-167)', () => {
       credentialConfigurationId: 'urn:example:test-cred',
     });
 
+    expect(report.error).toBe('target unreachable');
     expect(report.context.issuerMetadata).toBeUndefined();
-    const requiresMd = listForMode('W->I').filter((tc) => tc.requires?.includes('issuerMetadata'));
-    expect(requiresMd.length).toBeGreaterThan(0);
-    for (const tc of requiresMd) {
-      const r = report.results.find((rr) => rr.id === tc.id);
-      // Per-test `skipReason` (added in MAS-170) appends a documented reason
-      // after the colon; assert on the prefix so the test is robust to
-      // catalog additions that add their own skipReason.
-      expect(r?.message).toMatch(/^SKIPPED \(prerequisite not met/);
-      expect(r?.pass).toBe(true);
-    }
+    expect(report.summary.failed).toBeGreaterThan(0);
+    expect(report.summary.passRate).toBeLessThan(1);
   });
 
   it('an override that 200s with bad JSON is logged and the run continues cleanly', async () => {

@@ -634,7 +634,7 @@ a.ghost .icon { width: 14px; height: 14px; }
 .report-head h3 .dim { color: var(--ink-3); font-family: var(--mono); font-weight: 400; font-size: 0.82rem; }
 .report-actions { display: flex; gap: var(--s-2); }
 
-.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s-2); }
+ .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--s-2); }
 .kpi {
   background: var(--bg);
   border: 1px solid var(--line);
@@ -665,6 +665,31 @@ a.ghost .icon { width: 14px; height: 14px; }
 }
 .kpi.passed::after { color: var(--green); }
 .kpi.failed::after { color: var(--rose); }
+.kpi.cov { border-color: color-mix(in srgb, var(--blue, #4a7bd9) 35%, var(--line)); }
+.kpi.cov .v { color: var(--blue, #4a7bd9); }
+.kpi.cov::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--blue, #4a7bd9); }
+.kpi.cov .l::before { content: "spec-shape · "; }
+
+/* MAS-219: per-test kind badge (LIVE / COV) inside the results table.
+   Distinct enough that a reviewer can tell at a glance which tests
+   probed the network (LIVE, teal) vs. which were spec-shape validators
+   (COV, blue). */
+.kind-badge { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.05em; padding: 2px 6px; border-radius: 4px; margin-left: 4px; vertical-align: 1px; }
+.kind-badge.live { background: color-mix(in srgb, var(--teal, #0d6e6e) 14%, transparent); color: var(--teal, #0d6e6e); border: 1px solid color-mix(in srgb, var(--teal, #0d6e6e) 30%, transparent); }
+.kind-badge.cov { background: color-mix(in srgb, var(--blue, #4a7bd9) 12%, transparent); color: var(--blue, #4a7bd9); border: 1px solid color-mix(in srgb, var(--blue, #4a7bd9) 26%, transparent); }
+
+/* MAS-219: run-level error banner (e.g. "target unreachable"). */
+.error-banner { margin-top: var(--s-3); padding: 10px 14px; background: color-mix(in srgb, var(--rose) 14%, var(--bg)); border: 1px solid color-mix(in srgb, var(--rose) 50%, var(--line)); border-radius: var(--radius-sm); color: var(--rose); font-weight: 600; }
+
+.run-error {
+  margin-top: var(--s-3);
+  padding: 10px 14px;
+  background: color-mix(in srgb, var(--rose) 14%, var(--bg));
+  border: 1px solid color-mix(in srgb, var(--rose) 50%, var(--line));
+  border-radius: var(--radius-sm);
+  color: var(--rose);
+  font-size: 0.86rem;
+}
 
 .results-table {
   width: 100%;

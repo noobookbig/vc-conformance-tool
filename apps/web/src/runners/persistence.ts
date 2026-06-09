@@ -82,7 +82,7 @@ function buildMockRun(opts: { runId: string; mode: Report['mode']; startedAt: st
       credentialConfigurationId: opts.credentialConfigurationId,
     },
     results,
-    summary: { total, passed: opts.passed, failed: opts.failed, skipped: 0, passRate: total ? opts.passed / total : 0 },
+    summary: { total, passed: opts.passed, failed: opts.failed, skipped: 0, coverage: 0, passRate: total ? opts.passed / total : 0 },
     context: { keys: { es256Kid: 'seed-es256', eddsaKid: 'seed-eddsa' }, pkce: { codeChallengeMethod: 'S256' } },
   };
 }

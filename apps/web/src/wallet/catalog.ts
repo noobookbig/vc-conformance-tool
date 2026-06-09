@@ -543,6 +543,9 @@ const WALLET_FETCH_META_VB_001: TestCase = {
   behavior: 'VB',
   modes: ['W->I', 'I->W'],
   requires: ['issuerMetadata'],
+  // MAS-219: this test makes a real GET to the issuer's metadata
+  // endpoint, so it counts toward passRate (not toward coverage).
+  kind: 'live',
   run: async (ctx) => timed('FT.WL.MT.W.V.VB.001', 'Fetch issuer metadata', async () => {
     const url = issuerMetadataUrl(ctx);
     const { status, body } = await httpCall({ method: 'GET', url, label: 'issuer-metadata', ctx });
@@ -560,6 +563,9 @@ const WALLET_ISSUE_VB_001: TestCase = {
   eut: 'wallet',
   specRef: 'OID4VCI 1.0 Final §4–§7',
   operation: 'Issue VC — Full flow',
+  // MAS-219: this test issues real HTTP calls (metadata + credential
+  // endpoint) against the target issuer, so it counts toward passRate.
+  kind: 'live',
   behavior: 'VB',
   modes: ['W->I', 'I->W'],
   requires: ['issuerMetadata', 'accessToken'],
@@ -646,6 +652,9 @@ const WALLET_PRESENT_VB_001: TestCase = {
   behavior: 'VB',
   modes: ['W->V', 'V->W'],
   requires: ['credential'],
+  // MAS-219: this test POSTs to the verifier's /presentation-request
+  // endpoint, so it counts toward passRate.
+  kind: 'live',
   run: async (ctx) => timed('FT.WL.PR.W.V.VB.001', 'Wallet presentation response', async () => {
     const verifier = absVerifier(ctx);
     const req = await httpCall({ method: 'POST', url: `${verifier.replace(/\/$/, '')}/presentation-request`, body: {
@@ -1162,6 +1171,9 @@ const WALLET_PRESENT_JARM: TestCase = {
   behavior: 'VB',
   modes: ['W->V', 'V->W'],
   requires: ['credential'],
+  // MAS-219: this test POSTs to the verifier's /presentation-request
+  // endpoint with a JARM-secured response, so it counts toward passRate.
+  kind: 'live',
   run: async (ctx) => timed('FT.WL.PR.W.V.VB.JARM.001', 'Wallet JARM direct_post.jwt', async () => {
     const verifier = absVerifier(ctx);
     const init = await httpCall({
@@ -1444,6 +1456,9 @@ const PR_RS_VB_008: TestCase = {
   behavior: 'VB',
   modes: ['V->W', 'W->V'],
   requires: ['credential'],
+  // MAS-219: this test POSTs to the verifier's response_uri endpoint,
+  // so it counts toward passRate.
+  kind: 'live',
   run: async (ctx) => timed('FT.PR.RS.V.H.VB.008', 'response_uri POST success', async () => {
     const verifier = absVerifier(ctx);
     const init = await httpCall({

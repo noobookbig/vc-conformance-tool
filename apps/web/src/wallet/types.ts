@@ -64,6 +64,18 @@ export interface RunContext {
 
 export type LogFn = (msg: string, ...rest: unknown[]) => void;
 
+/**
+ * MAS-219: classify a test by whether it actually probes the network.
+ *   - `live`     — test makes real HTTP call(s) to the target issuer/verifier.
+ *                  passRate is computed over these.
+ *   - `coverage` — client-side shape validator; does not contact the target.
+ *                  passRate denominator excludes these; they are reported
+ *                  separately as `coverage` in the summary so a reader can
+ *                  distinguish "harness built a spec-shaped request" from
+ *                  "target accepted the request".
+ */
+export type TestKind = 'live' | 'coverage';
+
 export interface TestCase {
   id: string;
   name: string;
@@ -102,6 +114,14 @@ export interface TestCase {
    * the generic "SKIPPED (prerequisite not met)" message.
    */
   skipReason?: string;
+  /**
+   * MAS-219: whether this test makes real HTTP calls to the target.
+   * Defaults to `'coverage'` (most catalog tests are shape validators
+   * that pass regardless of target reachability). Tests that call
+   * `httpCall` should explicitly set this to `'live'` so they count
+   * toward `passRate` instead of being reported as spec-coverage.
+   */
+  kind?: TestKind;
   /** Returns a result record. */
   run: (ctx: RunContext) => Promise<TestResult>;
 }
@@ -113,6 +133,12 @@ export interface TestResult {
   message: string;
   evidence?: Record<string, unknown>;
   durationMs: number;
+  /**
+   * MAS-219: mirrors `TestCase.kind`. The runner stamps this on every
+   * row (using `tc.kind ?? "coverage"`) so summarize() can split the
+   * shape-validator subset from the live subset.
+   */
+  kind?: TestKind;
 }
 
 // ---------- Spec-shaped types (minimal, validated by zod at the HTTP boundary) ----------

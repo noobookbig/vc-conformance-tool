@@ -146,7 +146,7 @@ function renderReportInto(panel, report) {
   // the SPA sees a report over the wire the /api/runs endpoint already
   // backfills a missing summary — but we defend in depth because the
   // report can also be deep-linked from a saved JSON.
-  const summary = report.summary ?? { total: 0, passed: 0, failed: 0, skipped: 0, passRate: 0 };
+  const summary = report.summary ?? { total: 0, passed: 0, failed: 0, skipped: 0, coverage: 0, passRate: 0 };
   const passPct = (summary.passRate * 100).toFixed(1);
   const runIdEsc = escapeHtml(report.runId);
   const modeEsc = escapeHtml(report.mode);
@@ -175,7 +175,9 @@ function renderReportInto(panel, report) {
       <div class="kpi passed"><div class="v">${summary.passed}</div><div class="l">Passed</div></div>
       <div class="kpi failed"><div class="v">${summary.failed}</div><div class="l">Failed</div></div>
       <div class="kpi"><div class="v">${escapeHtml(passPct)}%</div><div class="l">Pass rate</div></div>
+      <div class="kpi cov"><div class="v">${summary.coverage ?? 0}</div><div class="l">Coverage</div></div>
     </div>
+    ${report.error ? `<div class="run-error" role="alert"><strong>Run aborted:</strong> ${escapeHtml(report.error)}</div>` : ''}
     <table class="results-table" aria-label="Per-test results">
       <thead><tr><th></th><th>Test ID</th><th>Name</th><th>Result</th><th class="dur">Dur</th></tr></thead>
       <tbody>
@@ -261,7 +263,7 @@ async function startRun() {
     }
     renderReportInto(side, report);
     side.removeAttribute('aria-busy');
-    const summary = report.summary ?? { total: 0, passed: 0, failed: 0, skipped: 0, passRate: 0 };
+    const summary = report.summary ?? { total: 0, passed: 0, failed: 0, skipped: 0, coverage: 0, passRate: 0 };
     if (meta) meta.textContent = `Done · ${body.mode}`;
     toast(`Run complete · ${summary.passed}/${summary.total} passed`, summary.failed === 0 ? 'ok' : 'bad');
   } catch (e) {
@@ -464,7 +466,7 @@ async function renderHistory() {
     // MAS-174: defend against runs whose summary is somehow missing on the
     // wire (the /api/runs endpoint backfills, but the SPA also accepts
     // reports via deep-links and saved JSON files).
-    const s = r.summary ?? { total: 0, passed: 0, failed: 0, skipped: 0, passRate: 0 };
+    const s = r.summary ?? { total: 0, passed: 0, failed: 0, skipped: 0, coverage: 0, passRate: 0 };
     const p = s.passed, f = s.failed;
     const isPinned = r.runId === pinnedLeftId;
     return `<button class="history-row${isPinned ? ' pinned' : ''}" data-id="${escapeHtml(r.runId)}" type="button" style="--rd:${(i * stepMs).toFixed(1)}ms">
@@ -527,39 +529,41 @@ function renderDiffInto(panel, diff, leftId, rightId, options = {}) {
       </div>
     </div>
     <div class="kpis">
-      <div class="kpi failed"><div class="v">${s.passToFail}</div><div class="l">Pass→Fail</div></div>
-      <div class="kpi passed"><div class="v">${s.failToPass}</div><div class="l">Fail→Pass</div></div>
-      <div class="kpi failed"><div class="v">${s.newFail}</div><div class="l">New fail</div></div>
-      <div class="kpi passed"><div class="v">${s.newPass}</div><div class="l">New pass</div></div>
-      <div class="kpi"><div class="v">${s.removed}</div><div class="l">Removed</div></div>
-      <div class="kpi"><div class="v">${s.unchanged}</div><div class="l">Unchanged</div></div>
-    </div>
-  `;
-  const rows = (diff.rows || []).map((r, i) => {
-    const cls = r.flip === 'pass-to-fail' || r.flip === 'new-fail'
-      ? 'fail'
-      : r.flip === 'fail-to-pass' || r.flip === 'new-pass'
-        ? 'pass'
-        : r.flip === 'removed'
-          ? 'skip'
-          : '';
-    const lMark = r.left ? (r.left.pass ? '✓' : (r.left.message && r.left.message.startsWith('SKIPPED') ? '⏭' : '✗')) : '–';
-    const rMark = r.right ? (r.right.pass ? '✓' : (r.right.message && r.right.message.startsWith('SKIPPED') ? '⏭' : '✗')) : '–';
-    return `<tr class="${cls}">
-      <td class="flip"><span class="tag ${cls}">${escapeHtml(r.flip)}</span></td>
-      <td class="id">${escapeHtml(r.id)}</td>
-      <td class="name">${escapeHtml(r.name)}</td>
-      <td class="lr"><span class="dim">L</span> ${lMark} <span class="dim">R</span> ${rMark}</td>
-    </tr>`;
-  }).join('');
-  panel.innerHTML = summary + `
-    <table class="results-table" aria-label="Per-test diff">
-      <thead><tr><th>Flip</th><th>Test ID</th><th>Name</th><th>L / R</th></tr></thead>
-      <tbody>${rows || `<tr><td colspan="4" class="empty">No tests to diff.</td></tr>`}</tbody>
+      <div class="kpi"><div class="v">${total}</div><div class="l">Tests</div></div>
+      <div class="kpi passed"><div class="v">${summary.passed}</div><div class="l">Passed</div></div>
+      <div class="kpi failed"><div class="v">${summary.failed}</div><div class="l">Failed</div></div>
+      <div class="kpi"><div class="v">${escapeHtml(passPct)}%</div><div class="l">Pass rate</div></div>
+      <div class="kpi cov"><div class="v">${summary.coverage ?? 0}</div><div class="l">Coverage</div></div>
+    </div>${report.error ? `<div class="error-banner" role="alert">Run aborted: ${escapeHtml(report.error)}</div>` : ''}
+    <table class="results-table" aria-label="Per-test results">
+      <thead><tr><th></th><th>Test ID</th><th>Name</th><th>Result</th><th class="dur">Dur</th></tr></thead>
+      <tbody>
+        ${report.results.map((r, i) => {
+          const cls = r.message.startsWith('SKIPPED') ? 'skip' : (r.pass ? 'pass' : 'fail');
+          const icon = cls === 'skip'
+            ? '<svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3,3 5,3 5,9 3,9"/><polygon points="9,3 11,3 11,9 3,9"/><polygon points="9,3 11,3 11,9 3,9"/></svg>'
+            : cls === 'pass'
+              ? '<svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7"/></svg>'
+              : '<svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"/></svg>';
+          // MAS-219: surface the test's kind next to its name so a
+          // reviewer can tell at a glance which rows probed the
+          // network (LIVE) vs. which were spec-shape validators (COV).
+          const kindBadge = r.kind === 'live'
+            ? '<span class="kind-badge live" title="Live test: made a real HTTP call to the target">LIVE</span>'
+            : '<span class="kind-badge cov" title="Coverage test: client-side shape validator, did not contact the target">COV</span>';
+          const ev = r.evidence
+            ? `<details><summary>evidence</summary><pre>${escapeHtml(JSON.stringify(r.evidence, null, 2))}</pre></details>`
+            : '';
+          return `<tr class="${cls}" style="--rd:${(i * stepMs).toFixed(1)}ms">
+            <td class="status">${icon}</td>
+            <td class="id">${escapeHtml(r.id)}</td>
+            <td class="name">${escapeHtml(r.name)} ${kindBadge}<div class="dim" style="font-weight:300;margin-top:0.2rem;font-size:0.78rem">${escapeHtml(r.message)}${ev}</div></td>
+            <td class="dur">${r.durationMs} ms</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
     </table>
   `;
-  const btn = panel.querySelector('#btn-clear-pin-2');
-  if (btn) btn.addEventListener('click', () => { clearPin(); showView('history'); });
 }
 
 /**
