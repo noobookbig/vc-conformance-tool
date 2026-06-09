@@ -30,3 +30,12 @@ services:
     read_only: false
     tmpfs:
       - /tmp
+      # MAS-174 follow-up: mount the persistent run store in a tmpfs so
+      # the file is owned by the runtime `app` user and the dir is
+      # always writable. Survives container restart? No — a tmpfs dies
+      # with the container. That's the right trade for a demo / QA
+      # tool: the JSON/HTML reports are the durable artifact (downloaded
+      # by the user), and an empty history on restart is a non-issue.
+      # If long-term persistence is ever needed, swap the tmpfs for a
+      # named volume (`docker volume create vc-runs && mount it here`).
+      - /app/apps/web/data

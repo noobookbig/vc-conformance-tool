@@ -20,11 +20,19 @@
 #                  proofRequestShareUrl, proofRequestHttpUrl }
 #   also written to: /tmp/procivis-sandbox-state.json
 #   and:             ops/procivis-sandbox/.last-setup.json
+#   and:             ops/qa-reports/targets.example.yaml is patched with
+#                    the live IDs so the canonical "real Thai target"
+#                    fixture is always reproducible from a fresh seed.
 #
 # Idempotency:
 #   If /tmp/procivis-sandbox-state.json exists AND the org / key / schema /
 #   creds it points at still exist on the server, the script re-uses them
 #   (no double-creation). Otherwise it builds from scratch.
+#
+# Environment overrides:
+#   PROCIVIS_REWRITE_YAML=0  skip patching the YAML (default: patch it).
+#                            Useful for CI / sandboxes where the YAML is
+#                            pinned to a specific snapshot.
 
 set -euo pipefail
 
@@ -32,8 +40,41 @@ BASE="${PROCIVIS_BASE:-http://127.0.0.1:3000}"
 AUTH="Authorization: Bearer test"
 CT="content-type: application/json"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 STATE_FILE="/tmp/procivis-sandbox-state.json"
 LAST_FILE="$SCRIPT_DIR/.last-setup.json"
+YAML_FILE="$REPO_ROOT/ops/qa-reports/targets.example.yaml"
+REWRITER="$SCRIPT_DIR/rewrite-yaml.py"
+
+# rewrite_yaml_if_enabled <state-json> <yaml-file>
+# Patches the th-public-*-procivis entries in targets.example.yaml so
+# the canonical "real Thai target" fixture is always in sync with the
+# live IDs. Skips silently if PROCIVIS_REWRITE_YAML=0, if the rewriter
+# is missing (CI without PyYAML), or if the YAML is missing.
+rewrite_yaml_if_enabled() {
+  local state_json="$1" yaml_path="$2"
+  if [[ "${PROCIVIS_REWRITE_YAML:-1}" != "1" ]]; then
+    echo "==> skipping YAML rewrite (PROCIVIS_REWRITE_YAML=0)" >&2
+    return 0
+  fi
+  if [[ ! -f "$state_json" ]]; then
+    echo "==> skipping YAML rewrite (state file missing: $state_json)" >&2
+    return 0
+  fi
+  if [[ ! -f "$REWRITER" ]]; then
+    echo "==> skipping YAML rewrite (rewriter missing: $REWRITER)" >&2
+    return 0
+  fi
+  if [[ ! -f "$yaml_path" ]]; then
+    echo "==> skipping YAML rewrite (YAML missing: $yaml_path)" >&2
+    return 0
+  fi
+  echo "==> patching $yaml_path with live IDs from $state_json" >&2
+  if ! python3 "$REWRITER" --state "$state_json" --yaml "$yaml_path" >&2; then
+    echo "WARN: YAML rewrite failed (see errors above); leaving $yaml_path as-is" >&2
+    return 0
+  fi
+}
 
 # Quick server liveness check — fail loud if core-server is not up.
 if ! curl -fsS -H "Accept: application/json" "$BASE/api/config/v1" -H "$AUTH" >/dev/null 2>&1; then
@@ -55,6 +96,7 @@ fi
 
 if [[ "$reusable" == "1" ]]; then
   echo "==> reusing existing Procivis resources from $STATE_FILE" >&2
+  rewrite_yaml_if_enabled "$STATE_FILE" "$YAML_FILE" || true
   cat "$STATE_FILE"
   exit 0
 fi
@@ -167,5 +209,7 @@ STATE=$(jq -nc \
 
 echo "$STATE" > "$STATE_FILE"
 echo "$STATE" > "$LAST_FILE"
+
+rewrite_yaml_if_enabled "$STATE_FILE" "$YAML_FILE" || true
 
 echo "$STATE"

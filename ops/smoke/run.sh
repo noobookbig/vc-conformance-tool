@@ -56,9 +56,10 @@ run_mode() {
   fi
   local resp
   resp=$(curl -fsS -X POST "$BASE/api/runs" -H "content-type: application/json" -d "$body")
-  local total passed
+  local total passed failed
   total=$(echo "$resp" | python3 -c "import json,sys; print(json.load(sys.stdin)['summary']['total'])")
   passed=$(echo "$resp" | python3 -c "import json,sys; print(json.load(sys.stdin)['summary']['passed'])")
+  failed=$(echo "$resp" | python3 -c "import json,sys; print(json.load(sys.stdin)['summary']['failed'])")
   local runId
   runId=$(echo "$resp" | python3 -c "import json,sys; print(json.load(sys.stdin)['runId'])")
   echo "==> $mode  ${passed}/${total} passed  runId=$runId"
@@ -81,8 +82,12 @@ run_mode() {
     cat "/tmp/conformance-smoke-${slug}-curl.json"
     return 1
   fi
-  if [[ "$passed" != "$total" ]]; then
-    echo "FAIL: $mode did not pass 100%"
+  if [[ "$failed" != "0" ]]; then
+    # MAS-174 follow-up: SKIPs are no longer counted as PASSes (per the
+    # fix to summarize()), so "passed == total" is the wrong assertion
+    # whenever a test is gated on a runtime prereq. The right
+    # 100%-clean check is `failed == 0` (any non-zero failure trips).
+    echo "FAIL: $mode had $failed failure(s)"
     echo "$resp" | python3 -c "import json,sys; r=json.load(sys.stdin); [print('  -', x['id'], '|', x['message'][:90]) for x in r['results'] if not x['pass']]"
     return 1
   fi

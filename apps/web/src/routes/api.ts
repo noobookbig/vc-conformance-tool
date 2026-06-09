@@ -23,11 +23,12 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { CATALOG, listForMode } from '../wallet/catalog.js';
-import { runConformance, type RunRequest, type RunStore, type Report } from '../runners/runner.js';
+import { runConformance, summarize, type RunRequest, type RunStore, type Report } from '../runners/runner.js';
 import { toHtml, toJson } from '../report/serialize.js';
 import { toCsv } from '../report/csv.js';
 import { diffReports } from '../report/diff.js';
 import { generateKeyStore, type KeyStore, type WalletKey } from '../crypto/keys.js';
+import { validateQrPayload } from '../qr/validate.js';
 
 const ModeSchema = z.enum(['I->W', 'V->W', 'W->I', 'W->V']);
 
@@ -35,8 +36,21 @@ const ConfigSchema = z.object({
   mode: ModeSchema,
   targetIssuer: z.string().url().optional().or(z.literal('').transform(() => undefined)),
   targetVerifier: z.string().url().optional().or(z.literal('').transform(() => undefined)),
+  /**
+   * Optional absolute override for the OID4VCI issuer metadata URL. When
+   * set, the runner fetches metadata from this URL instead of the default
+   * `${targetIssuer}/.well-known/openid-credential-issuer`. Use this for
+   * OID4VCI 1.0 Final issuers that serve the well-known at a parameterised
+   * path (e.g. Procivis One Core).
+   */
+  issuerMetadataUrl: z.string().url().optional().or(z.literal('').transform(() => undefined)),
   credentialConfigurationId: z.string().min(1).default('ThaiNationalID'),
   dcqlQuery: z.unknown().optional(),
+});
+
+const QrValidationSchema = z.object({
+  flow: z.enum(['receive-vc-offer', 'receive-vp-request', 'send-vp-request']),
+  payload: z.string().min(1),
 });
 
 interface ServerDeps {
@@ -113,6 +127,7 @@ export async function registerApiRoutes(app: FastifyInstance, deps: ServerDeps):
       mode: cfg.mode,
       targetIssuer: cfg.targetIssuer,
       targetVerifier: cfg.targetVerifier,
+      issuerMetadataUrl: cfg.issuerMetadataUrl,
       credentialConfigurationId: cfg.credentialConfigurationId,
       dcqlQuery: cfg.dcqlQuery,
     };
@@ -124,10 +139,32 @@ export async function registerApiRoutes(app: FastifyInstance, deps: ServerDeps):
     return report;
   });
 
-  app.get('/api/runs', async () => ({ runs: store.list().map((r) => ({
-    runId: r.runId, mode: r.mode, startedAt: r.startedAt, finishedAt: r.finishedAt,
-    summary: r.summary, target: r.target,
-  })) }));
+  app.post('/api/qr/validate', async (req, reply) => {
+    const parsed = QrValidationSchema.safeParse(req.body);
+    if (!parsed.success) return reply.code(400).send({ error: 'invalid_request', details: parsed.error.issues });
+    const result = validateQrPayload(parsed.data.flow, parsed.data.payload);
+    if (!result.ok) return reply.code(400).send(result);
+    return result;
+  });
+
+  app.get('/api/runs', async () => {
+    // MAS-174: backfill `summary` on read if a persisted run somehow
+    // landed without one (corrupt on-disk shape, partial migration, etc.).
+    // The frontend `renderHistory` and `renderReportInto` both read
+    // `r.summary.passed` / `r.summary.failed`; a missing summary crashes
+    // them. We rebuild from `results` (which is the source of truth)
+    // and the new `summarize()` helper is null-safe.
+    return {
+      runs: store.list().map((r) => ({
+        runId: r.runId,
+        mode: r.mode,
+        startedAt: r.startedAt,
+        finishedAt: r.finishedAt,
+        summary: r.summary ?? summarize(r.results),
+        target: r.target,
+      })),
+    };
+  });
 
   app.get<{ Params: { id: string } }>('/api/runs/:id', async (req, reply) => {
     const r = store.get(req.params.id);

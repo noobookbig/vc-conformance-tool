@@ -119,20 +119,20 @@ targets:
     status: reachable
     baseUrl: http://127.0.0.1:3000
     credentials:
-      - configurationId: http://localhost:3000/ssi/vct/v1/bfb8ea52-3036-41b4-a6fc-a1954e714640/c3ba8ac2-82aa-4d74-be11-84b15db44e6d
-        vct: http://localhost:3000/ssi/vct/v1/bfb8ea52-3036-41b4-a6fc-a1954e714640/c3ba8ac2-82aa-4d74-be11-84b15db44e6d
+      - configurationId: http://localhost:3000/ssi/vct/v1/57d602b2-816a-417f-a795-5a7a383fe6e3/8fcce37b-59fe-4e88-9b52-fe52e204c692
+        vct: http://localhost:3000/ssi/vct/v1/57d602b2-816a-417f-a795-5a7a383fe6e3/8fcce37b-59fe-4e88-9b52-fe52e204c692
         format: dc+sd-jwt
-        scope: http://localhost:3000/ssi/vct/v1/bfb8ea52-3036-41b4-a6fc-a1954e714640/c3ba8ac2-82aa-4d74-be11-84b15db44e6d
+        scope: http://localhost:3000/ssi/vct/v1/57d602b2-816a-417f-a795-5a7a383fe6e3/8fcce37b-59fe-4e88-9b52-fe52e204c692
     issuerMetadata:
-      credential_issuer: http://localhost:3000/ssi/openid4vci/final-1.0/OPENID4VCI_FINAL1/4640aded-2765-4773-8683-9c749c92f129/c3ba8ac2-82aa-4d74-be11-84b15db44e6d
-      credential_endpoint: http://localhost:3000/ssi/openid4vci/final-1.0/c3ba8ac2-82aa-4d74-be11-84b15db44e6d/credential
+      credential_issuer: http://localhost:3000/ssi/openid4vci/final-1.0/OPENID4VCI_FINAL1/dba02b5a-9cf6-48d2-8137-cb74726bbb8a/8fcce37b-59fe-4e88-9b52-fe52e204c692
+      credential_endpoint: http://localhost:3000/ssi/openid4vci/final-1.0/8fcce37b-59fe-4e88-9b52-fe52e204c692/credential
       nonce_endpoint: http://localhost:3000/ssi/openid4vci/final-1.0/OPENID4VCI_FINAL1/nonce
-      notification_endpoint: http://localhost:3000/ssi/openid4vci/final-1.0/c3ba8ac2-82aa-4d74-be11-84b15db44e6d/notification
+      notification_endpoint: http://localhost:3000/ssi/openid4vci/final-1.0/8fcce37b-59fe-4e88-9b52-fe52e204c692/notification
       credential_configurations_supported:
-        "http://localhost:3000/ssi/vct/v1/bfb8ea52-3036-41b4-a6fc-a1954e714640/c3ba8ac2-82aa-4d74-be11-84b15db44e6d":
+        "http://localhost:3000/ssi/vct/v1/57d602b2-816a-417f-a795-5a7a383fe6e3/8fcce37b-59fe-4e88-9b52-fe52e204c692":
           format: dc+sd-jwt
-          vct: http://localhost:3000/ssi/vct/v1/bfb8ea52-3036-41b4-a6fc-a1954e714640/c3ba8ac2-82aa-4d74-be11-84b15db44e6d
-          scope: http://localhost:3000/ssi/vct/v1/bfb8ea52-3036-41b4-a6fc-a1954e714640/c3ba8ac2-82aa-4d74-be11-84b15db44e6d
+          vct: http://localhost:3000/ssi/vct/v1/57d602b2-816a-417f-a795-5a7a383fe6e3/8fcce37b-59fe-4e88-9b52-fe52e204c692
+          scope: http://localhost:3000/ssi/vct/v1/57d602b2-816a-417f-a795-5a7a383fe6e3/8fcce37b-59fe-4e88-9b52-fe52e204c692
           cryptographic_binding_methods_supported: [jwk, did:web, did:ion, did:key, did:tdw, did:jwk]
           credential_signing_alg_values_supported: [ES256, EdDSA, ML-DSA-65]
           proof_types_supported:
@@ -146,7 +146,7 @@ targets:
       clientId: vc-conformance-test-wallet
       clientSecretEnv: null
     trust:
-      issuerDids: [did:key:z6MkhKbrVBn6jRLQWhsjRTCh8QBoveNqF9ovDS2nPfoUJgdC]
+      issuerDids: [did:key:z6Mkg9Sa3U3XPP55p1V5Yfo1PFN9zdJAKXxTJKFXsVZhUnDE]
       verifierAcceptsKbJwtAlgs: [ES256, EdDSA]
     notes: |
       Procivis One Core (self-hosted, Docker + MariaDB) running at
@@ -167,7 +167,7 @@ targets:
       Procivis uses the schemaId as the OID4VCI credential identifier
       in the well-known metadata.
       Issuer DID (live, did:key method, not did:web as previously
-      recorded): did:key:z6MkhKbrVBn6jRLQWhsjRTCh8QBoveNqF9ovDS2nPfoUJgdC
+      recorded): did:key:z6Mkg9Sa3U3XPP55p1V5Yfo1PFN9zdJAKXxTJKFXsVZhUnDE
       (re-issued every time the MariaDB volume is reset; re-run
       ops/procivis-sandbox/setup-issuer-and-verifier.sh to refresh).
       Updated 2026-06-09T00:46Z by MAS-164 (this run) — fixed the
@@ -188,7 +188,7 @@ targets:
     category: thai-public-sandbox
     status: reachable
     baseUrl: http://127.0.0.1:3000
-    authorizationRequestEndpoint: http://127.0.0.1:3000/ssi/openid4vp/draft-25/b0279453-8012-406f-bd48-6e3eb76fc599/client-request
+    authorizationRequestEndpoint: http://127.0.0.1:3000/ssi/openid4vp/draft-25/44713520-f3f8-4bc4-bb70-38b65806237c/client-request
     responseMode: direct_post
     responseUri: http://127.0.0.1:3000/ssi/openid4vp/draft-25/response
     clientId: verifier_attestation:http://localhost:3000/ssi/openid4vp/draft-25/response
@@ -197,9 +197,9 @@ targets:
         - id: thai-national-id
           format: dc+sd-jwt
           meta:
-            vct_values: [http://localhost:3000/ssi/vct/v1/bfb8ea52-3036-41b4-a6fc-a1954e714640/c3ba8ac2-82aa-4d74-be11-84b15db44e6d]
+            vct_values: [http://localhost:3000/ssi/vct/v1/57d602b2-816a-417f-a795-5a7a383fe6e3/8fcce37b-59fe-4e88-9b52-fe52e204c692]
     trust:
-      acceptedIssuerDids: [did:key:z6MkhKbrVBn6jRLQWhsjRTCh8QBoveNqF9ovDS2nPfoUJgdC]
+      acceptedIssuerDids: [did:key:z6Mkg9Sa3U3XPP55p1V5Yfo1PFN9zdJAKXxTJKFXsVZhUnDE]
       acceptedKbJwtAlgs: [ES256, EdDSA]
     notes: |
       Same Procivis One Core instance as the issuer entry
@@ -216,7 +216,7 @@ targets:
       match the issuer entry's vct exactly.
       Accepted issuer DID (live, did:key method, not did:web as
       previously recorded):
-      did:key:z6MkhKbrVBn6jRLQWhsjRTCh8QBoveNqF9ovDS2nPfoUJgdC
+      did:key:z6Mkg9Sa3U3XPP55p1V5Yfo1PFN9zdJAKXxTJKFXsVZhUnDE
       The proof-request id (b0279453-8012-406f-bd48-6e3eb76fc599) is
       ephemeral; re-run
       ops/procivis-sandbox/setup-issuer-and-verifier.sh after a DB

@@ -30,6 +30,52 @@ On first start the app auto-generates a fresh wallet key pair (ES256 + EdDSA)
 and a self-contained in-process mock issuer + verifier. So `docker compose up`
 gives you a working tool with no external services.
 
+### Try the tool with the in-process mock (no external services)
+
+The fastest way to see a green run is to use the **in-process mock issuer +
+verifier** that the webapp ships. No external services needed; everything
+runs inside the same container.
+
+1. Open <http://localhost:8080> (or whichever host/port you mapped).
+2. Click **Configuration** in the top nav.
+3. Pick a **Mode** (any of the four cross-modes works against the mock).
+4. **Leave `targetIssuer` and `targetVerifier` blank** — this is the
+   important part. With those fields empty, the runner uses the
+   in-process mock at `http://127.0.0.1:<PORT>/.mock/issuer` (or
+   `/.mock/verifier`), which always works and always returns the
+   expected OID4VCI/OID4VP metadata shape.
+5. **Credential Config ID** stays at the default `ThaiNationalID`
+   (or pick `ThaiUniversityDegree` to mix it up).
+6. Click **Save**, then click **Run** on the run view.
+
+You should see all four cross-modes go 100% (40–41 of ~41 tests pass,
+the rest SKIP because they are gated on a real-issuer prereq such as
+`accessToken`).
+
+The same flow is reproducible from the CLI without the UI:
+
+```bash
+# All four modes against the in-process mock (no targetIssuer set).
+curl -X POST http://localhost:8080/api/runs \
+  -H "content-type: application/json" \
+  -d '{"mode":"I->W","credentialConfigurationId":"ThaiNationalID"}'
+# → {"runId":"run-…","summary":{"total":41,"passed":40,"failed":0,"skipped":1,"passRate":1},…}
+```
+
+> **Why does the in-process mock SKIP one test?** `FT.WL.IC.W.I.VB.001`
+> (full wallet-side issuance) requires a real `access_token` from the
+> issuer. The mock does not run the offer→token step, so the test
+> SKIPs with a documented reason. The SKIP is **expected** and **not a
+> failure** — the report still shows `failed: 0`.
+
+### When to set `targetIssuer` (real-issuer path)
+
+Only set `targetIssuer` when you actually want to drive a **real OID4VCI
+issuer** (Procivis One Core, a Thai government sandbox, etc.). In that
+case the URL must point at the OID4VCI metadata endpoint, not at the
+server root. See **"Test against a real target"** below for the full
+convention and the "URL must be the OID4VCI endpoint base" warning.
+
 ## Quick start (local dev)
 
 ```bash
@@ -99,6 +145,49 @@ Save the config and click **Run** on the chosen test suite.
 > If that endpoint is on a **subpath** (e.g.
 > `https://example.go.th/oid4vci/.well-known/openid-credential-issuer`),
 > the `targetIssuer` URL must include that subpath as the base.
+
+## Troubleshooting
+
+### "summary is not defined" in the SPA / blank report panel
+
+Symptom: you click **Run**, the report panel flashes blank or shows
+"0/0 passed" with no rows, and the browser console prints
+`Cannot read properties of undefined (reading 'passRate')` (or
+similar) — usually the `app.js` was loaded from a stale browser cache
+or the server returned a Fastify error envelope (`{statusCode, code,
+error, message}`) instead of a typed `Report`.
+
+Fix in order:
+
+1. **Hard-reload the SPA** — `Cmd/Ctrl+Shift+R`. The static file is
+   served with `cache-control: public, max-age=0` so a normal reload
+   revalidates, but a hard reload skips cache and is the safest reset.
+2. **Open DevTools → Network → check the `/api/runs` response** — if
+   the response body has a `statusCode` field, it is an error envelope
+   (the server itself failed). Read the `message` for the cause.
+3. **If you set `targetIssuer`**, make sure it is the OID4VCI
+   **endpoint base**, not the server root. See **"Test against a
+   real target"** above. A wrong URL makes the runner SKIP every
+   metadata-dependent test; the new defensive code in the SPA still
+   renders the SKIPs (so you see 0 failed + N skipped) but a stale
+   `app.js` from before the fix will crash.
+4. **Easiest reset: clear `targetIssuer` and `targetVerifier`** and
+   re-run. The in-process mock takes over and the suite goes 100%.
+   See **"Try the tool with the in-process mock"** above.
+
+### `EACCES: permission denied, open '/app/apps/web/data/runs.json'`
+
+The container is running as a non-root `app` user and the data dir is
+not writable. This was a real bug fixed in MAS-174 follow-up; if you
+see it on a fresh image, rebuild with `docker compose build --no-cache`
+to pick up the new entrypoint (`ops/docker/entrypoint.sh`) that
+re-chowns the data dir at container start.
+
+### "Port 8080 already in use" when running `npm run dev`
+
+You are already running the Docker container on 8080. Either stop it
+(`cd ops/docker && docker compose down`) or run the dev server on a
+different port (`PORT=8090 npm run dev`).
 
 ## Smoke test (after `docker compose up`)
 

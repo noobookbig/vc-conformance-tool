@@ -8,6 +8,7 @@
  */
 
 import type { Report } from '../runners/runner.js';
+import { summarize } from '../runners/runner.js';
 import { evidenceToCurl } from './curl.js';
 
 export function toJson(report: Report): string {
@@ -88,8 +89,14 @@ const SCRIPT = `
 
 export function toHtml(report: Report): string {
   const rows = report.results.map(rowFor).join('');
-  const summary = report.summary;
-  const passPct = (summary.passRate * 100).toFixed(1);
+  // MAS-174: a persisted or freshly-built report with no `summary` (e.g.
+  // a partial on-disk shape from before summarize() was hardened) must
+  // still produce a valid HTML report. We rebuild from `results` here
+  // so the report is self-contained and the operator gets the full
+  // picture. See `summarize()` in apps/web/src/runners/runner.ts for
+  // the canonical implementation.
+  const summary = report.summary ?? summarize(report.results);
+  const passPct = ((summary.passRate ?? 0) * 100).toFixed(1);
   return `<!doctype html>
 <html lang="en" data-theme="light">
 <head>

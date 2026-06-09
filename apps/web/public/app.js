@@ -140,10 +140,17 @@ function applyLocalConfigToRunForm() {
 }
 
 function renderReportInto(panel, report) {
-  const passPct = (report.summary.passRate * 100).toFixed(1);
+  // MAS-174: a report without a `summary` (e.g. partial persisted shape,
+  // a future code path that builds a report shell, etc.) must still
+  // render. The server is the source of truth for shape — by the time
+  // the SPA sees a report over the wire the /api/runs endpoint already
+  // backfills a missing summary — but we defend in depth because the
+  // report can also be deep-linked from a saved JSON.
+  const summary = report.summary ?? { total: 0, passed: 0, failed: 0, skipped: 0, passRate: 0 };
+  const passPct = (summary.passRate * 100).toFixed(1);
   const runIdEsc = escapeHtml(report.runId);
   const modeEsc = escapeHtml(report.mode);
-  const total = report.summary.total;
+  const total = summary.total;
   const stepMs = prefersReducedMotion ? 0 : Math.min(28, 600 / Math.max(total, 1));
   panel.innerHTML = `
     <div class="report-head">
@@ -165,8 +172,8 @@ function renderReportInto(panel, report) {
     </div>
     <div class="kpis">
       <div class="kpi"><div class="v">${total}</div><div class="l">Tests</div></div>
-      <div class="kpi passed"><div class="v">${report.summary.passed}</div><div class="l">Passed</div></div>
-      <div class="kpi failed"><div class="v">${report.summary.failed}</div><div class="l">Failed</div></div>
+      <div class="kpi passed"><div class="v">${summary.passed}</div><div class="l">Passed</div></div>
+      <div class="kpi failed"><div class="v">${summary.failed}</div><div class="l">Failed</div></div>
       <div class="kpi"><div class="v">${escapeHtml(passPct)}%</div><div class="l">Pass rate</div></div>
     </div>
     <table class="results-table" aria-label="Per-test results">
@@ -237,10 +244,26 @@ async function startRun() {
 
   try {
     const report = await api.startRun(body);
+    // MAS-174 follow-up: the server returns a Fastify error envelope
+    // ({statusCode, code, error, message}) on 4xx/5xx instead of a
+    // typed Report. That envelope has no `summary` / `runId` / `results`,
+    // so renderReportInto() would render a blank panel and the user
+    // would see "0/0 passed" with no explanation. Detect the envelope
+    // shape and surface a friendly message + targeted hint based on
+    // the failure mode.
+    if (report && typeof report === 'object' && !report.runId && report.statusCode && report.message) {
+      const hint = hintForStartRunError(report, body);
+      side.removeAttribute('aria-busy');
+      side.innerHTML = `<div class="empty">Run failed: ${escapeHtml(report.message)}</div>${hint}`;
+      if (meta) meta.textContent = `Failed · ${body.mode}`;
+      toast(`Run failed: ${report.message}`, 'bad');
+      return;
+    }
     renderReportInto(side, report);
     side.removeAttribute('aria-busy');
+    const summary = report.summary ?? { total: 0, passed: 0, failed: 0, skipped: 0, passRate: 0 };
     if (meta) meta.textContent = `Done · ${body.mode}`;
-    toast(`Run complete · ${report.summary.passed}/${report.summary.total} passed`, report.summary.failed === 0 ? 'ok' : 'bad');
+    toast(`Run complete · ${summary.passed}/${summary.total} passed`, summary.failed === 0 ? 'ok' : 'bad');
   } catch (e) {
     side.removeAttribute('aria-busy');
     side.innerHTML = `<div class="empty">Run failed: ${escapeHtml(e.message)}</div>`;
@@ -252,6 +275,43 @@ async function startRun() {
     if (btnLabel) btnLabel.textContent = 'Run conformance';
     inFlight = false;
   }
+}
+
+/**
+ * Render a one-line hint tailored to the failure mode so the user
+ * doesn't have to grep the server log. The most common
+ * "summary is not defined"-shaped complaint (MAS-174 follow-up) was
+ * caused by `targetIssuer` pointing at a non-OID4VCI URL — the runner
+ * failed to fetch `/.well-known/openid-credential-issuer`, the suite
+ * ran with no metadata, every prereq-gated test SKIPped, and the old
+ * frontend mishandled the empty render. Now we point the user at the
+ * README's "Quick start with the in-process mock issuer" section so
+ * they have a known-good config to start from.
+ */
+function hintForStartRunError(err, body) {
+  const code = String(err.code || '');
+  const msg = String(err.message || '');
+  // 1) EACCES on the persistent store — the server itself can't write.
+  if (code === 'EACCES' || /permission denied/.test(msg)) {
+    return `<div class="empty" style="font-size:12px;margin-top:6px">
+      The server could not write its persistent run store. See the README "Docker" section.
+    </div>`;
+  }
+  // 2) Invalid config — the user typed a malformed targetIssuer URL.
+  if (code === 'FST_ERR_VALIDATION' || /invalid_request/.test(msg) || /invalid URL/.test(msg)) {
+    return `<div class="empty" style="font-size:12px;margin-top:6px">
+      Check the Configuration form: <code>targetIssuer</code> must be a valid URL that serves an
+      OID4VCI metadata document at <code>&lt;base&gt;/.well-known/openid-credential-issuer</code>.
+    </div>`;
+  }
+  // 3) Generic 5xx — point at the in-process mock as the easy path.
+  if (body && body.targetIssuer) {
+    return `<div class="empty" style="font-size:12px;margin-top:6px">
+      Tip: clear the <code>targetIssuer</code> field and run again — the in-process mock issuer
+      is preconfigured and always reachable. See the README "Quick start" section.
+    </div>`;
+  }
+  return '';
 }
 
 // ---------- Config view ----------
@@ -401,7 +461,11 @@ async function renderHistory() {
       </div>`
     : '';
   list.innerHTML = toolbar + runs.map((r, i) => {
-    const p = r.summary.passed, f = r.summary.failed;
+    // MAS-174: defend against runs whose summary is somehow missing on the
+    // wire (the /api/runs endpoint backfills, but the SPA also accepts
+    // reports via deep-links and saved JSON files).
+    const s = r.summary ?? { total: 0, passed: 0, failed: 0, skipped: 0, passRate: 0 };
+    const p = s.passed, f = s.failed;
     const isPinned = r.runId === pinnedLeftId;
     return `<button class="history-row${isPinned ? ' pinned' : ''}" data-id="${escapeHtml(r.runId)}" type="button" style="--rd:${(i * stepMs).toFixed(1)}ms">
       <div class="id">${escapeHtml(r.runId)}${isPinned ? ' <span class="pin-mark" aria-label="pinned as left side">L</span>' : ''}</div>

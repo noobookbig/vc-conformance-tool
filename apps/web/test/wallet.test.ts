@@ -32,7 +32,7 @@ describe('crypto/keys', () => {
     expect(keys.eddsa.publicJwk.crv).toBe('Ed25519');
   });
 
-  it('builds a KB-JWT with the correct header and claims', async () => {
+  it('builds a KB-JWT with the correct header and claims (jwk binding by default)', async () => {
     const aud = 'https://issuer.example.com/credential';
     const jwt = await buildKbJwt({ key: keys.es256, audience: aud, nonce: 'abc' });
     const [h, p, s] = jwt.split('.');
@@ -43,10 +43,22 @@ describe('crypto/keys', () => {
     const payload = JSON.parse(Buffer.from(p!, 'base64url').toString('utf8'));
     expect(header.alg).toBe('ES256');
     expect(header.typ).toBe('openid4vci-proof+jwt');
-    expect(header.kid).toBe(keys.es256.kid);
+    // Default is jwk binding (Procivis One Core + OID4VCI 1.0 §7.2.1).
+    expect(header.jwk).toBeDefined();
+    expect(header.jwk.kty).toBe('EC');
+    expect(header.jwk.crv).toBe('P-256');
     expect(payload.aud).toBe(aud);
     expect(payload.nonce).toBe('abc');
     expect(payload.iss).toBe(keys.es256.kid);
+  });
+
+  it('builds a KB-JWT with kid header when includeJwk=false (legacy issuers)', async () => {
+    const aud = 'https://issuer.example.com/credential';
+    const jwt = await buildKbJwt({ key: keys.es256, audience: aud, includeJwk: false });
+    const [h] = jwt.split('.');
+    const header = JSON.parse(Buffer.from(h!, 'base64url').toString('utf8'));
+    expect(header.kid).toBe(keys.es256.kid);
+    expect(header.jwk).toBeUndefined();
   });
 
   it('PKCE: code_challenge = base64url(sha256(verifier))', () => {

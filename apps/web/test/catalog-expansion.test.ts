@@ -302,10 +302,16 @@ describe('catalog expansion — WALLET case requires', () => {
     expect(tc.requires).toContain('credential');
   });
 
-  it('deferred-pending and invalid-txid cases require issuerMetadata', () => {
+  it('deferred-pending and invalid-txid cases require the deferredCredentialEndpoint prereq (MAS-169)', () => {
     for (const id of ['FT.IC.DC.I.H.IB.003', 'FT.IC.DC.I.H.IB.004']) {
       const tc = getById(id)!;
-      expect(tc.requires ?? [], `${id} requires`).toContain('issuerMetadata');
+      // MAS-169: the catalog moved these tests from `requires: ['issuerMetadata']`
+      // to the derived prereq `requires: ['deferredCredentialEndpoint']` so the
+      // runner SKIPs (not FAILs) them against issuers that do not advertise
+      // `deferred_credential_endpoint` (e.g. Procivis One Core, per OID4VCI
+      // 1.0 §8.1 optionality).
+      expect(tc.requires ?? [], `${id} requires`).toContain('deferredCredentialEndpoint');
+      expect(tc.requires ?? [], `${id} requires`).not.toContain('issuerMetadata');
     }
   });
 });

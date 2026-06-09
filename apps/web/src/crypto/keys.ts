@@ -92,11 +92,26 @@ export interface KbJwtInput {
   audience: string;        // issuer's Credential Endpoint URL
   nonce?: string;          // server-supplied c_nonce, if any
   issuedAt?: number;
+  /**
+   * When true, include the holder's public JWK in the JOSE header
+   * (`jwk` claim) instead of (or alongside) the `kid` thumbprint.
+   * OID4VCI 1.0 §7.2.1 mandates `jwk` when the issuer advertises
+   * `cryptographic_binding_methods_supported: ["jwk"]` (Procivis One
+   * Core is the canonical example). The in-process mock accepts
+   * either, so this defaults to `true` so the same code path works
+   * for both.
+   */
+  includeJwk?: boolean;
 }
 
 export async function buildKbJwt(input: KbJwtInput): Promise<string> {
   const iat = Math.floor((input.issuedAt ?? Date.now()) / 1000);
-  const header: Record<string, unknown> = { alg: input.key.alg, typ: 'openid4vci-proof+jwt', kid: input.key.kid };
+  const useJwk = input.includeJwk ?? true;
+  const header: Record<string, unknown> = {
+    alg: input.key.alg,
+    typ: 'openid4vci-proof+jwt',
+    ...(useJwk ? { jwk: input.key.publicJwk } : { kid: input.key.kid }),
+  };
   const payload: Record<string, unknown> = {
     iss: input.key.kid,           // per §7.2.1: client_id of the credential endpoint
     aud: input.audience,
@@ -106,7 +121,7 @@ export async function buildKbJwt(input: KbJwtInput): Promise<string> {
 
   const key = await importJWK(input.key.privateJwk, input.key.alg);
   return await new SignJWT(payload)
-    .setProtectedHeader({ alg: input.key.alg as 'ES256' | 'EdDSA', typ: 'openid4vci-proof+jwt', kid: input.key.kid })
+    .setProtectedHeader(header as { alg: 'ES256' | 'EdDSA'; typ: string; jwk?: JWK; kid?: string })
     .sign(key as KeyLike | Uint8Array);
 }
 

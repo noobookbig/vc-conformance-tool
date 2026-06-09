@@ -1,0 +1,35 @@
+# Node / TypeScript
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Local app state (the persistence layer writes its own file at runtime;
+# shipping the host's runs.json into the image is both wasteful and the
+# cause of the MAS-174 follow-up EACCES — see apps/web/src/runners/persistence.ts).
+apps/web/data/
+apps/web/data/runs.json
+data/
+
+# Generated reports
+reports/
+*.log
+.env
+.env.*
+.wallet/
+.patches/
+.DS_Store
+.vscode/
+.idea/
+
+# One-core sandbox (heavy Rust build dir; only mounted at runtime in
+# ops/procivis-sandbox/ if the user wants the live target).
+ops/procivis-sandbox/one-core/target/
+ops/procivis-sandbox/one-core/.git/
+
+# Local QA evidence (host-only, gitignored anyway, but be explicit).
+ops/qa-reports/
+
+# Smoke + scratch
+/tmp/conformance-smoke*.*

@@ -124,9 +124,14 @@ The seeder creates (in order):
 
 The output JSON includes the live
 `issuerMetadataUrl` (the OID4VCI 1.0 well-known) and
-`proofRequestHttpUrl` (the OID4VP draft-25 client_request). Use these
-when filling the two `TEMPLATE` entries in
-[`../qa-reports/targets.example.yaml`](../qa-reports/targets.example.yaml).
+`proofRequestHttpUrl` (the OID4VP draft-25 client_request). The script
+also auto-patches the two `th-public-*-procivis` entries in
+[`../qa-reports/targets.example.yaml`](../qa-reports/targets.example.yaml)
+with the live IDs (issuer DID, identifier, schema, proof request) so the
+canonical "real Thai target" fixture is always reproducible from a fresh
+seed. To opt out (e.g. to pin the YAML to a specific snapshot in a
+regression run), set `PROCIVIS_REWRITE_YAML=0` before invoking the
+script.
 
 ## Healthcheck
 
@@ -205,11 +210,12 @@ ops/procivis-sandbox/
 
 ## Follow-up work
 
-- **Wire `setup-issuer-and-verifier.sh` into the parent MAS-161 workflow.**
-  The seeder exists and has a real successful run; the next step is to
-  plug its output into the two `TEMPLATE` entries in
+- ~~**Wire `setup-issuer-and-verifier.sh` into the parent MAS-161 workflow.**~~
+  The seeder now auto-patches the two `th-public-*-procivis` entries in
   [`../qa-reports/targets.example.yaml`](../qa-reports/targets.example.yaml)
-  (this is MAS-161 step 2 — out of scope for MAS-163).
+  with the live IDs on every successful (or idempotent re-use) run
+  ([MAS-168](/MAS/issues/MAS-168)). Set `PROCIVIS_REWRITE_YAML=0` to opt
+  out (e.g. to pin the YAML to a specific snapshot in a regression run).
 - **Add `walletdb` to the `start.sh` bring-up** (the official
   `makers dbstart` task starts `mariadb` **and** `walletdb`; the current
   `start.sh` only brings up `mariadb`). Not a blocker for the OID4VCI

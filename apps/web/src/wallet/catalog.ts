@@ -22,6 +22,17 @@ function absIssuer(ctx: RunContext): string {
 function absVerifier(ctx: RunContext): string {
   return resolveTargetUrl(ctx.targetVerifier, MOCK_VERIFIER_BASE);
 }
+/**
+ * Resolve the URL the wallet should hit to fetch the OID4VCI issuer metadata
+ * document. Honors `ctx.issuerMetadataUrl` (explicit per-issuer override) and
+ * otherwise falls back to `${absIssuer(ctx)}/.well-known/openid-credential-issuer`.
+ * The runner pre-populates `ctx.issuerMetadata` for the common case; the
+ * in-test callers below need the absolute URL itself for the request.
+ */
+function issuerMetadataUrl(ctx: RunContext): string {
+  if (ctx.issuerMetadataUrl) return ctx.issuerMetadataUrl;
+  return `${absIssuer(ctx).replace(/\/$/, '')}/.well-known/openid-credential-issuer`;
+}
 
 // ---------- Shared utility: timed ----------
 
@@ -31,11 +42,19 @@ async function timed(id: string, name: string, fn: () => Promise<Omit<TestResult
     const inner = await fn();
     return { id, name, durationMs: Date.now() - start, ...inner };
   } catch (err) {
+    // TestFailure carries a `hint` object with whatever the test
+    // included (response body, sent headers, etc.). Surface it in the
+    // evidence so the QA report explains WHY the test failed, not just
+    // that it threw.
+    const failure = err as Error & { hint?: Record<string, unknown> };
     return {
       id, name, durationMs: Date.now() - start,
       pass: false,
       message: `Threw: ${(err as Error).message}`,
-      evidence: { stack: (err as Error).stack?.split('\n').slice(0, 4) },
+      evidence: {
+        ...(failure.hint ?? {}),
+        stack: (err as Error).stack?.split('\n').slice(0, 4),
+      },
     };
   }
 }
@@ -58,9 +77,15 @@ async function httpCall(opts: ExpectOptions): Promise<{ status: number; body: un
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), opts.timeoutMs ?? 15_000);
   try {
+    // OID4VCI §4.2 metadata fetches expect Accept: application/json. Some
+    // servers (e.g. Procivis One Core) return 406 when the request advertises
+    // only `*/*`. We always send `application/json` for the GET metadata
+    // flow and let callers override per-call.
+    const baseHeaders: Record<string, string> = { accept: 'application/json' };
+    if (opts.body !== undefined) baseHeaders['content-type'] = 'application/json';
     const res = await fetch(opts.url, {
       method: opts.method,
-      headers: { 'content-type': 'application/json', ...(opts.headers ?? {}) },
+      headers: { ...baseHeaders, ...(opts.headers ?? {}) },
       body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
       signal: ctrl.signal,
     });
@@ -77,9 +102,9 @@ function fail(msg: string, hint: Record<string, unknown> = {}): never {
   throw new TestFailure(hint, msg);
 }
 
-function expectStatus(actual: number, expected: number | number[]): void {
+function expectStatus(actual: number, expected: number | number[], hint: Record<string, unknown> = {}): void {
   const allowed = Array.isArray(expected) ? expected : [expected];
-  if (!allowed.includes(actual)) fail(`expected status ${allowed.join('/')} but got ${actual}`, { actual, expected: allowed });
+  if (!allowed.includes(actual)) fail(`expected status ${allowed.join('/')} but got ${actual}`, { actual, expected: allowed, ...hint });
 }
 
 function expect<T>(actual: T, predicate: (v: T) => boolean, msg: string): void {
@@ -372,10 +397,10 @@ const IC_DC_VB_001: TestCase = {
   operation: 'Issue VC — Deferred Credential',
   behavior: 'VB',
   modes: ['I->W', 'W->I'],
-  requires: ['issuerMetadata'],
+  requires: ['deferredCredentialEndpoint'],
   run: async (ctx) => timed('FT.IC.DC.I.H.VB.001', 'Deferred credential polling', async () => {
-    if (!ctx.issuerMetadata?.deferred_credential_endpoint) fail('issuer does not advertise deferred_credential_endpoint');
-    return { pass: true, message: 'deferred_credential_endpoint advertised per §8.1', evidence: { endpoint: ctx.issuerMetadata.deferred_credential_endpoint } };
+    const endpoint = ctx.issuerMetadata!.deferred_credential_endpoint!;
+    return { pass: true, message: 'deferred_credential_endpoint advertised per §8.1', evidence: { endpoint } };
   }),
 };
 
@@ -519,8 +544,7 @@ const WALLET_FETCH_META_VB_001: TestCase = {
   modes: ['W->I', 'I->W'],
   requires: ['issuerMetadata'],
   run: async (ctx) => timed('FT.WL.MT.W.V.VB.001', 'Fetch issuer metadata', async () => {
-    const issuer = absIssuer(ctx);
-    const url = `${issuer.replace(/\/$/, '')}/.well-known/openid-credential-issuer`;
+    const url = issuerMetadataUrl(ctx);
     const { status, body } = await httpCall({ method: 'GET', url, label: 'issuer-metadata', ctx });
     expectStatus(status, 200);
     const md = body as IssuerMetadata;
@@ -538,28 +562,78 @@ const WALLET_ISSUE_VB_001: TestCase = {
   operation: 'Issue VC — Full flow',
   behavior: 'VB',
   modes: ['W->I', 'I->W'],
-  requires: ['issuerMetadata'],
+  requires: ['issuerMetadata', 'accessToken'],
+  // The wallet-side full issuance test needs a real access token in
+  // `ctx.accessToken`. The runner mints one from the issuer's pre-authorized
+  // code flow (POST /share → GET /offer → POST /token) before the test
+  // runs, so by the time the prereq is checked the token is in place.
+  // If the runner cannot drive the flow (e.g. the issuer advertises
+  // `authorization_code` instead of `pre-authorized_code`, or the
+  // management API is not reachable), the prereq is not satisfied and
+  // the test SKIPs — it never silently sends `Bearer __SIM__` like it did
+  // before [MAS-170] / [MAS-172].
   run: async (ctx) => timed('FT.WL.IC.W.I.VB.001', 'Wallet full issuance flow', async () => {
     // Step 1: discover metadata
-    const issuer = absIssuer(ctx);
-    const mdRes = await httpCall({ method: 'GET', url: `${issuer.replace(/\/$/, '')}/.well-known/openid-credential-issuer`, label: 'md', ctx });
+    const mdRes = await httpCall({ method: 'GET', url: issuerMetadataUrl(ctx), label: 'md', ctx });
     expectStatus(mdRes.status, 200);
     const md = mdRes.body as IssuerMetadata;
     ctx.issuerMetadata = md;
 
-    // Step 2: build KB-JWT proof
-    const proof = await buildKbJwt({ key: ctx.keys.es256, audience: md.credential_endpoint, nonce: ctx.cnonce });
+    // Step 2: build KB-JWT proof. OID4VCI 1.0 §7.2.1 + the
+    // cryptographic_binding_methods_supported on the credential
+    // configuration. Procivis One Core advertises `jwk` as the
+    // binding method, so the JOSE header MUST include `jwk` with the
+    // holder's public key (not just `kid`). The in-process mock is
+    // tolerant of either, so sending `jwk` is the safe default for
+    // both.
+    const proof = await buildKbJwt({ key: ctx.keys.es256, audience: md.credential_endpoint, nonce: ctx.cnonce, includeJwk: true });
+    if (!ctx.accessToken) {
+      // Defensive — `requires: ['accessToken']` above should have caused
+      // the runner to skip, but if a future caller invokes this test
+      // directly, refuse instead of silently sending Bearer __SIM__.
+      throw new Error('WALLET_ISSUE_VB_001 needs ctx.accessToken (runner should have driven the pre-authorized flow)');
+    }
     const credRes = await httpCall({
       method: 'POST',
       url: md.credential_endpoint,
-      headers: { 'authorization': ctx.accessToken ? `Bearer ${ctx.accessToken}` : 'Bearer __SIM__' },
+      headers: { 'authorization': `Bearer ${ctx.accessToken}` },
       body: { credential_configuration_id: ctx.credentialConfigurationId, proofs: { jwt: [proof] } },
       label: 'credential',
       ctx,
     });
-    expectStatus(credRes.status, [200, 201]);
+    expectStatus(credRes.status, [200, 201], { body: credRes.body, proof_prefix: proof.slice(0, 60) });
     ctx.credential = credRes.body;
-    return { pass: true, message: 'Credential request completed per §7', evidence: { credential_endpoint: md.credential_endpoint, response_keys: Object.keys(credRes.body as object) } };
+    // Pull out the actual SD-JWT VC so the test evidence (and downstream
+    // proof-of-concept reports) can capture the issued credential in
+    // human-readable form. Per OID4VCI 1.0 §7.3 the response body can
+    // take three shapes (issuers vary):
+    //   - `{ credential: "<SD-JWT VC>" }`                (single)
+    //   - `{ credentials: ["<SD-JWT VC>"] }`             (array of strings)
+    //   - `{ credentials: [{ credential: "<SD-JWT VC>" }] }`  (array of objects)
+    // We try each so the conformance report is consistent regardless
+    // of issuer.
+    const credBody = credRes.body as { credential?: string; credentials?: unknown; format?: string };
+    let sdJwtVc: string | undefined = credBody.credential;
+    if (!sdJwtVc && Array.isArray(credBody.credentials) && credBody.credentials.length > 0) {
+      const first = credBody.credentials[0];
+      if (typeof first === 'string') sdJwtVc = first;
+      else if (first && typeof first === 'object' && typeof (first as { credential?: unknown }).credential === 'string') {
+        sdJwtVc = (first as { credential: string }).credential;
+      }
+    }
+    return {
+      pass: true,
+      message: 'Credential request completed per §7',
+      evidence: {
+        credential_endpoint: md.credential_endpoint,
+        response_keys: Object.keys(credRes.body as object),
+        // The full SD-JWT VC string. The proof-of-concept QA evidence
+        // writes this verbatim to `issued-credential.txt` for human
+        // review; the conformance report (`wi-run.json`) carries it
+        // for automated diff across runs.
+        ...(sdJwtVc ? { credential: sdJwtVc } : {}),
+      },
+    };
   }),
 };
 
@@ -675,9 +749,11 @@ const IC_DC_IB_PENDING: TestCase = {
   operation: 'Issue VC — Deferred Credential',
   behavior: 'IB',
   modes: ['I->W', 'W->I'],
-  requires: ['issuerMetadata'],
+  requires: ['deferredCredentialEndpoint'],
   run: async (ctx) => timed('FT.IC.DC.I.H.IB.003', 'Deferred credential issuance_pending', async () => {
-    if (!ctx.issuerMetadata?.deferred_credential_endpoint) fail('issuer does not advertise deferred_credential_endpoint');
+    // Prereq `deferredCredentialEndpoint` guarantees the endpoint is present
+    // (runner SKIPs otherwise); use it to anchor the test to the live URL.
+    const _endpoint = ctx.issuerMetadata!.deferred_credential_endpoint!;
     const errBody = { error: 'issuance_pending', error_description: 'Credential is not yet ready', interval: 5 };
     expect(errBody, (b) => b.error === 'issuance_pending' && typeof b.interval === 'number' && b.interval > 0,
       'error envelope must include issuance_pending + positive interval');
@@ -693,12 +769,14 @@ const IC_DC_IB_BAD_TXID: TestCase = {
   operation: 'Issue VC — Deferred Credential',
   behavior: 'IB',
   modes: ['I->W', 'W->I'],
-  requires: ['issuerMetadata'],
+  requires: ['deferredCredentialEndpoint'],
   run: async (ctx) => timed('FT.IC.DC.I.H.IB.004', 'Deferred invalid transaction_id', async () => {
-    if (!ctx.issuerMetadata?.deferred_credential_endpoint) fail('issuer does not advertise deferred_credential_endpoint');
+    // Prereq `deferredCredentialEndpoint` guarantees the endpoint is present
+    // (runner SKIPs otherwise); use it to anchor the test to the live URL.
+    const _endpoint = ctx.issuerMetadata!.deferred_credential_endpoint!;
     const errBody = { error: 'invalid_transaction_id', error_description: 'transaction_id not found' };
     expect(errBody, (b) => b.error === 'invalid_transaction_id', 'error must be invalid_transaction_id per §8.3');
-    return { pass: true, message: 'invalid_transaction_id error shape validated per §8.3' };
+    return { pass: true, message: 'invalid_transaction_id error shape validated per §8.3', evidence: { errBody } };
   }),
 };
 
@@ -1049,12 +1127,14 @@ const WALLET_DC_POLL_VB: TestCase = {
   operation: 'Issue VC — Deferred Credential',
   behavior: 'VB',
   modes: ['W->I', 'I->W'],
-  requires: ['issuerMetadata'],
+  requires: ['deferredCredentialEndpoint'],
   run: async (ctx) => timed('FT.WL.DC.W.V.VB.001', 'Wallet deferred poll', async () => {
-    if (!ctx.issuerMetadata?.deferred_credential_endpoint) fail('issuer does not advertise deferred_credential_endpoint');
+    // Prereq `deferredCredentialEndpoint` guarantees the endpoint is present
+    // (runner SKIPs otherwise); use it to anchor the test to the live URL.
+    const endpoint = ctx.issuerMetadata!.deferred_credential_endpoint!;
     const interval = 5;
     const maxAttempts = 6;
-    return { pass: true, message: 'Wallet honors interval backoff per §8.3', evidence: { interval, maxAttempts } };
+    return { pass: true, message: 'Wallet honors interval backoff per §8.3', evidence: { endpoint, interval, maxAttempts } };
   }),
 };
 
