@@ -1,0 +1,28 @@
+# Build files
+/one-core/target
+/one-core/artifacts
+
+# IDE settings
+.idea
+.vscode
+.DS_Store
+
+# Local Procivis run state
+/one-core/.procivis-sandbox.pid
+/one-core/.procivis-sandbox.log
+
+# Seeder state (rewritten on every setup-issuer-and-verifier.sh run)
+/.last-setup.json
+
+# Helm deps and secret-shaped files
+one-core/mariadb-*.tgz
+one-core/raw_secrets.yaml
+
+# Reports
+*.lcov
+coverage.xml
+cobertura.xml
+lcov.info
+clippy.json
+deny.json
+report.json

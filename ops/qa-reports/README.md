@@ -88,6 +88,7 @@ ops/qa-reports/
 | # | Date (UTC) | Target | Mode(s) | Result | Report dir | Filed defects |
 |--:|-----------|--------|---------|:------:|------------|---------------|
 | 1 | 2026-06-08 18:12–18:30Z | `http://127.0.0.1:8090` (webapp's own host; in-process mock mounted at `/.mock/issuer`, `/.mock/verifier`) | `I->W` 33/41, `V->W` 31/31, `W->I` 33/41, `W->V` 31/31 | **FAIL** for issuer modes; **PASS** for verifier modes. Root cause: SPA fallback intercepts `GET /.well-known/openid-credential-issuer` on the target's own host (see notes.md §"Defect filed") | [127.0.0.1:8090/20260608T183045Z/](./127.0.0.1:8090/20260608T183045Z/) | [MAS-140](/MAS/issues/MAS-140) (filed this run) |
+| 2 | 2026-06-09 00:39Z | `http://127.0.0.1:3000` (self-hosted Procivis One Core, OID4VCI 1.0 + OID4VP draft-25) | `W->I` 41/41, `W->V` 31/31 | **PASS** for both modes (shape only — see notes.md). Defect: runner hard-codes `/.well-known/openid-credential-issuer` path, so per-scheme issuers (Procivis) cause tests that need `issuerMetadata` to skip silently. | [127.0.0.1:3000/20260609T004000Z/](./127.0.0.1:3000/20260609T004000Z/) | Follow-up ticket needed (related to [MAS-140](/MAS/issues/MAS-140)) |
 
 > Run #1 is the config-driven real-target path (not the in-process mock
 > default that the smoke script uses). The same server's in-process mock
@@ -95,8 +96,16 @@ ops/qa-reports/
 > `wi-mock-baseline-report.json` in the report dir. The defect is
 > mode-asymmetric: it only affects `I->W` and `W->I` (the modes that need
 > issuer metadata); `V->W` and `W->V` (verifier-only flows) are clean.
+>
+> Run #2 is the first run against a real OID4VCI 1.0 Final stack
+> (Procivis One Core, self-hosted). The "41/41" and "31/31" pass counts
+> are honest about what they cover: the W->I / W->V runner is still
+> shape-validating only at this stage. Tests that `requires: ['issuerMetadata']`
+> are skipped (passing-as-skipped) because the runner's hard-coded
+> well-known fetch 404s on Procivis (Procivis serves it at a per-scheme
+> parameterised path). Filing a follow-up is in the run notes.
 
-## Status snapshot (as of 2026-06-08)
+## Status snapshot (as of 2026-06-09)
 
 - Baseline tooling: `vc-conformance-test:0.1.0` Docker image and the in-process
   mock pass 56/56 across all 4 cross-modes (`bash ops/smoke/run.sh`).
@@ -104,22 +113,39 @@ ops/qa-reports/
   MAS-136 catalog expansion in place; the in-process mock path on
   that expanded catalog passes 41/41 for W->I (`wi-mock-baseline-report.json`).
 - `targets.example.yaml` is in this directory ([MAS-138](/MAS/issues/MAS-138)),
-  with the in-repo mock fully filled and two TEMPLATE entries for the Thai
-  public sandbox (issuer + verifier) — fields pending CEO/Product input.
+  with the in-repo mock fully filled and **two live `th-public-*-procivis`
+  entries for the local Procivis One Core sandbox** (filled in MAS-161,
+  2026-06-09). The TEMPLATE entries from MAS-138 are gone — the Procivis
+  entries replace them. MAS-139 (CEO/Product gate) was resolved on the
+  Procivis stack pick.
 - Real Thai targets: **still no URLs reachable from the dev environment**.
   Probes 2026-06-08: ETDA marketing site only, NDID host unresolvable,
   DOPA e-Service not on OID4VCI 1.0. The plan-§6 fallback ("apps/issuer
-  + apps/verifier services running on a publicly reachable host") is also
-  not shippable: those services are not present in the current working
-  tree (stale MAS-61-era README reference).
+  + apps/verifier services on a public host") is also not shippable:
+  those services are not present in the current working tree (stale MAS-61-era reference).
+  MAS-161 ships a local Procivis One Core instance (real OID4VCI 1.0 +
+  OID4VP 1.0) as the reachable real target; QA can now exercise the
+  wire protocol even without a public Thai endpoint.
 - **Run #1 filed defect:** [MAS-140](/MAS/issues/MAS-140) — the config-driven
   `targetIssuer=...` path is broken when the target happens to be the
   webapp's own host, because the SPA static handler swallows
   `/.well-known/openid-credential-issuer` with an HTML 200. The in-process
   mock path (smoke / no target) is unaffected. Fix is straightforward
   (whitelist `/.well-known/` in the notFoundHandler) but out of QA scope.
-- MAS-132 still needs a real Thai issuer + verifier URL to be fully green.
-  See [MAS-139](/MAS/issues/MAS-139) for the external input dependency.
+- **Run #2 follow-up:** the runner hard-codes the well-known path
+  `${baseUrl}/.well-known/openid-credential-issuer` with no override.
+  For per-scheme issuers like Procivis (which serves the well-known at
+  `/.well-known/openid-credential-issuer/ssi/openid4vci/final-1.0/{protocol_id}/{identifier_id}/{credential_schema_id}`),
+  this 404s and the W->I tests that need metadata skip silently. Need
+  a `PUT /api/config` field to override the metadata URL. Same defect
+  class as MAS-140, different root cause — should be filed as a child.
+- MAS-132 still wants a *public* Thai issuer + verifier URL to be fully
+  green. MAS-161 resolves the engineering half (real OID4VCI 1.0 +
+  OID4VP 1.0 reachable, wire protocol exercisable); the policy half
+  (a publicly reachable Thai endpoint for legal/interop reasons) is
+  blocked on the CEO/Product input MAS-139 was tracking. The
+  `th-public-*-procivis` entries are reusable as drop-in fixtures
+  whenever MAS-139's public-URL input lands.
 - Prior QA run [MAS-61 interop report](/MAS/issues/MAS-61#document-evidence)
   exercised the in-repo `apps/holder-portal / apps/issuer / apps/verifier`
   only — no production Thai endpoints were reachable in the runner env.
