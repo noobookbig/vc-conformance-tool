@@ -178,28 +178,33 @@ function renderReportInto(panel, report) {
       <div class="kpi cov"><div class="v">${summary.coverage ?? 0}</div><div class="l">Coverage</div></div>
     </div>
     ${report.error ? `<div class="run-error" role="alert"><strong>Run aborted:</strong> ${escapeHtml(report.error)}</div>` : ''}
-    <table class="results-table" aria-label="Per-test results">
-      <thead><tr><th></th><th>Test ID</th><th>Name</th><th>Result</th><th class="dur">Dur</th></tr></thead>
-      <tbody>
-        ${report.results.map((r, i) => {
-          const cls = r.message.startsWith('SKIPPED') ? 'skip' : (r.pass ? 'pass' : 'fail');
-          const icon = cls === 'skip'
-            ? '<svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3,3 5,3 5,9 3,9"/><polygon points="9,3 11,3 11,9 9,9"/></svg>'
-            : cls === 'pass'
-              ? '<svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7"/></svg>'
-              : '<svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"/></svg>';
-          const ev = r.evidence
-            ? `<details><summary>evidence</summary><pre>${escapeHtml(JSON.stringify(r.evidence, null, 2))}</pre></details>`
-            : '';
-          return `<tr class="${cls}" style="--rd:${(i * stepMs).toFixed(1)}ms">
-            <td class="status">${icon}</td>
-            <td class="id">${escapeHtml(r.id)}</td>
-            <td class="name">${escapeHtml(r.name)}<div class="dim" style="font-weight:300;margin-top:0.2rem;font-size:0.78rem">${escapeHtml(r.message)}${ev}</div></td>
-            <td class="dur">${r.durationMs} ms</td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table>
+    <div class="results-table-wrap">
+      <table class="results-table" aria-label="Per-test results">
+        <colgroup>
+          <col class="col-status"><col class="col-id"><col class="col-name"><col class="col-dur">
+        </colgroup>
+        <thead><tr><th class="status"></th><th>Test ID</th><th>Name</th><th class="dur">Dur</th></tr></thead>
+        <tbody>
+          ${report.results.map((r, i) => {
+            const cls = r.message.startsWith('SKIPPED') ? 'skip' : (r.pass ? 'pass' : 'fail');
+            const icon = cls === 'skip'
+              ? '<svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3,3 5,3 5,9 3,9"/><polygon points="9,3 11,3 11,9 9,9"/></svg>'
+              : cls === 'pass'
+                ? '<svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7"/></svg>'
+                : '<svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"/></svg>';
+            const ev = r.evidence
+              ? `<details><summary>evidence</summary><pre>${escapeHtml(JSON.stringify(r.evidence, null, 2))}</pre></details>`
+              : '';
+            return `<tr class="${cls}" style="--rd:${(i * stepMs).toFixed(1)}ms">
+              <td class="status">${icon}</td>
+              <td class="id">${escapeHtml(r.id)}</td>
+              <td class="name">${escapeHtml(r.name)}<div class="dim" style="font-weight:300;margin-top:0.2rem;font-size:0.78rem">${escapeHtml(r.message)}${ev}</div></td>
+              <td class="dur">${r.durationMs} ms</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
   `;
 }
 
@@ -535,34 +540,39 @@ function renderDiffInto(panel, diff, leftId, rightId, options = {}) {
       <div class="kpi"><div class="v">${escapeHtml(passPct)}%</div><div class="l">Pass rate</div></div>
       <div class="kpi cov"><div class="v">${summary.coverage ?? 0}</div><div class="l">Coverage</div></div>
     </div>${report.error ? `<div class="error-banner" role="alert">Run aborted: ${escapeHtml(report.error)}</div>` : ''}
-    <table class="results-table" aria-label="Per-test results">
-      <thead><tr><th></th><th>Test ID</th><th>Name</th><th>Result</th><th class="dur">Dur</th></tr></thead>
-      <tbody>
-        ${report.results.map((r, i) => {
-          const cls = r.message.startsWith('SKIPPED') ? 'skip' : (r.pass ? 'pass' : 'fail');
-          const icon = cls === 'skip'
-            ? '<svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3,3 5,3 5,9 3,9"/><polygon points="9,3 11,3 11,9 3,9"/><polygon points="9,3 11,3 11,9 3,9"/></svg>'
-            : cls === 'pass'
-              ? '<svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7"/></svg>'
-              : '<svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"/></svg>';
-          // MAS-219: surface the test's kind next to its name so a
-          // reviewer can tell at a glance which rows probed the
-          // network (LIVE) vs. which were spec-shape validators (COV).
-          const kindBadge = r.kind === 'live'
-            ? '<span class="kind-badge live" title="Live test: made a real HTTP call to the target">LIVE</span>'
-            : '<span class="kind-badge cov" title="Coverage test: client-side shape validator, did not contact the target">COV</span>';
-          const ev = r.evidence
-            ? `<details><summary>evidence</summary><pre>${escapeHtml(JSON.stringify(r.evidence, null, 2))}</pre></details>`
-            : '';
-          return `<tr class="${cls}" style="--rd:${(i * stepMs).toFixed(1)}ms">
-            <td class="status">${icon}</td>
-            <td class="id">${escapeHtml(r.id)}</td>
-            <td class="name">${escapeHtml(r.name)} ${kindBadge}<div class="dim" style="font-weight:300;margin-top:0.2rem;font-size:0.78rem">${escapeHtml(r.message)}${ev}</div></td>
-            <td class="dur">${r.durationMs} ms</td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table>
+    <div class="results-table-wrap">
+      <table class="results-table" aria-label="Per-test results">
+        <colgroup>
+          <col class="col-status"><col class="col-id"><col class="col-name"><col class="col-dur">
+        </colgroup>
+        <thead><tr><th class="status"></th><th>Test ID</th><th>Name</th><th class="dur">Dur</th></tr></thead>
+        <tbody>
+          ${report.results.map((r, i) => {
+            const cls = r.message.startsWith('SKIPPED') ? 'skip' : (r.pass ? 'pass' : 'fail');
+            const icon = cls === 'skip'
+              ? '<svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3,3 5,3 5,9 3,9"/><polygon points="9,3 11,3 11,9 3,9"/><polygon points="9,3 11,3 11,9 3,9"/></svg>'
+              : cls === 'pass'
+                ? '<svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7"/></svg>'
+                : '<svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"/></svg>';
+            // MAS-219: surface the test's kind next to its name so a
+            // reviewer can tell at a glance which rows probed the
+            // network (LIVE) vs. which were spec-shape validators (COV).
+            const kindBadge = r.kind === 'live'
+              ? '<span class="kind-badge live" title="Live test: made a real HTTP call to the target">LIVE</span>'
+              : '<span class="kind-badge cov" title="Coverage test: client-side shape validator, did not contact the target">COV</span>';
+            const ev = r.evidence
+              ? `<details><summary>evidence</summary><pre>${escapeHtml(JSON.stringify(r.evidence, null, 2))}</pre></details>`
+              : '';
+            return `<tr class="${cls}" style="--rd:${(i * stepMs).toFixed(1)}ms">
+              <td class="status">${icon}</td>
+              <td class="id">${escapeHtml(r.id)}</td>
+              <td class="name">${escapeHtml(r.name)} ${kindBadge}<div class="dim" style="font-weight:300;margin-top:0.2rem;font-size:0.78rem">${escapeHtml(r.message)}${ev}</div></td>
+              <td class="dur">${r.durationMs} ms</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
   `;
 }
 

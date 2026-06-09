@@ -30,6 +30,18 @@ On first start the app auto-generates a fresh wallet key pair (ES256 + EdDSA)
 and a self-contained in-process mock issuer + verifier. So `docker compose up`
 gives you a working tool with no external services.
 
+### Responsive UI
+
+The SPA shell is **responsive** and is verified at common viewport widths
+(360 / 480 / 768 / 1024 / 1280 / 1440 / 1920). The Run view's right-side
+test results panel auto-fits its 5 KPI tiles to 2/3/4/5 columns depending on
+the panel width, and the per-test results table wraps long test names
+internally (or scrolls horizontally inside the panel at very narrow widths)
+so the page itself never horizontal-scrolls. No browser-specific features
+are used; the latest stable Chrome, Firefox, and Safari are all expected to
+work. Pinned regression coverage lives in
+`apps/web/test/mas-223-responsive-right-panel.test.mjs`.
+
 ### Try the tool with the in-process mock (no external services)
 
 The fastest way to see a green run is to use the **in-process mock issuer +

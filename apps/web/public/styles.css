@@ -111,6 +111,14 @@ html, body {
   text-rendering: optimizeLegibility;
 }
 
+/* MAS-223: keep the page from horizontal-scrolling if any child
+ * grid/flex item ever blows past the viewport. `clip` (vs `hidden`)
+ * avoids creating a scroll container, so sticky positioning in the
+ * topbar/sidebar keeps working. The root cause is fixed below with
+ * `min-width: 0` on the relevant grid children; this is a safety
+ * net, not a substitute. */
+html, body { overflow-x: clip; }
+
 body {
   background:
     radial-gradient(1200px 600px at 100% -10%, color-mix(in srgb, var(--gold) 14%, transparent), transparent 60%),
@@ -159,7 +167,7 @@ a:focus-visible { outline: 3px solid color-mix(in srgb, var(--teal) 50%, transpa
   backdrop-filter: saturate(1.1) blur(10px);
   -webkit-backdrop-filter: saturate(1.1) blur(10px);
 }
-.brand { display: flex; align-items: center; gap: var(--s-3); }
+.brand { display: flex; align-items: center; gap: var(--s-3); min-width: 0; }
 .logo {
   width: 38px; height: 38px;
   display: grid; place-items: center;
@@ -292,6 +300,12 @@ a:focus-visible { outline: 3px solid color-mix(in srgb, var(--teal) 50%, transpa
   padding: var(--s-6) var(--s-7) var(--s-8);
   max-width: 1140px;
   width: 100%;
+  /* MAS-223: grid items default to `min-width: auto`, so a long
+   * table cell or input value can push the track wider than the
+   * viewport. Forcing `min-width: 0` here lets the inner panels
+   * (form, run-side, history row) wrap or scroll instead of
+   * breaking the page-level grid. */
+  min-width: 0;
 }
 @media (max-width: 720px) {
   .content { padding: var(--s-5) var(--s-4) var(--s-7); }
@@ -470,6 +484,8 @@ a:focus-visible { outline: 3px solid color-mix(in srgb, var(--teal) 50%, transpa
   grid-template-columns: 1.35fr 1fr;
   gap: var(--s-4);
   margin-top: var(--s-3);
+  /* MAS-223: see .content. */
+  min-width: 0;
 }
 @media (max-width: 880px) { .run-panel { grid-template-columns: 1fr; } }
 
@@ -482,8 +498,13 @@ a:focus-visible { outline: 3px solid color-mix(in srgb, var(--teal) 50%, transpa
   grid-template-columns: 1fr 1fr;
   gap: var(--s-4);
   box-shadow: var(--shadow-sm);
+  /* MAS-223: see .content. The 2-column form layout can be pushed
+   * wider by a long URL pasted into the Issuer/Verifier fields; this
+   * lets the column shrink and lets the input wrap or scroll
+   * internally. */
+  min-width: 0;
 }
-.run-form label { display: flex; flex-direction: column; gap: var(--s-1); font-size: 0.85rem; color: var(--ink-2); }
+.run-form label { display: flex; flex-direction: column; gap: var(--s-1); font-size: 0.85rem; color: var(--ink-2); min-width: 0; }
 .run-form label.full { grid-column: 1 / -1; }
 .run-form label > span { font-weight: 500; color: var(--ink); display: flex; align-items: center; gap: var(--s-2); }
 .run-form label > span .req { color: var(--rose); }
@@ -605,6 +626,11 @@ a.ghost .icon { width: 14px; height: 14px; }
   box-shadow: var(--shadow-sm);
   display: flex; flex-direction: column; gap: var(--s-4);
   position: relative;
+  /* MAS-223: see .content. Critical for this panel because it hosts
+   * the 5-column KPI grid and the per-test results table — both of
+   * which can grow wider than the panel if their grid children
+   * default to `min-width: auto`. */
+  min-width: 0;
 }
 .run-side .empty {
   color: var(--ink-3); font-style: italic;
@@ -634,7 +660,26 @@ a.ghost .icon { width: 14px; height: 14px; }
 .report-head h3 .dim { color: var(--ink-3); font-family: var(--mono); font-weight: 400; font-size: 0.82rem; }
 .report-actions { display: flex; gap: var(--s-2); }
 
- .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--s-2); }
+/* MAS-223: the 5 fixed `1fr` columns were the main culprit for the
+ * right panel overflowing its frame. At viewport widths between
+ * ~880px and ~1280px the run-side panel is only ~230-400px wide,
+ * which divided 5 ways is ~46-80px per tile — narrower than the
+ * KPI value/label need — and the grid items default to
+ * `min-width: auto`, so the whole column blew out past the track
+ * and the page layout.
+ *
+ * `auto-fit` + `minmax` lets the tiles flow onto 2/3/4/5 columns
+ * depending on available space, never narrower than 78px (a
+ * comfortable size for the value + label), and `min-width: 0` on
+ * each tile lets the grid track shrink below the content's
+ * intrinsic min-size as a final guard. */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); gap: var(--s-2); }
+@media (max-width: 480px) {
+  /* On phone-class viewports the run-side spans the full content
+   * width. Five tiles in one row read as a busy wall of numbers;
+   * 2x3 (or 3x2) is much friendlier. */
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 .kpi {
   background: var(--bg);
   border: 1px solid var(--line);
@@ -642,6 +687,9 @@ a.ghost .icon { width: 14px; height: 14px; }
   padding: var(--s-3) var(--s-4);
   position: relative;
   overflow: hidden;
+  /* MAS-223: lets the auto-fit grid track shrink the tile below its
+   * intrinsic content width. */
+  min-width: 0;
 }
 .kpi .v { font-family: var(--serif); font-size: 1.7rem; font-weight: 500; line-height: 1; font-variation-settings: "opsz" 144; }
 .kpi .l {
@@ -700,8 +748,21 @@ a.ghost .icon { width: 14px; height: 14px; }
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--bg);
+  /* MAS-223: the previous layout had no `table-layout` and the .id
+   * cell used `white-space: nowrap`. With long monospaced test IDs
+   * (e.g. `FT.IC.CO.I.H.VB.AD.001`) the table's intrinsic min-width
+   * grew past the .run-side panel and forced a horizontal page
+   * scroll. Switching to a fixed table layout gives the columns
+   * deterministic widths that respect the parent panel; if a row
+   * needs more space, it scrolls inside the table wrapper, not the
+   * page. */
+  table-layout: fixed;
 }
 .results-table th, .results-table td { text-align: left; padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+/* MAS-223: when the results table would exceed the .run-side panel
+ * width, scroll the table horizontally INSIDE the panel instead of
+ * letting it push the page wider. */
+.results-table-wrap { width: 100%; overflow-x: auto; }
 .results-table tbody tr:last-child td { border-bottom: 0; }
 .results-table th {
   color: var(--ink-3);
@@ -726,9 +787,31 @@ a.ghost .icon { width: 14px; height: 14px; }
 }
 .results-table tr:hover { background: color-mix(in srgb, var(--teal) 6%, transparent); }
 @keyframes row-in { to { opacity: 1; transform: none; } }
-.results-table .id { font-family: var(--mono); font-size: 0.76rem; color: var(--ink-2); white-space: nowrap; }
-.results-table .name { font-weight: 500; }
+.results-table .id { font-family: var(--mono); font-size: 0.76rem; color: var(--ink-2); /* MAS-223: the previous rule forced this cell to a single line,
+   * which prevented long test IDs from wrapping and forced the
+   * table wider than its parent. Now the cell wraps inside its
+   * fixed table-layout column; IDs that fit a single line look
+   * identical to before, and over-long ones wrap instead of
+   * blowing out the page. */ word-break: break-word; overflow-wrap: anywhere; }
+.results-table .name { font-weight: 500; /* MAS-223: let the long test name wrap inside
+   * its fixed-width column instead of forcing the column to grow. */ overflow-wrap: anywhere; }
 .results-table .dur { font-family: var(--mono); color: var(--ink-3); text-align: right; font-variant-numeric: tabular-nums; }
+/* MAS-223: deterministic column widths for `table-layout: fixed`.
+ * The colgroup in the rendered HTML is the source of truth here;
+ * the th/td rules below are a defense in depth in case a future
+ * render path forgets the colgroup. The status icon column is
+ * narrow, the id column is sized to fit a typical test ID like
+ * `FT.IC.CO.I.H.VB.AD.001` in one line at desktop widths (and
+ * wraps gracefully narrower than that), the name column takes the
+ * remainder, and the duration column is fixed-width for tabular
+ * alignment. */
+.results-table col.col-status { width: 2.2rem; }
+.results-table th.status, .results-table td.status { width: 2.2rem; }
+.results-table col.col-id { width: 8.5rem; }
+.results-table td:nth-child(2) { width: 8.5rem; }
+.results-table col.col-name { width: auto; }
+.results-table col.col-dur { width: 4.5rem; }
+.results-table th.dur, .results-table td.dur { width: 4.5rem; }
 .results-table details { margin-top: var(--s-2); }
 .results-table summary {
   cursor: pointer;
@@ -856,7 +939,7 @@ a.ghost .icon { width: 14px; height: 14px; }
   animation-delay: var(--rd, 0ms);
 }
 .history-row:hover { border-color: var(--teal); transform: translateX(2px); box-shadow: var(--shadow-sm); }
-.history-row .id { font-family: var(--mono); font-size: 0.82rem; color: var(--ink); font-weight: 500; }
+.history-row .id { font-family: var(--mono); font-size: 0.82rem; color: var(--ink); font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .history-row .mode {
   font-family: var(--mono);
   color: var(--teal);
@@ -864,12 +947,20 @@ a.ghost .icon { width: 14px; height: 14px; }
   background: color-mix(in srgb, var(--teal) 10%, transparent);
   padding: 2px 8px; border-radius: 4px;
   justify-self: start;
+  min-width: 0;
 }
-.history-row .stats { display: flex; gap: var(--s-2); font-family: var(--mono); font-size: 0.8rem; }
+.history-row .stats { display: flex; gap: var(--s-2); font-family: var(--mono); font-size: 0.8rem; min-width: 0; }
 .history-row .stats .ok { color: var(--green); }
 .history-row .stats .bad { color: var(--rose); }
-.history-row .ts, .history-row .dur, .history-row .target { color: var(--ink-3); font-family: var(--mono); font-size: 0.78rem; }
-@media (max-width: 760px) {
+.history-row .ts, .history-row .dur, .history-row .target { color: var(--ink-3); font-family: var(--mono); font-size: 0.78rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* MAS-223: bump the collapse-to-2-cols breakpoint from 760px to
+ * 960px. The previous value left the 6-col layout cramped between
+ * 760px and ~1100px, where each column was too narrow for its
+ * content and the row could push past the content area. The wider
+ * breakpoint keeps the row useful in the tablet-class range and
+ * still collapses to the most important two cells (id + mode) on
+ * phones. */
+@media (max-width: 960px) {
   .history-row { grid-template-columns: 1fr 1fr; }
   .history-row > *:nth-child(n+3) { display: none; }
 }
@@ -901,13 +992,15 @@ a.ghost .icon { width: 14px; height: 14px; }
   transform: translateY(4px);
   animation: row-in 0.34s var(--ease-out) forwards;
   animation-delay: var(--rd, 0ms);
+  /* MAS-223: see .content. */
+  min-width: 0;
 }
 .catalog-row:first-child { border-top: 0; }
 .catalog-row:hover { background: color-mix(in srgb, var(--teal) 5%, transparent); }
-.catalog-row .id { font-family: var(--mono); font-size: 0.78rem; color: var(--teal); }
-.catalog-row .name { font-weight: 500; }
+.catalog-row .id { font-family: var(--mono); font-size: 0.78rem; color: var(--teal); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.catalog-row .name { font-weight: 500; min-width: 0; }
 .catalog-row .name .op { color: var(--ink-3); font-weight: 300; font-size: 0.78rem; margin-top: 2px; }
-.catalog-row .spec { color: var(--ink-2); font-size: 0.8rem; font-family: var(--mono); }
+.catalog-row .spec { color: var(--ink-2); font-size: 0.8rem; font-family: var(--mono); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .catalog-row .beh {
   font-family: var(--mono);
   font-size: 0.74rem;
@@ -916,10 +1009,13 @@ a.ghost .icon { width: 14px; height: 14px; }
   border-radius: 4px;
   justify-self: end;
   letter-spacing: 0.04em;
+  min-width: 0;
 }
 .beh.VB { color: var(--green); background: color-mix(in srgb, var(--green) 10%, transparent); }
 .beh.IB { color: var(--rose); background: color-mix(in srgb, var(--rose) 10%, transparent); }
-@media (max-width: 760px) {
+/* MAS-223: see .history-row note — bump the collapse breakpoint
+ * so the 4-col catalog row has room to breathe in the tablet range. */
+@media (max-width: 960px) {
   .catalog-row { grid-template-columns: 0.5fr 1fr 0.4fr; }
   .catalog-row .spec { display: none; }
 }
