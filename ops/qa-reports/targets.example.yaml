@@ -133,35 +133,47 @@ targets:
           format: dc+sd-jwt
           vct: http://localhost:3000/ssi/vct/v1/262e3de8-c5ca-4013-9ed4-d95131d2ceb3/3a3bdd96-c8a1-410f-822b-15fee11d9e7c
           scope: http://localhost:3000/ssi/vct/v1/262e3de8-c5ca-4013-9ed4-d95131d2ceb3/3a3bdd96-c8a1-410f-822b-15fee11d9e7c
-          cryptographic_binding_methods_supported: [jwk, did:ion, did:web, did:jwk, did:tdw, did:key]
+          cryptographic_binding_methods_supported: [jwk, did:web, did:ion, did:key, did:tdw, did:jwk]
           credential_signing_alg_values_supported: [ES256, EdDSA, ML-DSA-65]
           proof_types_supported:
             jwt:
-              proof_signing_alg_values_supported: [BBS_PLUS, ES256, EdDSA, EDDSA, ML-DSA-65]
+              proof_signing_alg_values_supported: [EdDSA, EDDSA, ML-DSA-65, BBS_PLUS, ES256]
     auth:
-      grant: authorization_code
-      pkce: true
+      grant: pre-authorized_code
+      pkce: false
       authorizationDetailsRequired: false
       txCode: false
       clientId: vc-conformance-test-wallet
       clientSecretEnv: null
     trust:
-      issuerDids: [did:web:localhost:3000:c8eb0c5d-fc67-4e55-aa59-57cd1689dff9]
-      verifierAcceptsKbJwtAlgs: [ES256, EdDSA, ML-DSA-65]
+      issuerDids: [did:key:z6MkiH4BTpi4V4FsBvYqWfwvdZphkvRF2KEpu33GiDAwUZ1m]
+      verifierAcceptsKbJwtAlgs: [ES256, EdDSA]
     notes: |
       Procivis One Core (self-hosted, Docker + MariaDB) running at
       http://127.0.0.1:3000. Real OpenID4VCI 1.0 + OpenID4VP 1.0 stack,
-      not the in-process mock. Probe timestamp: 2026-06-09T07:36Z.
+      not the in-process mock. Probe timestamp: 2026-06-09T00:46:02Z.
       See ops/procivis-sandbox/README.md for start/stop.
-      Auth is UNSAFE_STATIC (bearer token = "test") — for local dev only.
+      Auth is UNSAFE_STATIC (bearer token = "test") for the management
+      API only; the issuance endpoint is fully public per the local
+      sandbox config. The actual issuance grant is
+      pre-authorized_code (Procivis default for the local sandbox) with
+      no tx_code, per the live
+      /.well-known/oauth-authorization-server/ssi/openid4vci/final-1.0/...
+      response. See MAS-164 notes for the curl trace.
       The Thai National ID vct is the long-term goal; the entry uses
       the SD-JWT VC schema provisioned at startup (claims:
       id, given_name, family_name, birthdate).
       The configurationId, vct, and scope are all the same URL because
       Procivis uses the schemaId as the OID4VCI credential identifier
       in the well-known metadata.
-      DID updated to current session's issuer-did:
-      did:web:localhost:3000:c8eb0c5d-fc67-4e55-aa59-57cd1689dff9
+      Issuer DID (live, did:key method, not did:web as previously
+      recorded): did:key:z6MkiH4BTpi4V4FsBvYqWfwvdZphkvRF2KEpu33GiDAwUZ1m
+      (re-issued every time the MariaDB volume is reset; re-run
+      ops/procivis-sandbox/setup-issuer-and-verifier.sh to refresh).
+      Updated 2026-06-09T00:46Z by MAS-164 (this run) — fixed the
+      issuer DID (was did:web) and the grant type (was
+      authorization_code). All other values match the live response
+      at .well-known/openid-credential-issuer/ssi/openid4vci/final-1.0/OPENID4VCI_FINAL1/<identifier>/<schema>.
 
   # ---------------------------------------------------------------------------
   # Entry 3 — Procivis One Core (self-hosted, local), OID4VP draft-25 verifier.
@@ -187,18 +199,32 @@ targets:
           meta:
             vct_values: [http://localhost:3000/ssi/vct/v1/262e3de8-c5ca-4013-9ed4-d95131d2ceb3/3a3bdd96-c8a1-410f-822b-15fee11d9e7c]
     trust:
-      acceptedIssuerDids: [did:web:localhost:3000:c8eb0c5d-fc67-4e55-aa59-57cd1689dff9]
-      acceptedKbJwtAlgs: [ES256, EdDSA, ML-DSA-65]
+      acceptedIssuerDids: [did:key:z6MkiH4BTpi4V4FsBvYqWfwvdZphkvRF2KEpu33GiDAwUZ1m]
+      acceptedKbJwtAlgs: [ES256, EdDSA]
     notes: |
       Same Procivis One Core instance as the issuer entry
       (Procivis speaks both OID4VCI and OID4VP on the same port).
-      Probe timestamp: 2026-06-09T07:36Z.
+      Probe timestamp: 2026-06-09T00:46:02Z.
       The authorizationRequestEndpoint is the HTTP form of the
       request_uri (the wallet can hit it directly without following
       the openid4vp-draft25:// custom URL scheme). The responseUri is
       the verifier's /ssi/openid4vp/draft-25/response endpoint.
-      DID updated to current session's issuer-did:
-      did:web:localhost:3000:c8eb0c5d-fc67-4e55-aa59-57cd1689dff9
+      The clientId and response_uri are derived from the
+      /ssi/openid4vp/draft-25/{id}/client-request JWT
+      (decoded in MAS-164 probe): the verifier uses the
+      `verifier_attestation` client_id_scheme. dcqlQuery.vct_values
+      match the issuer entry's vct exactly.
+      Accepted issuer DID (live, did:key method, not did:web as
+      previously recorded):
+      did:key:z6MkiH4BTpi4V4FsBvYqWfwvdZphkvRF2KEpu33GiDAwUZ1m
+      The proof-request id (12c37203-a0cb-4de3-97bd-e918005c0b41) is
+      ephemeral; re-run
+      ops/procivis-sandbox/setup-issuer-and-verifier.sh after a DB
+      reset and the new id will be returned in
+      /tmp/procivis-sandbox-state.json.
+      Updated 2026-06-09T00:46Z by MAS-164 (this run) — fixed the
+      accepted issuer DID (was did:web). All other values match the
+      live client-request JWT.
 
 # ---------------------------------------------------------------------------
 # Data gap (2026-06-08) — what MAS-138 could not ship without CEO/Product
