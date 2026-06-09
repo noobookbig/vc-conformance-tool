@@ -88,7 +88,8 @@ ops/qa-reports/
 | # | Date (UTC) | Target | Mode(s) | Result | Report dir | Filed defects |
 |--:|-----------|--------|---------|:------:|------------|---------------|
 | 1 | 2026-06-08 18:12–18:30Z | `http://127.0.0.1:8090` (webapp's own host; in-process mock mounted at `/.mock/issuer`, `/.mock/verifier`) | `I->W` 33/41, `V->W` 31/31, `W->I` 33/41, `W->V` 31/31 | **FAIL** for issuer modes; **PASS** for verifier modes. Root cause: SPA fallback intercepts `GET /.well-known/openid-credential-issuer` on the target's own host (see notes.md §"Defect filed") | [127.0.0.1:8090/20260608T183045Z/](./127.0.0.1:8090/20260608T183045Z/) | [MAS-140](/MAS/issues/MAS-140) (filed this run) |
-| 2 | 2026-06-09 00:39Z | `http://127.0.0.1:3000` (self-hosted Procivis One Core, OID4VCI 1.0 + OID4VP draft-25) | `W->I` 41/41, `W->V` 31/31 | **PASS** for both modes (shape only — see notes.md). Defect: runner hard-codes `/.well-known/openid-credential-issuer` path, so per-scheme issuers (Procivis) cause tests that need `issuerMetadata` to skip silently. | [127.0.0.1:3000/20260609T004000Z/](./127.0.0.1:3000/20260609T004000Z/) | Follow-up ticket needed (related to [MAS-140](/MAS/issues/MAS-140)) |
+| 2 | 2026-06-09 00:39Z | `http://127.0.0.1:3000` (self-hosted Procivis One Core, OID4VCI 1.0 + OID4VP draft-25) | `W->I` 41/41, `W->V` 31/31 | **PASS** for both modes (shape only — see notes.md). Defect: runner hard-codes `/.well-known/openid-credential-issuer` path, so per-scheme issuers (Procivis) cause tests that need `issuerMetadata` to skip silently. | [127.0.0.1:3000/20260609T004000Z/](./127.0.0.1:3000/20260609T004000Z/) | [MAS-167](/MAS/issues/MAS-167) (filed this run) |
+| 2a | 2026-06-09 00:45Z | `http://127.0.0.1:3000` (same Procivis instance as run #2, after re-seed) | `W->I` 41/41, `W->V` 31/31 | **PASS** for both modes (shape only). Re-probed the live metadata and corrected the YAML (issuer DID `did:web` → `did:key:z6MkhK…`, grant `authorization_code` → `pre-authorized_code`, `acceptedKbJwtAlgs` reordered). See [20260609T004556Z/notes.md](./127.0.0.1:3000/20260609T004556Z/notes.md) for the full diff. | [127.0.0.1:3000/20260609T004556Z/](./127.0.0.1:3000/20260609T004556Z/) | [MAS-168](/MAS/issues/MAS-168) (YAML-vs-live state drift on re-seed) |
 
 > Run #1 is the config-driven real-target path (not the in-process mock
 > default that the smoke script uses). The same server's in-process mock
@@ -100,10 +101,25 @@ ops/qa-reports/
 > Run #2 is the first run against a real OID4VCI 1.0 Final stack
 > (Procivis One Core, self-hosted). The "41/41" and "31/31" pass counts
 > are honest about what they cover: the W->I / W->V runner is still
-> shape-validating only at this stage. Tests that `requires: ['issuerMetadata']`
+> shape-validating at this stage. Tests that `requires: ['issuerMetadata']`
 > are skipped (passing-as-skipped) because the runner's hard-coded
 > well-known fetch 404s on Procivis (Procivis serves it at a per-scheme
-> parameterised path). Filing a follow-up is in the run notes.
+> parameterised path). The follow-up [MAS-167](/MAS/issues/MAS-167)
+> adds an `issuerMetadataUrl` override to the runner.
+>
+> Run #2a is the live re-probe that the QA agent (MAS-164) ran ~6 minutes
+> after run #2 to correct three fields in the YAML: issuer DID method
+> (`did:web` → `did:key:z6MkhK…`), grant type (`authorization_code` →
+> `pre-authorized_code` per the live
+> `/.well-known/oauth-authorization-server/...` response), and
+> `acceptedKbJwtAlgs` (dropped `ML-DSA-65`, which the draft-25 verifier
+> does not negotiate). All other values matched the live response. The
+> helper `ops/procivis-sandbox/rewrite-yaml.py` (shipped in
+> [MAS-168](/MAS/issues/MAS-168)) now automates this re-probe-and-patch
+> cycle on every successful (or idempotent re-use) run of
+> `setup-issuer-and-verifier.sh`, so the canonical "real Thai target"
+> fixture in `targets.example.yaml` stays in sync with the live IDs
+> after every re-seed. Set `PROCIVIS_REWRITE_YAML=0` to opt out.
 
 ## Status snapshot (as of 2026-06-09)
 
@@ -136,9 +152,10 @@ ops/qa-reports/
   `${baseUrl}/.well-known/openid-credential-issuer` with no override.
   For per-scheme issuers like Procivis (which serves the well-known at
   `/.well-known/openid-credential-issuer/ssi/openid4vci/final-1.0/{protocol_id}/{identifier_id}/{credential_schema_id}`),
-  this 404s and the W->I tests that need metadata skip silently. Need
-  a `PUT /api/config` field to override the metadata URL. Same defect
-  class as MAS-140, different root cause — should be filed as a child.
+  this 404s and the W->I tests that need metadata skip silently.
+  Tracked as [MAS-167](/MAS/issues/MAS-167); the fix is an
+  `issuerMetadataUrl` field on the run request, scoped to `W->I` /
+  `I->W` modes.
 - MAS-132 still wants a *public* Thai issuer + verifier URL to be fully
   green. MAS-161 resolves the engineering half (real OID4VCI 1.0 +
   OID4VP 1.0 reachable, wire protocol exercisable); the policy half

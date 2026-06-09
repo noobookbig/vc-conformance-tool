@@ -1,0 +1,17 @@
+{
+  "runId": "run-mq5x7llc-n4k0Ig",
+  "mode": "W->I",
+  "startedAt": "2026-06-09T00:47:43.632Z",
+  "finishedAt": "2026-06-09T00:47:43.640Z",
+  "summary": {
+    "total": 41,
+    "passed": 41,
+    "failed": 0,
+    "skipped": 0,
+    "passRate": 1
+  },
+  "target": {
+    "issuer": "http://127.0.0.1:3000",
+    "credentialConfigurationId": "http://localhost:3000/ssi/vct/v1/262e3de8-c5ca-4013-9ed4-d95131d2ceb3/3a3bdd96-c8a1-410f-822b-15fee11d9e7c"
+  }
+}

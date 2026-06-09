@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conformance report — run-mq5x7se0-HzYmSQ</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #faf7ee;
+    --bg-2: #f0ead8;
+    --surface: #ffffff;
+    --ink: #181715;
+    --ink-2: #4a453e;
+    --ink-3: #8b8478;
+    --line: #e3dcc6;
+    --line-2: #c9bea7;
+    --teal: #0d6e6e;
+    --teal-2: #0a5959;
+    --gold: #b8872c;
+    --green: #047857;
+    --rose: #b91c1c;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #16140f;
+    --bg-2: #1d1a14;
+    --surface: #211d16;
+    --ink: #f3ecda;
+    --ink-2: #b9b0a0;
+    --ink-3: #807868;
+    --line: #2c2820;
+    --line-2: #3a3528;
+    --teal: #2bbab9;
+    --teal-2: #1d8a89;
+    --gold: #e2b955;
+    --green: #6dba79;
+    --rose: #e07a7a;
+  }
+  body { font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background: var(--bg); color: var(--ink); }
+  header { background: var(--surface); border-bottom: 1px solid var(--line); padding: 18px 28px; display: flex; align-items: center; gap: 18px; }
+  header .logo { width: 44px; height: 44px; border-radius: 10px; box-shadow: 0 0 0 1px var(--line-2); overflow: hidden; }
+  header h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+  header .meta { font-size: 12px; color: var(--ink-2); margin-top: 2px; font-family: var(--mono); }
+  header .actions { margin-left: auto; display: flex; gap: 8px; }
+  header button, .copy-curl { font: inherit; font-size: 12px; background: transparent; color: var(--ink-2); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: border-color 0.15s ease, color 0.15s ease; }
+  header button:hover, .copy-curl:hover { color: var(--ink); border-color: var(--teal); }
+  main { padding: 20px 28px 40px; max-width: 1200px; margin: 0 auto; }
+  .summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 18px; }
+  @media (max-width: 720px) { .summary { grid-template-columns: repeat(2, 1fr); } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .card .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); font-weight: 600; }
+  .card .value { font-size: 22px; font-weight: 600; margin-top: 4px; font-family: var(--mono); }
+  .card.pass .value { color: var(--green); }
+  .card.fail .value { color: var(--rose); }
+  .bar { height: 4px; background: linear-gradient(90deg, var(--green) var(--p, 0%), var(--line) var(--p, 0%)); border-radius: 2px; margin-top: 8px; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--bg-2); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-2); font-weight: 600; }
+  tr.pass td.status { color: var(--green); font-weight: 600; }
+  tr.fail td.status { color: var(--rose); font-weight: 600; }
+  td.id { font-family: var(--mono); font-size: 12px; color: var(--teal); white-space: nowrap; }
+  td .msg { font-size: 12px; color: var(--ink-2); margin-top: 4px; }
+  td.dur { font-variant-numeric: tabular-nums; color: var(--ink-3); font-size: 12px; white-space: nowrap; }
+  td.status { font-size: 12px; }
+  .copy-curl { display: inline-block; margin-left: 8px; font-size: 11px; }
+  details.evidence { margin-top: 6px; }
+  details.evidence summary { cursor: pointer; color: var(--ink-3); font-size: 11px; }
+  details.evidence pre { background: var(--bg); padding: 8px 10px; border-radius: 6px; margin: 4px 0 0; font-size: 11px; max-height: 12rem; overflow: auto; }
+  footer { color: var(--ink-3); font-size: 11px; text-align: center; margin-top: 24px; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" aria-hidden="true">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d6e6e"/>
+      <stop offset="1" stop-color="#d2a23c"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="12" fill="url(#g)"/>
+  <path d="M16 20h12a8 8 0 0 1 0 16h-4v8h-8z" fill="#fff" opacity="0.95"/>
+  <circle cx="44" cy="44" r="6.4" fill="#fff" opacity="0.95"/>
+  <path d="M22 22h6a4 4 0 0 1 0 8h-6z" fill="#0d6e6e"/>
+</svg></div>
+    <div>
+      <h1>Conformance report — W-&gt;V</h1>
+      <div class="meta">run <code>run-mq5x7se0-HzYmSQ</code> · 2026-06-09T00:47:52.440Z · 4 ms</div>
+    </div>
+    <div class="actions">
+      <button id="theme-toggle" type="button" title="Toggle theme">☾ dark</button>
+    </div>
+  </header>
+  <main>
+    <section class="summary">
+      <div class="card"><div class="label">Total</div><div class="value">31</div></div>
+      <div class="card pass"><div class="label">Passed</div><div class="value">31</div></div>
+      <div class="card fail"><div class="label">Failed</div><div class="value">0</div></div>
+      <div class="card"><div class="label">Pass rate</div><div class="value">100.0%</div><div class="bar" style="--p: 100.0%"></div></div>
+      <div class="card"><div class="label">Mode</div><div class="value">W-&gt;V</div></div>
+    </section>
+    <section class="meta-card" style="background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: var(--ink-2);">
+      <strong style="color: var(--ink)">Targets</strong> ·
+      issuer <code>(mock)</code> ·
+      verifier <code>http://127.0.0.1:3000</code> ·
+      credential config <code>http://localhost:3000/ssi/vct/v1/262e3de8-c5ca-4013-9ed4-d95131d2ceb3/3a3bdd96-c8a1-410f-822b-15fee11d9e7c</code>
+    </section>
+    <table>
+      <thead>
+        <tr><th>Test ID</th><th>Name</th><th>Status</th><th>Duration</th></tr>
+      </thead>
+      <tbody>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.VB.001</td>
+      <td>Authorization response vp_token (DCQL)<div class="msg">DCQL query well-formed per §5.1/§6.4<details class="evidence"><summary>evidence</summary><pre>{
+  &quot;dcql&quot;: {
+    &quot;credentials&quot;: [
+      {
+        &quot;id&quot;: &quot;pid&quot;,
+        &quot;format&quot;: &quot;dc+sd-jwt&quot;,
+        &quot;meta&quot;: {
+          &quot;vct_values&quot;: [
+            &quot;urn:eudi:pid:1&quot;
+          ]
+        },
+        &quot;cryptographic_holder_binding_required&quot;: true
+      }
+    ]
+  }
+}</pre></details></div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.IB.001</td>
+      <td>Auth request missing client_id<div class="msg">Missing client_id rejection path noted per §5.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.IB.002</td>
+      <td>Auth request dcql_query malformed<div class="msg">Malformed dcql_query correctly identified</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.IB.003</td>
+      <td>vp_token signature invalid<div class="msg">Invalid KB-JWT signature in vp_token must be rejected by verifier (per §6.1)</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.VB.DCQL.001</td>
+      <td>DCQL rendering<div class="msg">DCQL query structure valid per §6.4</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.WL.PR.W.V.VB.001</td>
+      <td>Wallet responds to OID4VP request (DCQL) with vp_token<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.WL.PR.W.V.IB.001</td>
+      <td>Wallet rejects unknown credential<div class="msg">Wallet must return error when no matching credential is available (per §5.1)</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.VB.CM.001</td>
+      <td>client_metadata vp_formats<div class="msg">client_metadata.vp_formats shape valid per §5.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.VB.CM.002</td>
+      <td>client_metadata direct_post.jwt<div class="msg">JARM client_metadata + direct_post.jwt shape valid per §5.1 + RFC 9101</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.IB.CM.001</td>
+      <td>client_metadata missing vp_formats<div class="msg">Missing client_metadata correctly identified per §5.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.VB.PD.001</td>
+      <td>presentation_definition (basic)<div class="msg">PE 2.x presentation_definition shape valid per §6.1<details class="evidence"><summary>evidence</summary><pre>{
+  &quot;pd_id&quot;: &quot;pd-th-pid-1&quot;
+}</pre></details></div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.VB.PD.002</td>
+      <td>presentation_definition constraints.fields<div class="msg">constraints.fields array well-formed per DIF PE 2.x</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.IB.PD.001</td>
+      <td>presentation_definition missing id<div class="msg">Missing presentation_definition.id correctly identified per §6.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.IB.PD.002</td>
+      <td>presentation_definition empty descriptors<div class="msg">Empty input_descriptors correctly identified per §6.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.WL.PR.W.V.VB.JARM.001</td>
+      <td>Wallet responds to JARM-secured direct_post.jwt<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.VB.009</td>
+      <td>Auth request response_mode=query<div class="msg">response_mode=query request valid per §5.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.VB.010</td>
+      <td>Auth request request_uri<div class="msg">request_uri request valid per §5.1 + RFC 9101</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.VB.011</td>
+      <td>Auth request dcql_query compact<div class="msg">dcql_query compact encoding valid per §6.4</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.IB.007</td>
+      <td>Auth request empty client_id<div class="msg">Empty client_id correctly flagged per §5.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.IB.008</td>
+      <td>Auth request unsupported response_mode<div class="msg">Unsupported response_mode correctly flagged per §5.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.IB.009</td>
+      <td>Auth request no query and no PD<div class="msg">Missing both query forms correctly flagged per §5.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.VB.DCQL.007</td>
+      <td>DCQL mdoc doctype<div class="msg">mdoc DCQL with doctype_value valid per §6.4</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.VB.DCQL.008</td>
+      <td>DCQL claims multiple values<div class="msg">multi-value claims DCQL valid per §6.4</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.VB.DCQL.009</td>
+      <td>DCQL vct_values multiple<div class="msg">multi-VCT DCQL valid per §6.4</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.VB.DCQL.010</td>
+      <td>DCQL multi credential_sets<div class="msg">multi credential_sets DCQL valid per §6.4</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.AU.V.H.VB.DCQL.011</td>
+      <td>DCQL optional credential_set<div class="msg">optional credential_set DCQL valid per §6.4</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.RS.V.H.VB.006</td>
+      <td>Presentation Response: KB-JWT chains multiple SD-JWT disclosures<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.RS.V.H.VB.007</td>
+      <td>Presentation Response: vp_token as object keyed by DCQL credential id<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.RS.V.H.VB.008</td>
+      <td>Presentation Response: POST to response_uri returns 200 OK<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.RS.V.H.IB.004</td>
+      <td>vp_token KB-JWT expired<div class="msg">KB-JWT with exp in the past must be rejected by verifier per §6.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.PR.RS.V.H.IB.005</td>
+      <td>vp_token KB-JWT iss mismatch<div class="msg">KB-JWT iss/cnf mismatch must be rejected by verifier per §6.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr></tbody>
+    </table>
+    <footer>VC Conformance Test Webapp · 2026-06-09T00:47:52.444Z</footer>
+  </main>
+  
+<script>
+(function() {
+  function copyText(t) {
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t);
+    var ta = document.createElement('textarea');
+    ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } finally { document.body.removeChild(ta); }
+    return Promise.resolve();
+  }
+  document.querySelectorAll('button.copy-curl').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var t = btn.getAttribute('data-curl') || '';
+      copyText(t).then(function() {
+        var orig = btn.textContent;
+        btn.textContent = '✓ copied';
+        setTimeout(function() { btn.textContent = orig; }, 1500);
+      });
+    });
+  });
+  var themeBtn = document.getElementById('theme-toggle');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', function() {
+      var cur = document.documentElement.getAttribute('data-theme') || 'light';
+      var next = cur === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      themeBtn.textContent = next === 'light' ? '☾ dark' : '☀ light';
+    });
+  }
+})();
+</script>
+</body>
+</html>

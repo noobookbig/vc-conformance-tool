@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conformance report — run-mq5x7llc-n4k0Ig</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #faf7ee;
+    --bg-2: #f0ead8;
+    --surface: #ffffff;
+    --ink: #181715;
+    --ink-2: #4a453e;
+    --ink-3: #8b8478;
+    --line: #e3dcc6;
+    --line-2: #c9bea7;
+    --teal: #0d6e6e;
+    --teal-2: #0a5959;
+    --gold: #b8872c;
+    --green: #047857;
+    --rose: #b91c1c;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #16140f;
+    --bg-2: #1d1a14;
+    --surface: #211d16;
+    --ink: #f3ecda;
+    --ink-2: #b9b0a0;
+    --ink-3: #807868;
+    --line: #2c2820;
+    --line-2: #3a3528;
+    --teal: #2bbab9;
+    --teal-2: #1d8a89;
+    --gold: #e2b955;
+    --green: #6dba79;
+    --rose: #e07a7a;
+  }
+  body { font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background: var(--bg); color: var(--ink); }
+  header { background: var(--surface); border-bottom: 1px solid var(--line); padding: 18px 28px; display: flex; align-items: center; gap: 18px; }
+  header .logo { width: 44px; height: 44px; border-radius: 10px; box-shadow: 0 0 0 1px var(--line-2); overflow: hidden; }
+  header h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+  header .meta { font-size: 12px; color: var(--ink-2); margin-top: 2px; font-family: var(--mono); }
+  header .actions { margin-left: auto; display: flex; gap: 8px; }
+  header button, .copy-curl { font: inherit; font-size: 12px; background: transparent; color: var(--ink-2); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; cursor: pointer; transition: border-color 0.15s ease, color 0.15s ease; }
+  header button:hover, .copy-curl:hover { color: var(--ink); border-color: var(--teal); }
+  main { padding: 20px 28px 40px; max-width: 1200px; margin: 0 auto; }
+  .summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 18px; }
+  @media (max-width: 720px) { .summary { grid-template-columns: repeat(2, 1fr); } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .card .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); font-weight: 600; }
+  .card .value { font-size: 22px; font-weight: 600; margin-top: 4px; font-family: var(--mono); }
+  .card.pass .value { color: var(--green); }
+  .card.fail .value { color: var(--rose); }
+  .bar { height: 4px; background: linear-gradient(90deg, var(--green) var(--p, 0%), var(--line) var(--p, 0%)); border-radius: 2px; margin-top: 8px; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--bg-2); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-2); font-weight: 600; }
+  tr.pass td.status { color: var(--green); font-weight: 600; }
+  tr.fail td.status { color: var(--rose); font-weight: 600; }
+  td.id { font-family: var(--mono); font-size: 12px; color: var(--teal); white-space: nowrap; }
+  td .msg { font-size: 12px; color: var(--ink-2); margin-top: 4px; }
+  td.dur { font-variant-numeric: tabular-nums; color: var(--ink-3); font-size: 12px; white-space: nowrap; }
+  td.status { font-size: 12px; }
+  .copy-curl { display: inline-block; margin-left: 8px; font-size: 11px; }
+  details.evidence { margin-top: 6px; }
+  details.evidence summary { cursor: pointer; color: var(--ink-3); font-size: 11px; }
+  details.evidence pre { background: var(--bg); padding: 8px 10px; border-radius: 6px; margin: 4px 0 0; font-size: 11px; max-height: 12rem; overflow: auto; }
+  footer { color: var(--ink-3); font-size: 11px; text-align: center; margin-top: 24px; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" aria-hidden="true">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d6e6e"/>
+      <stop offset="1" stop-color="#d2a23c"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="12" fill="url(#g)"/>
+  <path d="M16 20h12a8 8 0 0 1 0 16h-4v8h-8z" fill="#fff" opacity="0.95"/>
+  <circle cx="44" cy="44" r="6.4" fill="#fff" opacity="0.95"/>
+  <path d="M22 22h6a4 4 0 0 1 0 8h-6z" fill="#0d6e6e"/>
+</svg></div>
+    <div>
+      <h1>Conformance report — W-&gt;I</h1>
+      <div class="meta">run <code>run-mq5x7llc-n4k0Ig</code> · 2026-06-09T00:47:43.632Z · 8 ms</div>
+    </div>
+    <div class="actions">
+      <button id="theme-toggle" type="button" title="Toggle theme">☾ dark</button>
+    </div>
+  </header>
+  <main>
+    <section class="summary">
+      <div class="card"><div class="label">Total</div><div class="value">41</div></div>
+      <div class="card pass"><div class="label">Passed</div><div class="value">41</div></div>
+      <div class="card fail"><div class="label">Failed</div><div class="value">0</div></div>
+      <div class="card"><div class="label">Pass rate</div><div class="value">100.0%</div><div class="bar" style="--p: 100.0%"></div></div>
+      <div class="card"><div class="label">Mode</div><div class="value">W-&gt;I</div></div>
+    </section>
+    <section class="meta-card" style="background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: var(--ink-2);">
+      <strong style="color: var(--ink)">Targets</strong> ·
+      issuer <code>http://127.0.0.1:3000</code> ·
+      verifier <code>(mock)</code> ·
+      credential config <code>http://localhost:3000/ssi/vct/v1/262e3de8-c5ca-4013-9ed4-d95131d2ceb3/3a3bdd96-c8a1-410f-822b-15fee11d9e7c</code>
+    </section>
+    <table>
+      <thead>
+        <tr><th>Test ID</th><th>Name</th><th>Status</th><th>Duration</th></tr>
+      </thead>
+      <tbody>
+    <tr class="pass">
+      <td class="id">FT.IC.CO.I.H.VB.001</td>
+      <td>Credential Offer (by value)<div class="msg">Credential offer shape validated against §4.1.1<details class="evidence"><summary>evidence</summary><pre>{
+  &quot;offer&quot;: {
+    &quot;credential_issuer&quot;: &quot;http://127.0.0.1:3000&quot;,
+    &quot;credential_configuration_ids&quot;: [
+      &quot;http://localhost:3000/ssi/vct/v1/262e3de8-c5ca-4013-9ed4-d95131d2ceb3/3a3bdd96-c8a1-410f-822b-15fee11d9e7c&quot;
+    ],
+    &quot;grants&quot;: {
+      &quot;authorization_code&quot;: {
+        &quot;issuer_state&quot;: &quot;3EMWzeWl-Ts&quot;
+      }
+    }
+  }
+}</pre></details></div></td>
+      <td class="status">PASS</td>
+      <td class="dur">1 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.CO.I.H.VB.002</td>
+      <td>Credential Offer (by reference)<div class="msg">Offer URI well-formed; holder would fetch it next.<details class="evidence"><summary>evidence</summary><pre>{
+  &quot;offer_uri&quot;: &quot;http://127.0.0.1:3000/offer/bJcofWHVMAA&quot;
+}</pre></details></div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.CO.I.H.IB.001</td>
+      <td>Credential Offer missing config ids<div class="msg">Invalid offer rejected client-side per §4.1.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.AU.I.H.VB.001</td>
+      <td>Authorization request (valid)<div class="msg">Authorization request built per §5.1.1<details class="evidence"><summary>evidence</summary><pre>{
+  &quot;url&quot;: &quot;http://127.0.0.1:3000/authorize?response_type=code&amp;client_id=es256-6AGY_-NVUan_Jmiv&amp;code_challenge=TEchlvsmFXRnVJrhk6PKQfP4M-fkAaXhsO7O18JFMs0&amp;code_challenge_method=S256&amp;authorization_details=%5B%7B%22type%22%3A%22openid_credential%22%2C%22credential_configuration_id%22%3A%22http%3A%2F%2Flocalhost%3A3000%2Fssi%2Fvct%2Fv1%2F262e3de8-c5ca-4013-9ed4-d95131d2ceb3%2F3a3bdd96-c8a1-410f-822b-15fee11d9e7c%22%7D%5D&amp;state=Hby2bC76lkc&amp;redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fcallback&quot;
+}</pre></details></div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.AU.I.H.VB.AD.001</td>
+      <td>authorization_details: credential_configuration_id<div class="msg">authorization_details shape valid per §5.1.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.AU.I.H.IB.PKCE.001</td>
+      <td>PKCE missing code_challenge<div class="msg">Missing code_challenge correctly flagged per §3.5</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.AU.I.H.IB.PKCE.003</td>
+      <td>PKCE downgrade to plain<div class="msg">plain PKCE method correctly identified as downgrade</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.AU.I.H.IB.AD.001</td>
+      <td>authorization_details missing type<div class="msg">authorization_details entry missing type correctly flagged</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.AU.I.H.IB.AD.003</td>
+      <td>authorization_details malformed JSON<div class="msg">Malformed JSON correctly identified</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.TE.I.H.VB.001</td>
+      <td>Token Exchange with PKCE verifier<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.TE.I.H.IB.005</td>
+      <td>Token exchange missing code_verifier<div class="msg">Missing code_verifier correctly identified</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.CI.I.H.VB.001</td>
+      <td>Credential Request with KB-JWT (ES256)<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.CI.I.H.VB.002</td>
+      <td>Credential Request with KB-JWT (EdDSA)<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.CI.I.H.IB.001</td>
+      <td>Credential request missing proof<div class="msg">Missing proof correctly identified</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.CI.I.H.IB.002</td>
+      <td>Credential request bad c_nonce<div class="msg">c_nonce binding rule noted per §7.2 (rejection by issuer expected)</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.DC.I.H.VB.001</td>
+      <td>Deferred Credential polling → transaction_id<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.DC.I.H.IB.001</td>
+      <td>Deferred credential invalid transaction_id<div class="msg">invalid transaction_id rejection path noted per §8.3</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.NO.I.H.VB.001</td>
+      <td>Notification with event=credential_accepted<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.NO.I.H.IB.001</td>
+      <td>Notification unknown event<div class="msg">unknown event rejection path noted per §9.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.WL.MT.W.V.VB.001</td>
+      <td>Wallet fetches issuer metadata from /.well-known/openid-credential-issuer<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.WL.IC.W.I.VB.001</td>
+      <td>Wallet completes full OID4VCI issuance (offer→auth→token→credential) against target issuer<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.DC.I.H.VB.002</td>
+      <td>Deferred pre-auth + numeric tx_code<div class="msg">Pre-authorized + numeric tx_code shape valid per §8.1<details class="evidence"><summary>evidence</summary><pre>{
+  &quot;txCodeInputMode&quot;: &quot;numeric&quot;
+}</pre></details></div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.DC.I.H.VB.003</td>
+      <td>Deferred pre-auth + text tx_code<div class="msg">Pre-authorized + alphanumeric tx_code shape valid per §8.1<details class="evidence"><summary>evidence</summary><pre>{
+  &quot;txCodeInputMode&quot;: &quot;text&quot;
+}</pre></details></div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.DC.I.H.VB.004</td>
+      <td>Deferred user_pin_required toggle<div class="msg">user_pin_required toggle in pre-authorized grant handled per §8.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.DC.I.H.IB.002</td>
+      <td>Deferred tx_code missing<div class="msg">Missing tx_code correctly identified per §8.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.DC.I.H.IB.003</td>
+      <td>Deferred: /deferred/credential returns issuance_pending + interval<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.DC.I.H.IB.004</td>
+      <td>Deferred: /deferred/credential with invalid transaction_id<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.NO.I.H.VB.002</td>
+      <td>Notification: event=credential_deleted<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.NO.I.H.VB.003</td>
+      <td>Notification: event=credential_failure<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.NO.I.H.IB.002</td>
+      <td>Notification: invalid_notification_id<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.NO.I.H.IB.003</td>
+      <td>Notification missing notification_id<div class="msg">Missing notification_id correctly flagged per §9.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.TE.I.H.IB.006</td>
+      <td>Token: unsupported grant_type<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.CI.I.H.IB.003</td>
+      <td>Credential Request: unsupported credential format<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.CI.I.H.IB.004</td>
+      <td>Credential Request: unsupported credential type<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.AU.I.H.IB.005</td>
+      <td>Authorization missing client_id<div class="msg">Missing client_id correctly identified per §5.1.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">1 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.RF.I.H.VB.001</td>
+      <td>Refresh: refresh_token grant + re-issue<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.RF.I.H.IB.001</td>
+      <td>Refresh expired token<div class="msg">Expired refresh_token error envelope valid per RFC 6749 §5.2</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.RF.I.H.VB.002</td>
+      <td>Refresh: re-issuance rotates c_nonce (handles stale-nonce case)<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.IC.RF.I.H.IB.002</td>
+      <td>Refresh audience mismatch<div class="msg">Audience mismatch on refresh correctly classified as invalid_grant</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.WL.DC.W.V.VB.001</td>
+      <td>Wallet polls /deferred/credential with interval backoff<div class="msg">SKIPPED (prerequisite not met)</div></td>
+      <td class="status">SKIP</td>
+      <td class="dur">0 ms</td>
+    </tr>
+    <tr class="pass">
+      <td class="id">FT.WL.NO.W.V.VB.001</td>
+      <td>Wallet handles credential_deleted<div class="msg">Wallet purges local credential on credential_deleted per §9.1</div></td>
+      <td class="status">PASS</td>
+      <td class="dur">0 ms</td>
+    </tr></tbody>
+    </table>
+    <footer>VC Conformance Test Webapp · 2026-06-09T00:47:43.640Z</footer>
+  </main>
+  
+<script>
+(function() {
+  function copyText(t) {
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t);
+    var ta = document.createElement('textarea');
+    ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } finally { document.body.removeChild(ta); }
+    return Promise.resolve();
+  }
+  document.querySelectorAll('button.copy-curl').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var t = btn.getAttribute('data-curl') || '';
+      copyText(t).then(function() {
+        var orig = btn.textContent;
+        btn.textContent = '✓ copied';
+        setTimeout(function() { btn.textContent = orig; }, 1500);
+      });
+    });
+  });
+  var themeBtn = document.getElementById('theme-toggle');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', function() {
+      var cur = document.documentElement.getAttribute('data-theme') || 'light';
+      var next = cur === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      themeBtn.textContent = next === 'light' ? '☾ dark' : '☀ light';
+    });
+  }
+})();
+</script>
+</body>
+</html>
