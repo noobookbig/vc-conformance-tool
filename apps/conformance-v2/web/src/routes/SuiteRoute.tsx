@@ -219,16 +219,21 @@ export function SuiteRoute(): JSX.Element {
         </div>
 
         <div className="field-row" style={{ marginTop: 'var(--s-3)' }}>
-          <label className="toggle">
+          <label className="toggle toggle-primary">
             <input
               type="checkbox"
               checked={useMock}
               onChange={(e) => setUseMock(e.target.checked)}
               data-testid="toggle-usemock"
             />
-            Use in-process mock
+            <span className="toggle-label">Use in-process mock</span>
+            {useMock ? (
+              <span className="mock-badge" data-testid="mock-badge">
+                mock
+              </span>
+            ) : null}
           </label>
-          <label className="toggle">
+          <label className="toggle toggle-inactive">
             <input
               type="checkbox"
               checked={stopOnError}
@@ -236,10 +241,10 @@ export function SuiteRoute(): JSX.Element {
               disabled
               data-testid="toggle-stopOnError"
             />
-            Stop on error
+            <span className="toggle-label">Stop on error</span>
             <span className="note">(v2 default, always on)</span>
           </label>
-          <label className="toggle">
+          <label className="toggle toggle-inactive">
             <input
               type="checkbox"
               checked={continueOnError}
@@ -247,10 +252,20 @@ export function SuiteRoute(): JSX.Element {
               disabled
               data-testid="toggle-continueOnError"
             />
-            Continue on error
+            <span className="toggle-label">Continue on error</span>
             <span className="note">(not recommended for conformance runs)</span>
           </label>
         </div>
+        {useMock ? (
+          <p
+            className="mock-callout"
+            role="note"
+            data-testid="mock-callout"
+            style={{ marginTop: 'var(--s-2)' }}
+          >
+            <strong>Demo data only</strong> — uncheck for a real target run.
+          </p>
+        ) : null}
 
         <div className="field-row" style={{ marginTop: 'var(--s-4)' }}>
           <button

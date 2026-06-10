@@ -294,6 +294,19 @@ textarea {
   color: var(--ink);
   box-shadow: var(--shadow-sm);
 }
+/* Disabled "next step" hint. Not a link: no hover state, no pointer
+ * cursor, dimmed to make the affordance obvious. Distinct from the
+ * link-shaped `nav-link` so screen readers and keyboard users don't
+ * see a clickable target. */
+.nav-link.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: var(--ink-3);
+}
+.nav-link.is-disabled:hover {
+  background: transparent;
+  color: var(--ink-3);
+}
 .nav-link .icon {
   flex: 0 0 16px;
   color: var(--teal);
@@ -518,6 +531,65 @@ textarea {
 .toggle .note {
   color: var(--ink-3);
   font-size: 12px;
+}
+
+/* Primary toggle — the one choice that materially changes the run.
+ * Strong border + ink-strong text so it stands out from the v2 invariants. */
+.toggle.toggle-primary {
+  padding: var(--s-1) var(--s-3);
+  border: 1px solid var(--teal-2);
+  border-radius: var(--radius-sm);
+  background: var(--teal-3);
+  color: var(--ink);
+  font-weight: 600;
+}
+.toggle.toggle-primary .toggle-label {
+  color: var(--ink);
+}
+.toggle.toggle-primary .mock-badge {
+  display: inline-block;
+  padding: 0 var(--s-2);
+  border-radius: 999px;
+  background: var(--teal);
+  color: var(--bg-3);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Inactive v2 invariants — no border, lighter text. */
+.toggle.toggle-inactive {
+  padding: var(--s-1) var(--s-2);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink-3);
+  font-weight: 400;
+}
+.toggle.toggle-inactive .toggle-label {
+  color: var(--ink-3);
+  font-weight: 400;
+}
+.toggle.toggle-inactive .note {
+  color: var(--ink-3);
+  opacity: 0.8;
+}
+
+/* Callout under the mock toggle — makes the demo-only default unmistakable. */
+.mock-callout {
+  margin: 0;
+  padding: var(--s-2) var(--s-3);
+  background: var(--gold-3);
+  border: 1px solid var(--gold);
+  border-left: 4px solid var(--gold);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--ink);
+}
+.mock-callout strong {
+  color: var(--gold-2);
+  font-weight: 700;
 }
 
 /* ---------- Buttons ----------------------------------------------------- */
@@ -922,4 +994,12 @@ textarea {
   border-color: var(--gold);
   color: var(--gold-2);
   background: var(--gold-3);
+}
+
+/* Inline reason under the Run button when precheck has failed.
+   Mirrors the .precheck.bad colour but reads as a helper line. */
+.run-hint {
+  margin: var(--s-2) 0 0 0;
+  font-size: 12px;
+  color: var(--rose-2);
 }
