@@ -88,6 +88,13 @@ RUN mkdir -p /out && chown -R app:app /out
 COPY --chown=root:root ops/docker-v2/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+# CLI runner wrapper for the `runner` compose service. Provides
+# --config / --catalog / --out defaults and folds in the ROLE /
+# INCLUDE_COVERAGE env vars; invoked as a `command:` override by
+# `docker compose run --rm runner ...`. See docker-compose.yml.
+COPY --chown=root:root ops/docker-v2/v2-runner.sh /usr/local/bin/v2-runner.sh
+RUN chmod +x /usr/local/bin/v2-runner.sh
+
 ENV NODE_ENV=production \
     PORT=8080 \
     HOST=0.0.0.0 \

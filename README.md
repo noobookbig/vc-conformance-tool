@@ -44,6 +44,38 @@ ships, will be on the v2.0.1 line via [MAS-289](/MAS/issues/MAS-289).
 If port `8080` is already in use (e.g. a v0.1.0 container is still running),
 stop it first: `docker stop vc-conformance-test`.
 
+### Run the v2 CLI by role (Issuer / Verifier / Wallet)
+
+The same compose file exposes a one-shot `runner` service that runs the
+v2 CLI in the container with the in-process mock. Pass `--role` through
+`compose run` to drive a single role, or pin a role in the compose file
+with the `ROLE` / `INCLUDE_COVERAGE` env vars. Default behaviour (no
+role flag, no env) is unchanged: every case in the catalog runs.
+
+```bash
+# Full suite (no --role, no ROLE) — same as the v2 CLI on the host.
+docker compose run --rm runner
+
+# Issuer subset (90 of 317 live cases in the shipped catalog).
+docker compose run --rm runner --role issuer
+
+# Verifier subset, pinned in the compose file (CI matrix shape).
+ROLE=verifier docker compose run --rm runner
+
+# Wallet subset including coverage cases.
+docker compose run --rm runner --role wallet --include-coverage
+
+# Reports land in ./out/ on the host (report.json, report.junit.xml,
+# report.html). The wrapper in ops/docker-v2/v2-runner.sh sets sane
+# --config / --catalog / --out defaults; override with the CONFIG,
+# CATALOG, OUT_DIR env vars if you need to point at a different config.
+```
+
+The v2 CLI exits with `0` for a full pass, `2` for partial (skipped
+only) or a bad role, `3` for a halted run, `4` for a precheck failure.
+See `apps/conformance-v2/README.md` for the full exit-code contract and
+the role-partition table.
+
 ## Quick start (Docker, v0.1.0)
 
 ```bash

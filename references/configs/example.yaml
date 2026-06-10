@@ -1,0 +1,19 @@
+# Example v2 conformance run config — in-process mock, no external services.
+#
+# Used by the v2 CLI and by `docker compose run --rm runner ...` in the
+# root docker-compose.yml. The runner uses the in-process mock issuer +
+# verifier when both `targetIssuer` and `targetVerifier` are empty (or
+# when `useMock: true` is set), so this config is the fastest way to
+# exercise the suite end-to-end without standing up an OID4VCI/OID4VP
+# target.
+#
+# Override one of the URLs to drive a real target. The URL must point at
+# the OID4VCI / OID4VP endpoint base, not the server root — see the
+# top-level README "Test against a real target" section.
+
+useMock: true
+verbose: true
+
+# credentialConfigurationId: ThaiNationalID
+# targetIssuer: https://issuer.example.com
+# targetVerifier: https://verifier.example.com
