@@ -1,0 +1,9 @@
+id: FT.SEC.CR.V.H.VB.001
+name: "Presentation — KB-JWT with `alg: none` rejected at Verifier"
+operation: Cryptographic
+eut: verifier
+suite: holder
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: RFC 7515 §10.12 (algorithm "none" MUST NOT be accepted)

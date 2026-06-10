@@ -1,0 +1,9 @@
+id: FT.SEC.CR.V.H.VB.003
+name: Presentation — algorithm mismatch at Verifier
+operation: Cryptographic
+eut: verifier
+suite: holder
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VP 1.0 Final §6.3 (proof types)

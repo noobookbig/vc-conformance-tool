@@ -1,0 +1,9 @@
+id: FT.SEC.CR.I.H.VB.002
+name: KB-JWT proof with symmetric algorithm rejected
+operation: Cryptographic
+eut: multi
+suite: holder
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: RFC 7515 §10.12 (symmetric algorithms MUST NOT be accepted)

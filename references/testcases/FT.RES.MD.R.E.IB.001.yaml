@@ -1,0 +1,10 @@
+id: FT.RES.MD.R.E.IB.001
+name: Resolve DID — driver timeout
+operation: Multi-method
+eut: resolver
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: DIF DID Resolution 1.0 §4.1
+justification: resolver is not yet a v2 engine target; spec=DIF DID Resolution 1.0 §4.1

@@ -1,0 +1,9 @@
+id: FT.SEC.CR.I.H.VB.005
+name: JWK thumbprint mismatch — `kid` does not match verificationMethod
+operation: Cryptographic
+eut: multi
+suite: holder
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: RFC 8785 §3.4 (JWK thumbprint)` + `W3C DID Core §5.3

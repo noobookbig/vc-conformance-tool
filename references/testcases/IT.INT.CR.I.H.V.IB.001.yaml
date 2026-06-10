@@ -1,0 +1,10 @@
+id: IT.INT.CR.I.H.V.IB.001
+name: E2E — Credential replay across Holders
+operation: Integration
+eut: multi
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: W3C VC Data Model 2.0 §4.3 (credential subject), OID4VP 1.0 Final §6.3
+justification: "multi-entity (3 roles: issuer+holder+verifier); spec=W3C VC Data Model 2.0 §4.3 (credential subject), OID4VP 1.0 Final §6.3"

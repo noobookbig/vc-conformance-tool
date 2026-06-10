@@ -1,0 +1,9 @@
+id: FT.NT.NT.I.H.IB.007
+name: Notification_Request with Undefined format of Required Parameter(event)
+operation: Notification — Notification
+eut: holder
+suite: issuer
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §9.1 + §9.2

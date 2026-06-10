@@ -1,0 +1,9 @@
+id: FT.IC.TE.H.I.IB.005
+name: Token Exchange_Response with Invalid value of Conditional Required Parameter(credential_identifiers)
+operation: Issue VC — Token Exchange
+eut: holder
+suite: issuer
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §6.1 + RFC 6749 §4.1.3

@@ -1,0 +1,10 @@
+id: FT.RES.VP.R.E.VB.003
+name: Resolve DID with statusList credential
+operation: Status List Resolution
+eut: resolver
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §9.3, BitstringStatusList v1.0, DIF DID Resolution 1.0 §4.1
+justification: resolver is not yet a v2 engine target; spec=OID4VCI 1.0 Final §9.3, BitstringStatusList v1.0, DIF DID Resolution 1.0 §4.1

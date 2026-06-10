@@ -1,0 +1,9 @@
+id: FT.IC.CI.I.H.IB.028
+name: VC Issuance_Request with Omitting Required Parameter in JWT body(iat)
+operation: Issue VC — VC Issuance
+eut: issuer
+suite: holder
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §7.1 + §7.2 (proof types incl. KB-JWT EdDSA §7.2.1, App. B)

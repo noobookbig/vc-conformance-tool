@@ -1,0 +1,9 @@
+id: FT.IC.MD.H.I.VB.010
+name: Issuer metadata fetch — reachable `credential_issuer` URL (positive)
+operation: Issue VC — Metadata Fetch
+eut: holder
+suite: issuer
+behavior: valid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §4.1.1 (credential_issuer) + §11.2 (Credential Issuer Metadata)

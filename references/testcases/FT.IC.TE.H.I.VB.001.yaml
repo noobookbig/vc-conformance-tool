@@ -1,0 +1,9 @@
+id: FT.IC.TE.H.I.VB.001
+name: Token Exchange_Response with Required Parameters in [RFC 6749]
+operation: Issue VC — Token Exchange
+eut: holder
+suite: issuer
+behavior: valid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §6.1 + RFC 6749 §4.1.3

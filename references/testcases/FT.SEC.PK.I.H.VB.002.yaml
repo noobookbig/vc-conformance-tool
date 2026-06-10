@@ -1,0 +1,10 @@
+id: FT.SEC.PK.I.H.VB.002
+name: PKCE downgrade — missing `code_challenge`
+operation: PKCE
+eut: multi
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §3.5 (PKCE Required)
+justification: "multi-entity (3 roles: issuer+holder+verifier); spec=OID4VCI 1.0 Final §3.5 (PKCE Required)"

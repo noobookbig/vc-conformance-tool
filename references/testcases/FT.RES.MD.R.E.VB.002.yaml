@@ -1,0 +1,10 @@
+id: FT.RES.MD.R.E.VB.002
+name: Resolve DID — parallel resolution performance
+operation: Multi-method
+eut: resolver
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: DIF DID Resolution 1.0 §6 (Performance)
+justification: resolver is not yet a v2 engine target; spec=DIF DID Resolution 1.0 §6 (Performance)

@@ -12,3 +12,9 @@ reports/
 .DS_Store
 .vscode/
 .idea/
+test-results/
+apps/web/test/reports/
+apps/conformance-v2/web/test-results/
+apps/conformance-v2/web/playwright-report/
+apps/conformance-v2/web/dist/
+*.tsbuildinfo

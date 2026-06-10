@@ -1,0 +1,9 @@
+id: FT.IC.DC.I.H.IB.002
+name: Deferred Credential_Request with Invalid value of Required Parameter(transaction_id)
+operation: Issue VC — Deferred Credential
+eut: issuer
+suite: holder
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §8.1 + §8.2 + §8.3

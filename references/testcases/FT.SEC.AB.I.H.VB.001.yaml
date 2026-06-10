@@ -1,0 +1,10 @@
+id: FT.SEC.AB.I.H.VB.001
+name: Audience binding — Credential Request `aud` mismatch
+operation: Audience Binding
+eut: multi
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §7.2 (proof JWT — `aud` claim), RFC 7519 §4.1.3
+justification: "multi-entity (3 roles: issuer+holder+verifier); spec=OID4VCI 1.0 Final §7.2 (proof JWT — `aud` claim), RFC 7519 §4.1.3"

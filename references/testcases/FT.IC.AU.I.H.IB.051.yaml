@@ -1,0 +1,9 @@
+id: FT.IC.AU.I.H.IB.051
+name: Authorization — `redirect_uri` is a syntactically valid but attacker-controlled URL (open redirect)
+operation: Issue VC — Authorization
+eut: issuer
+suite: holder
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §5.1.1 (redirect_uri) + RFC 6749 §3.1.2 (open redirect protection) + OWASP OIDC Top 10#1

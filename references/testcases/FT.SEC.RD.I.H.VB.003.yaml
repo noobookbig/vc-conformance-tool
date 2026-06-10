@@ -1,0 +1,10 @@
+id: FT.SEC.RD.I.H.VB.003
+name: Open redirect — DNS rebinding during `response_uri` check
+operation: Redirect
+eut: multi
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: RFC 6265 (cookie security), RFC 7230 (HTTP semantics)
+justification: "multi-entity (3 roles: issuer+holder+verifier); spec=RFC 6265 (cookie security), RFC 7230 (HTTP semantics)"

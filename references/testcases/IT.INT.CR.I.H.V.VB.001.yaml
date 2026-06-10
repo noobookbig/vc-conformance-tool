@@ -1,0 +1,10 @@
+id: IT.INT.CR.I.H.V.VB.001
+name: E2E Issuance + Presentation — happy path
+operation: Integration
+eut: multi
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §4-§9, OID4VP 1.0 Final §5-§6, DIF DID Resolution 1.0
+justification: "multi-entity (3 roles: issuer+holder+verifier); spec=OID4VCI 1.0 Final §4-§9, OID4VP 1.0 Final §5-§6, DIF DID Resolution 1.0"

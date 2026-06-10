@@ -1,0 +1,9 @@
+id: FT.IC.AU.H.I.VB.002
+name: Authorization_Response with Required Parameters
+operation: Issue VC — Authorization
+eut: holder
+suite: issuer
+behavior: valid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §5.1.1 + §5.1.2 (PKCE §3.5 + RFC 7636, authorization_details RFC 9396)

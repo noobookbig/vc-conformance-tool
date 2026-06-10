@@ -1,0 +1,10 @@
+id: IT.CK.CK.I.H.VB.001
+name: Credential Revoke - Credential Revoke by Issuer
+operation: Credential Revoke — Credential Revoke
+eut: multi
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §10.1 + BitstringStatusList v1.0
+justification: EUT pair (issuer+holder) not in v2 four-mode set; spec=OID4VCI 1.0 Final §10.1 + BitstringStatusList v1.0

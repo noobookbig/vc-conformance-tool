@@ -1,0 +1,10 @@
+id: FT.RES.DR.R.E.IB.008
+name: DID URL dereference — service not found
+operation: DID URL Dereference
+eut: resolver
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: DIF DID Resolution 1.0 §4.2 + §5.2, W3C DID Core §6.4
+justification: resolver is not yet a v2 engine target; spec=DIF DID Resolution 1.0 §4.2 + §5.2, W3C DID Core §6.4

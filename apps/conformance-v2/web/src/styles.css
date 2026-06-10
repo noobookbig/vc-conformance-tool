@@ -1,0 +1,1005 @@
+/* ===========================================================================
+ * Conformance v2 — Web UI
+ *
+ * Visual language is intentionally aligned with the v0.1.0 webapp:
+ *  - Fraunces (serif) for headings + KPI labels with italic em-dashes
+ *  - IBM Plex Sans Thai for body text
+ *  - JetBrains Mono for ids, durations, log prefixes
+ *  - Teal / gold / parchment palette, deepened for AA contrast
+ *  - 4/8/12/16/24/40 px spacing rhythm
+ *  - prefers-reduced-motion respected throughout
+ *
+ * Status colors are colour-blind safe by pairing an icon + text label
+ * with any chromatic cue; do not rely on green/red alone.
+ * =========================================================================== */
+
+:root {
+  /* Surfaces */
+  --bg: #f3ecdc;
+  --bg-2: #ece3cc;
+  --bg-3: #fbf6ea;
+  --bg-elev: #fffaee;
+  --ink: #15140f;
+  --ink-2: #4a443a;
+  --ink-3: #837b6d;
+  --line: #d6ccb6;
+  --line-2: #c2b69c;
+  --line-3: #ada38a;
+
+  /* Accents */
+  --teal: #0a6464;
+  --teal-2: #064e4e;
+  --teal-3: #cfe7e6;
+  --gold: #a8761e;
+  --gold-2: #c79338;
+  --gold-3: #f1e3bf;
+  --rose: #9a2a2a;
+  --rose-2: #7a1f1f;
+  --rose-3: #f3d6d2;
+  --green: #256a32;
+  --green-2: #1d5126;
+  --green-3: #d3e6d6;
+  --blue: #1d4e89;
+  --blue-3: #cfe1f0;
+
+  /* Shape & shadow */
+  --shadow-sm: 0 1px 0 rgba(20, 18, 10, 0.04), 0 1px 2px rgba(20, 18, 10, 0.04);
+  --shadow:    0 1px 0 rgba(20, 18, 10, 0.05), 0 10px 28px -16px rgba(20, 18, 10, 0.18);
+  --shadow-lg: 0 1px 0 rgba(20, 18, 10, 0.06), 0 30px 60px -28px rgba(20, 18, 10, 0.30);
+  --radius: 14px;
+  --radius-sm: 9px;
+  --radius-xs: 5px;
+
+  /* Type */
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans: 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --serif: 'Fraunces', 'IBM Plex Sans Thai', Georgia, serif;
+
+  /* Spacing scale (4/8 rhythm) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
+  --dur-1: 120ms;
+  --dur-2: 220ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14120d;
+    --bg-2: #1b1812;
+    --bg-3: #221d15;
+    --bg-elev: #28231a;
+    --ink: #f3ecda;
+    --ink-2: #b9b0a0;
+    --ink-3: #807868;
+    --line: #2c2820;
+    --line-2: #3a3528;
+    --line-3: #4d4636;
+
+    --teal: #4ec1c1;
+    --teal-2: #6ad7d7;
+    --teal-3: #1d3a3a;
+    --gold: #dca94a;
+    --gold-2: #e6bd65;
+    --gold-3: #3a2e15;
+    --rose: #d96666;
+    --rose-2: #e07c7c;
+    --rose-3: #3a1e1e;
+    --green: #5cae6e;
+    --green-2: #75c187;
+    --green-3: #1d2e1f;
+    --blue: #6ea4d8;
+    --blue-3: #1c2c3c;
+
+    --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow: 0 1px 0 rgba(0, 0, 0, 0.4), 0 10px 28px -16px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 1px 0 rgba(0, 0, 0, 0.5), 0 30px 60px -28px rgba(0, 0, 0, 0.7);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: var(--teal);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--ink);
+  color: var(--bg);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--radius-xs);
+  z-index: 1000;
+}
+.skip:focus {
+  left: var(--s-3);
+  top: var(--s-3);
+}
+
+/* ---------- App shell ---------------------------------------------------- */
+.app {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    'top top'
+    'side main';
+  min-height: 100vh;
+}
+.app.is-running {
+  grid-template-areas:
+    'top top'
+    'side main';
+}
+
+.topbar {
+  grid-area: top;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-5);
+  background: var(--bg-3);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.topbar .brand p {
+  display: block;
+}
+@media (max-width: 700px) {
+  .topbar {
+    padding: var(--s-2) var(--s-3);
+  }
+  .brand h1 {
+    font-size: 17px;
+  }
+  .brand p {
+    display: none;
+  }
+  .topbar .health {
+    font-size: 11px;
+    padding: 0 var(--s-2);
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.brand h1 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.brand h1 .dim {
+  color: var(--ink-3);
+  margin: 0 var(--s-1);
+}
+.brand h1 em {
+  font-style: italic;
+  color: var(--teal);
+}
+.brand p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.health {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-1) var(--s-3);
+  border-radius: 999px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+.health .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+.health.is-ok .dot {
+  background: var(--green);
+}
+.health.is-bad .dot {
+  background: var(--rose);
+}
+
+.sidebar {
+  grid-area: side;
+  background: var(--bg-2);
+  border-right: 1px solid var(--line);
+  padding: var(--s-4) var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-3);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--ink-2);
+  text-align: left;
+  width: 100%;
+  font-size: 14px;
+  font-weight: 500;
+}
+.nav-link:hover {
+  background: var(--bg-3);
+  color: var(--ink);
+}
+.nav-link.is-active {
+  background: var(--bg-elev);
+  border-color: var(--line);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+/* Disabled "next step" hint. Not a link: no hover state, no pointer
+ * cursor, dimmed to make the affordance obvious. Distinct from the
+ * link-shaped `nav-link` so screen readers and keyboard users don't
+ * see a clickable target. */
+.nav-link.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: var(--ink-3);
+}
+.nav-link.is-disabled:hover {
+  background: transparent;
+  color: var(--ink-3);
+}
+.nav-link .icon {
+  flex: 0 0 16px;
+  color: var(--teal);
+}
+.nav-link .nav-num {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.main {
+  grid-area: main;
+  padding: var(--s-6);
+  min-width: 0;
+}
+
+/* Mobile: collapse the sidebar to a horizontal nav row at the top.
+ * The 260px sidebar column would otherwise eat the viewport on a
+ * 390px phone and squeeze `.main` to ~130px (unusable). */
+@media (max-width: 900px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'top'
+      'side'
+      'main';
+  }
+  .sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2);
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+    padding: var(--s-2) var(--s-3);
+  }
+  .sidebar .nav-link {
+    width: auto;
+    padding: var(--s-1) var(--s-3);
+    font-size: 13px;
+  }
+  .sidebar .hint {
+    width: 100%;
+    text-align: right;
+  }
+  .main {
+    padding: var(--s-4);
+  }
+  .view-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--s-3);
+  }
+  .view-header h2 {
+    font-size: 24px;
+  }
+  .soe-banner {
+    grid-template-columns: auto 1fr;
+  }
+  .soe-banner .actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .soe-banner .meta {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+    row-gap: var(--s-1);
+  }
+  .soe-banner .meta dt {
+    margin-top: var(--s-1);
+  }
+  .case-row {
+    grid-template-columns: 28px 1fr;
+    row-gap: var(--s-1);
+  }
+  .case-row .op,
+  .case-row .duration {
+    grid-column: 2;
+  }
+  .case-row.is-failed {
+    grid-template-columns: 28px 1fr;
+  }
+  .case-row.is-failed .meta-row {
+    flex-wrap: wrap;
+  }
+  .filters {
+    align-items: stretch;
+  }
+  .filter-group {
+    flex: 1 1 calc(50% - var(--s-3));
+    min-width: 140px;
+  }
+  .filter-group input,
+  .filter-group select {
+    width: 100%;
+  }
+}
+
+/* ---------- View header -------------------------------------------------- */
+.view-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-5);
+  margin-bottom: var(--s-5);
+}
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.view-header h2 {
+  margin: var(--s-1) 0 var(--s-2);
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 30px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.view-header h2 em {
+  font-style: italic;
+  color: var(--teal);
+}
+.view-header p {
+  margin: 0;
+  max-width: 64ch;
+  color: var(--ink-2);
+}
+
+/* ---------- Cards / panels ---------------------------------------------- */
+.panel {
+  background: var(--bg-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s-5);
+  margin-bottom: var(--s-4);
+  box-shadow: var(--shadow-sm);
+}
+.panel h3 {
+  margin: 0 0 var(--s-3);
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 18px;
+}
+.panel .hint {
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-4);
+}
+@media (max-width: 900px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Forms -------------------------------------------------------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  margin-bottom: var(--s-3);
+}
+.field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.field input,
+.field textarea,
+.field select {
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  color: var(--ink);
+  font-size: 14px;
+  width: 100%;
+  transition: border-color var(--dur-1) var(--ease), box-shadow var(--dur-1) var(--ease);
+}
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px var(--teal-3);
+}
+.field .help {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.field .err {
+  font-size: 12px;
+  color: var(--rose-2);
+}
+
+.field-row {
+  display: flex;
+  gap: var(--s-3);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.toggle .note {
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+/* Primary toggle — the one choice that materially changes the run.
+ * Strong border + ink-strong text so it stands out from the v2 invariants. */
+.toggle.toggle-primary {
+  padding: var(--s-1) var(--s-3);
+  border: 1px solid var(--teal-2);
+  border-radius: var(--radius-sm);
+  background: var(--teal-3);
+  color: var(--ink);
+  font-weight: 600;
+}
+.toggle.toggle-primary .toggle-label {
+  color: var(--ink);
+}
+.toggle.toggle-primary .mock-badge {
+  display: inline-block;
+  padding: 0 var(--s-2);
+  border-radius: 999px;
+  background: var(--teal);
+  color: var(--bg-3);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Inactive v2 invariants — no border, lighter text. */
+.toggle.toggle-inactive {
+  padding: var(--s-1) var(--s-2);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink-3);
+  font-weight: 400;
+}
+.toggle.toggle-inactive .toggle-label {
+  color: var(--ink-3);
+  font-weight: 400;
+}
+.toggle.toggle-inactive .note {
+  color: var(--ink-3);
+  opacity: 0.8;
+}
+
+/* Callout under the mock toggle — makes the demo-only default unmistakable. */
+.mock-callout {
+  margin: 0;
+  padding: var(--s-2) var(--s-3);
+  background: var(--gold-3);
+  border: 1px solid var(--gold);
+  border-left: 4px solid var(--gold);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--ink);
+}
+.mock-callout strong {
+  color: var(--gold-2);
+  font-weight: 700;
+}
+
+/* ---------- Buttons ----------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-4);
+  background: var(--bg-elev);
+  color: var(--ink);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  transition: background var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease),
+    transform var(--dur-1) var(--ease);
+}
+.btn:hover:not(:disabled) {
+  background: var(--bg-3);
+  border-color: var(--teal);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--teal);
+  color: var(--bg-3);
+  border-color: var(--teal-2);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--teal-2);
+  border-color: var(--teal-2);
+}
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--bg-2);
+  border-color: var(--line);
+}
+.btn-danger {
+  background: var(--rose);
+  color: var(--bg-3);
+  border-color: var(--rose-2);
+}
+.btn-danger:hover:not(:disabled) {
+  background: var(--rose-2);
+}
+
+/* ---------- Stop-on-error banner --------------------------------------- */
+.soe-banner {
+  background: var(--rose-3);
+  border: 2px solid var(--rose-2);
+  border-left: 6px solid var(--rose-2);
+  border-radius: var(--radius);
+  padding: var(--s-4) var(--s-5);
+  margin-bottom: var(--s-4);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--s-3);
+  align-items: flex-start;
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+.soe-banner .icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--rose-2);
+  color: var(--bg-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-family: var(--mono);
+  flex-shrink: 0;
+}
+.soe-banner .heading {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 18px;
+  margin: 0 0 var(--s-1);
+  color: var(--rose-2);
+}
+.soe-banner .body {
+  font-size: 14px;
+  color: var(--ink);
+  margin: 0;
+}
+.soe-banner .meta {
+  margin-top: var(--s-2);
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: var(--s-3);
+  row-gap: var(--s-1);
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.soe-banner .meta dt {
+  font-family: var(--mono);
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+  align-self: center;
+}
+.soe-banner .meta dd {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink);
+  word-break: break-word;
+}
+.soe-banner pre {
+  margin: var(--s-2) 0 0;
+  padding: var(--s-3);
+  background: var(--bg-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink);
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.soe-banner .actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  align-items: stretch;
+  min-width: 120px;
+}
+
+/* ---------- Progress bar ----------------------------------------------- */
+.progress {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+}
+.progress .bar {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-2);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.progress .bar > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal), var(--teal-2));
+  transition: width var(--dur-2) var(--ease);
+}
+.progress .label {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-2);
+  min-width: 100px;
+  text-align: right;
+}
+
+/* ---------- Case rows --------------------------------------------------- */
+.case-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.case-row {
+  display: grid;
+  grid-template-columns: 28px 1fr max-content max-content;
+  gap: var(--s-3);
+  align-items: center;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+.case-row .status {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+}
+.case-row .status.passed {
+  background: var(--green-3);
+  color: var(--green-2);
+}
+.case-row .status.failed {
+  background: var(--rose-3);
+  color: var(--rose-2);
+}
+.case-row .status.skipped {
+  background: var(--gold-3);
+  color: var(--gold-2);
+}
+.case-row .status.pending,
+.case-row .status.running {
+  background: var(--bg-2);
+  color: var(--ink-3);
+  border: 1px dashed var(--line-2);
+}
+.case-row .id {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.case-row .name {
+  color: var(--ink);
+  font-weight: 500;
+}
+.case-row .op {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  text-transform: uppercase;
+}
+.case-row .duration {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.case-row.is-failed .body {
+  margin-top: var(--s-2);
+  padding: var(--s-2);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xs);
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 200px;
+  overflow: auto;
+}
+.case-row.is-failed {
+  grid-template-columns: 28px 1fr;
+}
+.case-row.is-failed .meta-row {
+  grid-column: 2;
+  display: flex;
+  gap: var(--s-3);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+/* ---------- Report filters --------------------------------------------- */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  align-items: flex-end;
+  margin-bottom: var(--s-4);
+}
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+.filter-group label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.filter-group select,
+.filter-group input {
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  font-size: 14px;
+}
+
+.chip-row {
+  display: flex;
+  gap: var(--s-1);
+  flex-wrap: wrap;
+  margin-bottom: var(--s-4);
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: 2px var(--s-2);
+  border-radius: 999px;
+  font-size: 12px;
+  font-family: var(--mono);
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  color: var(--ink-2);
+}
+.chip.passed {
+  background: var(--green-3);
+  color: var(--green-2);
+  border-color: var(--green-2);
+}
+.chip.failed {
+  background: var(--rose-3);
+  color: var(--rose-2);
+  border-color: var(--rose-2);
+}
+.chip.skipped {
+  background: var(--gold-3);
+  color: var(--gold-2);
+  border-color: var(--gold);
+}
+
+.downloads {
+  display: flex;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+
+/* ---------- Live region ------------------------------------------------- */
+.live-sr {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* ---------- Empty / loading -------------------------------------------- */
+.empty {
+  text-align: center;
+  padding: var(--s-7) var(--s-4);
+  color: var(--ink-3);
+  font-style: italic;
+}
+.loading {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--line-2);
+  border-top-color: var(--teal);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading {
+    animation: none;
+  }
+}
+
+/* ---------- Precheck pill ---------------------------------------------- */
+.precheck {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-1) var(--s-3);
+  border-radius: 999px;
+  font-size: 12px;
+  font-family: var(--mono);
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  color: var(--ink-2);
+  /* Keep the rounded pill shape intact on long error messages / URLs.
+     The detailed reason is exposed via the title attribute and the
+     inline .run-hint line below the Run button (see MAS-261), so we
+     can safely clamp the visible label to a single line. */
+  white-space: nowrap;
+  max-width: min(100%, 36ch);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.precheck .precheck-icon {
+  flex: 0 0 auto;
+  font-weight: 700;
+  line-height: 1;
+}
+.precheck.ok {
+  border-color: var(--green-2);
+  color: var(--green-2);
+  background: var(--green-3);
+}
+.precheck.bad {
+  border-color: var(--rose-2);
+  color: var(--rose-2);
+  background: var(--rose-3);
+}
+.precheck.checking {
+  border-color: var(--gold);
+  color: var(--gold-2);
+  background: var(--gold-3);
+}
+
+/* Inline reason under the Run button when precheck has failed.
+   Mirrors the .precheck.bad colour but reads as a helper line. */
+.run-hint {
+  margin: var(--s-2) 0 0 0;
+  font-size: 12px;
+  color: var(--rose-2);
+}

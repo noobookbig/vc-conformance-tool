@@ -1,0 +1,9 @@
+id: FT.IC.MD.H.I.VB.011
+name: Client metadata fetch — reachable `client_metadata_uri` (positive)
+operation: Issue VC — Authorization
+eut: issuer
+suite: holder
+behavior: valid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §5.1.1 (client_metadata_uri) + RFC 6749 §3.1.2

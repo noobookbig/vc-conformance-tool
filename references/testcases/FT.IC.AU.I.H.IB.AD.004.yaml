@@ -1,0 +1,10 @@
+id: FT.IC.AU.I.H.IB.AD.004
+name: authorization_details[0] without type field
+operation: unknown
+eut: multi
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final / OID4VP 1.0 Final (operation TBD)
+justification: no runnable counterpart (EUT=unknown, suite=holder); spec=OID4VCI 1.0 Final / OID4VP 1.0 Final (operation TBD)

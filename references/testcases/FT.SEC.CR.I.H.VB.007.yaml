@@ -1,0 +1,9 @@
+id: FT.SEC.CR.I.H.VB.007
+name: Cross-credential key binding — proof bound to credential A validates credential B
+operation: Cryptographic
+eut: verifier
+suite: holder
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: W3C VC Data Model 2.0 §4.3 (credential subject binding)` + `OID4VP 1.0 Final §6.3

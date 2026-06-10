@@ -1,0 +1,10 @@
+id: FT.SEC.DR.R.E.VB.003
+name: DID resolution — DID document with embedded XSS payload
+operation: DID Security
+eut: multi
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OWASP XSS Prevention Cheat Sheet, W3C DID Core §6.4
+justification: "multi-entity (3 roles: issuer+holder+verifier); spec=OWASP XSS Prevention Cheat Sheet, W3C DID Core §6.4"

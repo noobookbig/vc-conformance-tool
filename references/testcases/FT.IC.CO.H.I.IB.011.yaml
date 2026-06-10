@@ -1,0 +1,9 @@
+id: FT.IC.CO.H.I.IB.011
+name: Credential Offer_Invalid value of optional parameters (description)
+operation: Issue VC — Credential Offer
+eut: holder
+suite: issuer
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §4.1.1 + §4.1.2

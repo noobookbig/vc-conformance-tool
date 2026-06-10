@@ -1,0 +1,10 @@
+id: IT.PV.CR.V.I.VB.001
+name: Verify VC - Credential Resolve
+operation: Present VP — Credential Resolve
+eut: multi
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: DIF Universal Resolver API + OID4VP 1.0 Final §6.1 (status_list resolution)
+justification: EUT pair (verifier+issuer) not in v2 four-mode set; spec=DIF Universal Resolver API + OID4VP 1.0 Final §6.1 (status_list resolution)

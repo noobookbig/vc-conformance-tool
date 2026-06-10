@@ -1,0 +1,10 @@
+id: FT.SEC.NA.V.H.VB.002
+name: Negative authentication — expired access token
+operation: Authentication
+eut: multi
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: RFC 7519 §4.1.4 (`exp` claim), OID4VP 1.0 Final §6.3
+justification: "multi-entity (3 roles: issuer+holder+verifier); spec=RFC 7519 §4.1.4 (`exp` claim), OID4VP 1.0 Final §6.3"

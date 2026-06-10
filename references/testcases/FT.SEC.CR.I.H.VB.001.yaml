@@ -1,0 +1,9 @@
+id: FT.SEC.CR.I.H.VB.001
+name: "KB-JWT proof with `alg: none` rejected"
+operation: Cryptographic
+eut: multi
+suite: holder
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: RFC 7515 §10.12 (algorithm "none" MUST NOT be accepted)

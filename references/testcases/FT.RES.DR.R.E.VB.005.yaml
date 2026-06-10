@@ -1,0 +1,10 @@
+id: FT.RES.DR.R.E.VB.005
+name: Resolve DID with service endpoint — dereference services
+operation: DID Resolution
+eut: resolver
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: DIF DID Resolution 1.0 §4.2 (Dereferencing), W3C DID Core §6.4
+justification: resolver is not yet a v2 engine target; spec=DIF DID Resolution 1.0 §4.2 (Dereferencing), W3C DID Core §6.4

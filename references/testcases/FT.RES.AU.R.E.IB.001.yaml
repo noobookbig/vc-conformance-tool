@@ -1,0 +1,10 @@
+id: FT.RES.AU.R.E.IB.001
+name: Resolve DID — DID Document tampered with in transit
+operation: VP Time Resolution
+eut: resolver
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: DIF DID Resolution 1.0 §4.1, RFC 8446 (TLS 1.3)
+justification: resolver is not yet a v2 engine target; spec=DIF DID Resolution 1.0 §4.1, RFC 8446 (TLS 1.3)

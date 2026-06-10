@@ -1,0 +1,9 @@
+id: FT.SEC.CR.I.H.VB.003
+name: Algorithm downgrade — proof uses weaker algorithm than advertised
+operation: Cryptographic
+eut: multi
+suite: holder
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §7.2 (proof types — algorithm MUST match credential_profile)
