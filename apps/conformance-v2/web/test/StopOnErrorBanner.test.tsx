@@ -73,4 +73,61 @@ describe('StopOnErrorBanner', () => {
     expect(screen.getByTestId('soe-case-id').textContent).toBe('precheck');
     expect(screen.getByTestId('soe-expectation').textContent).toMatch(/target unreachable/);
   });
+
+  it('shows status and body from failedCaseSnapshot when cases[id] is missing (case.failed raced ahead of run.aborted)', () => {
+    // The engine can emit case.failed and run.aborted in the same tick.
+    // The reducer snapshots the failing case at the moment run.aborted
+    // fires; the banner must read from that snapshot, not from
+    // state.cases[id], which may not have landed yet.
+    const state: RunState = {
+      id: 'r-2',
+      status: 'aborted',
+      total: 1,
+      passed: 0,
+      failed: 1,
+      skipped: 0,
+      cases: {}, // empty — case.failed hasn't landed in state yet
+      failedCaseId: 'X.1',
+      abortedError: 'stop-on-error',
+      failedCaseSnapshot: {
+        id: 'X.1',
+        outcome: 'failed',
+        message: 'expected 200, got 500',
+        responseStatus: 500,
+        responseBody: { error: 'server_error' },
+      },
+    };
+    render(<StopOnErrorBanner state={state} />);
+    expect(screen.getByTestId('soe-case-id').textContent).toBe('X.1');
+    expect(screen.getByTestId('soe-expectation').textContent).toMatch(/expected 200, got 500/);
+    expect(screen.getByTestId('soe-status').textContent).toBe('500');
+    const body = screen.getByTestId('soe-body').textContent ?? '';
+    expect(body).toContain('"error"');
+    expect(body).toContain('"server_error"');
+  });
+
+  it('falls back to the synthetic snapshot (from aborted event) when neither cases[id] nor an earlier case.failed is available', () => {
+    // Pathological case: run.aborted arrives without a prior case.failed.
+    // The reducer builds a synthetic snapshot from the event data so the
+    // banner is still meaningful.
+    const state: RunState = {
+      id: 'r-3',
+      status: 'aborted',
+      total: 1,
+      passed: 0,
+      failed: 0,
+      skipped: 0,
+      cases: {},
+      failedCaseId: 'precheck',
+      abortedError: 'target unreachable: issuer.example returned HTTP 503',
+      failedCaseSnapshot: {
+        id: 'precheck',
+        outcome: 'failed',
+        message: 'target unreachable: issuer.example returned HTTP 503',
+      },
+    };
+    render(<StopOnErrorBanner state={state} />);
+    expect(screen.getByTestId('soe-case-id').textContent).toBe('precheck');
+    expect(screen.getByTestId('soe-expectation').textContent).toMatch(/target unreachable/);
+  });
 });

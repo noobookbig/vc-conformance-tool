@@ -32,7 +32,12 @@ export function StopOnErrorBanner({
   if (state.status !== 'aborted' && state.status !== 'failed') return null;
 
   const failedCaseId = state.failedCaseId ?? state.abortedAt ?? 'unknown';
-  const failingCase = state.failedCaseId ? state.cases[state.failedCaseId] : undefined;
+  // Prefer the snapshot taken at the moment run.aborted fired; fall
+  // back to the live case row, then to the aborted event's own error
+  // string. This keeps the banner informative even when case.failed
+  // and run.aborted race.
+  const failingCase = state.failedCaseSnapshot
+    ?? (state.failedCaseId ? state.cases[state.failedCaseId] : undefined);
   const expectation = failingCase?.message ?? state.abortedError ?? 'assertion mismatch';
   const responseStatus = failingCase?.responseStatus;
   const responseBody = failingCase?.responseBody;

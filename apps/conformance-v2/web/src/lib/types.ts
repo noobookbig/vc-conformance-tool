@@ -99,6 +99,13 @@ export interface RunState {
   abortedAt?: string;
   abortedError?: string;
   failedCaseId?: string;
+  /**
+   * Snapshot of the failing case at the moment `run.aborted` fired.
+   * The banner reads from here (not from `cases[failedCaseId]`) so it
+   * always has status/body even when `case.failed` and `run.aborted`
+   * arrive out of order or in the same tick.
+   */
+  failedCaseSnapshot?: CaseRow;
   startedAt?: string;
   finishedAt?: string;
   error?: string | null;

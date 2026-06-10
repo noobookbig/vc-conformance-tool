@@ -138,6 +138,23 @@ function reducer(s: InternalState, action: Action): InternalState {
           next.abortedError = data.error;
           next.failedCaseId = data.failedCaseId;
           next.finishedAt = new Date().toISOString();
+          // Snapshot the failing case data at the moment run.aborted
+          // fires so the StopOnErrorBanner always has status/body to
+          // show, even when case.failed and run.aborted race (the
+          // engine emits both in the same tick on stop-on-error).
+          // We fall back to the case in `cases` if it has already
+          // landed in state, and otherwise to a synthetic row from
+          // the aborted event itself.
+          const existing = data.failedCaseId
+            ? s.state.cases[data.failedCaseId]
+            : undefined;
+          next.failedCaseSnapshot = existing
+            ? { ...existing }
+            : {
+                id: data.failedCaseId || 'unknown',
+                outcome: 'failed',
+                message: data.error,
+              };
           break;
         }
         case 'run.completed': {

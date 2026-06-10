@@ -182,12 +182,31 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--s-3);
   padding: var(--s-3) var(--s-5);
   background: var(--bg-3);
   border-bottom: 1px solid var(--line);
   position: sticky;
   top: 0;
   z-index: 5;
+}
+.topbar .brand p {
+  display: block;
+}
+@media (max-width: 700px) {
+  .topbar {
+    padding: var(--s-2) var(--s-3);
+  }
+  .brand h1 {
+    font-size: 17px;
+  }
+  .brand p {
+    display: none;
+  }
+  .topbar .health {
+    font-size: 11px;
+    padding: 0 var(--s-2);
+  }
 }
 
 .brand {
@@ -290,6 +309,90 @@ textarea {
   grid-area: main;
   padding: var(--s-6);
   min-width: 0;
+}
+
+/* Mobile: collapse the sidebar to a horizontal nav row at the top.
+ * The 260px sidebar column would otherwise eat the viewport on a
+ * 390px phone and squeeze `.main` to ~130px (unusable). */
+@media (max-width: 900px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'top'
+      'side'
+      'main';
+  }
+  .sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2);
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+    padding: var(--s-2) var(--s-3);
+  }
+  .sidebar .nav-link {
+    width: auto;
+    padding: var(--s-1) var(--s-3);
+    font-size: 13px;
+  }
+  .sidebar .hint {
+    width: 100%;
+    text-align: right;
+  }
+  .main {
+    padding: var(--s-4);
+  }
+  .view-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--s-3);
+  }
+  .view-header h2 {
+    font-size: 24px;
+  }
+  .soe-banner {
+    grid-template-columns: auto 1fr;
+  }
+  .soe-banner .actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .soe-banner .meta {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+    row-gap: var(--s-1);
+  }
+  .soe-banner .meta dt {
+    margin-top: var(--s-1);
+  }
+  .case-row {
+    grid-template-columns: 28px 1fr;
+    row-gap: var(--s-1);
+  }
+  .case-row .op,
+  .case-row .duration {
+    grid-column: 2;
+  }
+  .case-row.is-failed {
+    grid-template-columns: 28px 1fr;
+  }
+  .case-row.is-failed .meta-row {
+    flex-wrap: wrap;
+  }
+  .filters {
+    align-items: stretch;
+  }
+  .filter-group {
+    flex: 1 1 calc(50% - var(--s-3));
+    min-width: 140px;
+  }
+  .filter-group input,
+  .filter-group select {
+    width: 100%;
+  }
 }
 
 /* ---------- View header -------------------------------------------------- */

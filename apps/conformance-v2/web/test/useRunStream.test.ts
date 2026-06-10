@@ -173,6 +173,70 @@ describe('useRunStream', () => {
     expect(onTerminal).toHaveBeenCalledTimes(1);
   });
 
+  it('snapshots the failing case into state on run.aborted even when case.failed raced ahead', async () => {
+    // Regression: the engine emits case.failed and run.aborted in the
+    // same tick on stop-on-error. The reducer previously read
+    // state.cases[id] at render time, so the banner would render with
+    // an empty response status/body if the case reducer hadn't
+    // committed yet. The fix: snapshot at the run.aborted reducer
+    // boundary.
+    const { result } = renderHook(() => useRunStream('r-race', { sourceFactory }));
+
+    await act(async () => {
+      latestSource().emitOpen();
+      latestSource().emitEvent('run.started', { total: 1 });
+      // Emulate the race: case.failed and run.aborted in the same tick.
+      latestSource().emitEvent('case.failed', {
+        id: 'Y',
+        mode: 'live',
+        status: 'failed',
+        responseStatus: 502,
+        message: 'bad gateway',
+        durationMs: 9,
+        responseBody: { reason: 'upstream down' },
+      });
+      latestSource().emitEvent('run.aborted', {
+        abortedAt: 'Y',
+        error: 'stop-on-error',
+        failedCaseId: 'Y',
+        status: 'failed',
+      });
+    });
+
+    // Snapshot is populated from the cases[id] row that the engine
+    // emitted in the same tick.
+    const snap = result.current.state?.failedCaseSnapshot;
+    expect(snap).toBeDefined();
+    expect(snap?.id).toBe('Y');
+    expect(snap?.responseStatus).toBe(502);
+    expect(snap?.responseBody).toEqual({ reason: 'upstream down' });
+    expect(snap?.message).toBe('bad gateway');
+  });
+
+  it('snapshots a synthetic row when run.aborted arrives without a prior case.failed', async () => {
+    // The precheck path aborts the run before any case runs. The
+    // synthetic snapshot is built from the aborted event itself so
+    // the banner still has an id and a message.
+    const { result } = renderHook(() => useRunStream('r-pre', { sourceFactory }));
+
+    await act(async () => {
+      latestSource().emitOpen();
+      latestSource().emitEvent('run.started', { total: 1 });
+      latestSource().emitEvent('run.aborted', {
+        abortedAt: 'precheck',
+        error: 'target unreachable: issuer.example returned HTTP 503',
+        failedCaseId: 'precheck',
+        status: 'failed',
+      });
+    });
+
+    const snap = result.current.state?.failedCaseSnapshot;
+    expect(snap).toBeDefined();
+    expect(snap?.id).toBe('precheck');
+    expect(snap?.outcome).toBe('failed');
+    expect(snap?.message).toMatch(/target unreachable/);
+  });
+
   it('marks run.completed as the terminal state', async () => {
     const onTerminal = vi.fn();
     const { result } = renderHook(() => useRunStream('r-4', { onTerminal, sourceFactory }));
