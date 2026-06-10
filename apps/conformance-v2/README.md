@@ -1,17 +1,22 @@
 # conformance-v2
 
-The **v2** conformance test engine for the Thailand VC OID4VCI / OID4VP
-1.0 Final test suite. Sibling to `apps/web/` (the v0.1.0 webapp); lives
-on its own branch and does not modify any v0.1.0 code.
+The **v2** conformance test engine + HTTP server + web UI for the
+Thailand VC OID4VCI / OID4VP 1.0 Final test suite. Sibling to
+`apps/web/` (the v0.1.0 webapp); the v2 work does not modify any
+v0.1.0 code.
 
-This is the **engine** workstream of [MAS-242](/MAS/issues/MAS-242). The
-**server** (HTTP + SSE), **web UI** (Vite + React), **Docker image**, and
-**v2.0.0 release** are follow-up issues:
+This is the engine workstream of [MAS-242](/MAS/issues/MAS-242). The
+v2 tool was shipped in pieces:
 
-- [MAS-255](/MAS/issues/MAS-255) — v2 server (HTTP API + SSE wrapping this engine)
+- [MAS-254](/MAS/issues/MAS-254) — v2 conformance test engine (this package)
+- [MAS-255](/MAS/issues/MAS-255) — v2 HTTP server wrapping this engine
 - [MAS-256](/MAS/issues/MAS-256) — v2 web UI (Vite + React SPA)
 - [MAS-257](/MAS/issues/MAS-257) — v2 release (Docker + GHCR + CHANGELOG)
 - [MAS-258](/MAS/issues/MAS-258) — v2 QA gate
+
+The shipped v2 artefact is the Docker image
+`ghcr.io/noobookbig/vc-conformance-v2:2.0.0`. See "Run via Docker"
+below.
 
 ## What this fixes
 
@@ -122,9 +127,54 @@ npm run v2:run -- --config /tmp/v2-real.yaml \
   --catalog references/testcases --out /tmp/v2-out
 ```
 
-When `targetIssuer` is set, the runner makes a `GET /case/<id>` for
-every live test case and treats 2xx as pass. A 4xx / 5xx / timeout /
-refused counts as a real failure and trips the abort.
+### Run the web UI (the v2 server)
+
+```bash
+# Dev: starts the server on :8080 and the Vite dev server on :5173 with
+# proxying of /api -> :8080 baked in.
+npm run v2:web:dev        # in one terminal — Vite dev server
+npm run v2                # in another — the v2 server (port 8080)
+
+# Open http://127.0.0.1:5173 — the Vite dev server proxies /api to the
+# v2 server, so the Suite / Run / Report pages exercise the real HTTP
+# API end-to-end.
+```
+
+### Run via Docker (the v2.0.0 release artefact)
+
+The v2 tool ships as a single Docker image at
+`vc-conformance-v2:2.0.0` (or `ghcr.io/noobookbig/vc-conformance-v2:2.0.0`).
+The image defaults to the **web UI** (server mode, port 8080) and exposes
+the CLI as a subcommand.
+
+```bash
+# Pull from GHCR (v2.0.0 and later)
+docker pull ghcr.io/noobookbig/vc-conformance-v2:2.0.0
+
+# Run the web UI on http://localhost:8080
+docker run --rm -p 8080:8080 ghcr.io/noobookbig/vc-conformance-v2:2.0.0
+
+# Run the CLI: produces report.{json,junit.xml,html} on the host
+mkdir -p ./out
+cat > ./out/config.yaml <<'YAML'
+useMock: true
+YAML
+docker run --rm -v "$PWD/out:/out" \
+  ghcr.io/noobookbig/vc-conformance-v2:2.0.0 \
+  node --import tsx apps/conformance-v2/src/cli.ts run \
+    --config /out/config.yaml \
+    --catalog references/testcases \
+    --out /out
+ls -la out/report.*
+```
+
+Build the image locally from a checkout:
+
+```bash
+docker build -f ops/docker-v2/Dockerfile -t vc-conformance-v2:2.0.0 .
+bash ops/smoke/v2-cli.sh     # CLI smoke (independent of UI)
+bash ops/smoke/v2-server.sh  # server + UI smoke
+```
 
 ### Run against a target that is down
 
@@ -144,13 +194,17 @@ The precheck report is written to `/tmp/v2-out/report.json` with
 `abortedAt: "precheck"`, `error: "target unreachable"`, and an empty
 `results: []`.
 
+When `targetIssuer` is set, the runner makes a `GET /case/<id>` for
+every live test case and treats 2xx as pass. A 4xx / 5xx / timeout /
+refused counts as a real failure and trips the abort.
+
 ## Tests
 
 ```bash
 npm run v2:test
 ```
 
-7 spec files, 45 tests:
+8 spec files, 58 tests:
 
 - `abort.test.ts` — latch, idempotency, exit-code contract.
 - `loader.test.ts` — YAML parsing, validation, the >50% coverage guard.
@@ -211,3 +265,72 @@ The structural guard `loadCatalog()` enforces:
 - >50% `coverage` → reject
 - duplicate ids → reject
 - missing required fields → reject
+
+## Stop-on-error semantics
+
+Stop-on-error is **mandatory and on by default** in v2 (the v0.1.0 demo
+mode that collected failures forever is gone). The first live case
+that returns a non-2xx response, times out, or is refused latches the
+`AbortCoordinator` and the runner stops. The remaining cases are
+skipped, and the report records `abortedAt: <case-id>` so a reader
+can see exactly which case tripped the suite.
+
+The CLI exit codes reflect the abort state:
+
+| Code | Meaning |
+| ---: | --- |
+| 0 | Full pass. Every case in the catalog passed; no skips, no aborts. |
+| 2 | Skipped only. Every case either passed or was skipped; no failures, no aborts. |
+| 3 | Halted. A real failure triggered stop-on-error; `abortedAt: <case-id>`. |
+| 4 | Precheck failed. Target was unreachable; the catalog loop never ran. |
+
+These four codes are the same contract the Docker CLI mode exits with
+and the same contract the server wraps as the `status` field on
+`GET /api/runs/:id`. Do not change them without a CTO sign-off.
+
+## Relationship to v0.1.0
+
+The v0.1.0 webapp (`apps/web/`) is still in active use and continues
+to be the recommended tool for **browser-driven exploration of a
+single target with skip-tolerant reporting**. The v2 tool is the
+recommended tool for **CI-driven conformance scoring, real per-case
+assertions, and stop-on-error runs**. They are two different tools,
+both shipped, both maintained:
+
+- v0.1.0 webapp — "shape-only with coverage" model; the
+  [MAS-220](/MAS/issues/MAS-220) fix capped the pass-rate inflation
+  but the model is still a higher-level probe.
+- v2 (this package) — "real per-case pass/fail, halts on real error"
+  model; structural guards make the v0.1.0 inflation pattern
+  impossible to reintroduce.
+
+Use v2 for any new conformance scoring. Use v0.1.0 for ad-hoc
+exploration where you want to see every cross-mode outcome in a
+single page. Do not port v0.1.0 tests into the v2 catalog; the
+schema and assertion model are deliberately different.
+
+## Release process (v2.0.0 and later)
+
+The release is cut from `main` after the QA gate
+([MAS-258](/MAS/issues/MAS-258)) signs off. The release artefacts:
+
+1. Source tarball: `vc-conformance-v2-2.0.0.tar.gz`.
+2. Docker image: `ghcr.io/noobookbig/vc-conformance-v2:2.0.0` (the
+   `vc-conformance-v2:2.0.0` local tag is the build artefact; the
+   GHCR push is a separate step documented in
+   `ops/docker-v2/RELEASE.md`).
+3. CHANGELOG entry under `## v2.0.0` at the repo root.
+
+The CI gate for the release PR is:
+
+```bash
+npm run build && npm test
+npm --prefix apps/conformance-v2/web run build
+docker build -f ops/docker-v2/Dockerfile -t vc-conformance-v2:2.0.0 .
+bash ops/smoke/v2-cli.sh
+bash ops/smoke/v2-server.sh
+```
+
+The smoke scripts are the executable form of the release acceptance
+criteria. A green smoke is the gate the QA reviewer
+([MAS-258](/MAS/issues/MAS-258)) verifies.

@@ -92,6 +92,37 @@ describe('v2 server health + SPA placeholder', () => {
       expect(res.statusCode).toBe(503);
     }
   });
+
+  it('GET / serves the SPA when webDist is passed as a relative path (MAS-257 regression)', async () => {
+    // MAS-257 surfaces this: @fastify/static requires an absolute root.
+    // Before the fix, passing a relative `webDist` either crashed at
+    // boot ("root option must be an absolute path") or silently fell
+    // through to the 503 branch. After the fix, `resolveWebDist()`
+    // normalises to an absolute path internally and the SPA mounts.
+    //
+    // We create a throwaway dist under the test fixtures dir (which
+    // sits inside the repo root, so process.cwd() resolves it). The
+    // path we hand the server is relative.
+    const fixturesDir = join(process.cwd(), 'apps', 'conformance-v2', 'test', 'fixtures');
+    const dist = join(fixturesDir, 'relative-spa-dist');
+    // mkdirSync({ recursive: true }) so the test passes on a clean checkout.
+    // Using a per-test temp dir inside `test/` keeps the relative path
+    // valid (the test runner's CWD is the repo root).
+    const { mkdirSync } = await import('node:fs');
+    mkdirSync(fixturesDir, { recursive: true });
+    mkdirSync(dist, { recursive: true });
+    writeFileSync(join(dist, 'index.html'), '<!doctype html><html><body><div id="root"></div></body></html>');
+    const relPath = 'apps/conformance-v2/test/fixtures/relative-spa-dist';
+    try {
+      const { app } = await buildApp({ ...opts, webDist: relPath });
+      const res = await app.inject({ method: 'GET', url: '/' });
+      expect(res.statusCode).toBe(200);
+      expect(res.headers['content-type']).toMatch(/text\/html/);
+      expect(res.body).toMatch(/<div id="root">/);
+    } finally {
+      rmSync(dist, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('v2 server: POST /api/runs', () => {

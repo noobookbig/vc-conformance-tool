@@ -14,6 +14,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "smoke": "bash ops/smoke/run.sh",
+    "smoke:v2:cli": "bash ops/smoke/v2-cli.sh",
+    "smoke:v2:server": "bash ops/smoke/v2-server.sh",
     "lint": "tsc -p apps/web/tsconfig.json --noEmit",
     "v2": "node --import tsx apps/conformance-v2/src/cli.ts",
     "v2:run": "node --import tsx apps/conformance-v2/src/cli.ts run",
