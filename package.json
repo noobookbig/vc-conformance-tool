@@ -18,8 +18,14 @@
     "v2": "node --import tsx apps/conformance-v2/src/cli.ts",
     "v2:run": "node --import tsx apps/conformance-v2/src/cli.ts run",
     "v2:parse": "node --import tsx apps/conformance-v2/src/cli.ts parse",
-    "v2:test": "vitest run apps/conformance-v2/",
-    "v2:lint": "tsc -p apps/conformance-v2/tsconfig.json --noEmit"
+    "v2:test": "vitest run apps/conformance-v2/test",
+    "v2:lint": "tsc -p apps/conformance-v2/tsconfig.json --noEmit",
+    "v2:web:dev": "npm --prefix apps/conformance-v2/web run dev",
+    "v2:web:build": "npm --prefix apps/conformance-v2/web run build",
+    "v2:web:test": "npm --prefix apps/conformance-v2/web run test",
+    "v2:web:lint": "npm --prefix apps/conformance-v2/web run lint",
+    "v2:web:e2e": "playwright test --config apps/conformance-v2/web/playwright.config.ts",
+    "v2:smoke": "node --import tsx scripts/v2-smoke.ts"
   },
   "dependencies": {
     "fastify": "^5.2.1",

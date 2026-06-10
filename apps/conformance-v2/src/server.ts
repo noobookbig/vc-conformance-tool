@@ -11,7 +11,8 @@
  *                                     run.completed
  *   GET  /api/runs/:id/report?format=json|junit|html → same files the CLI writes
  *   GET  /api/health               → liveness probe
- *   GET  /                         → 503 with "UI not yet built" message
+ *   GET  /                         → the built SPA (when webDist exists)
+ *                                     or 503 with a "UI not yet built" message
  *                                     (placeholder until MAS-256 ships)
  *
  * The server is intentionally IO-free at construction time: `buildApp()`
@@ -28,6 +29,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { existsSync, statSync } from 'node:fs';
 import Fastify, { type FastifyInstance } from 'fastify';
+import fastifyStatic from '@fastify/static';
 import { z } from 'zod';
 import { runConformance, type Report, type RunnerEvent, type CaseRunResult, type RunTarget } from './runner.js';
 import { precheck } from './precheck.js';
@@ -49,6 +51,18 @@ export interface ServerOptions {
   host?: string;
   /** Optional port (default: 8080). */
   port?: number;
+  /**
+   * Path to the built SPA's `dist/` directory. When the directory
+   * exists, the v2 server mounts it as static assets and serves
+   * `index.html` for `GET /`. When absent, the server keeps the
+   * historical 503 placeholder so a curious operator gets a clear
+   * message instead of a confusing 404.
+   *
+   * Resolution: if omitted, the server looks for
+   * `../web/dist/` relative to its own source file. That covers the
+   * standard "v2 engine + v2 web SPA in the same monorepo" layout.
+   */
+  webDist?: string;
 }
 
 /** Run status surfaced over the API. */
@@ -137,6 +151,39 @@ export class RunStore {
 
 function newRunId(): string {
   return `r-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/** Resolve the SPA dist directory. Returns null when nothing usable is
+ *  present so the caller can fall back to the 503 placeholder.
+ *
+ *  Order:
+ *    1. explicit `opts.webDist` (used by tests + custom deployments).
+ *       An explicit non-empty value means "the caller has decided", so
+ *       we do not fall back to other candidates — this lets a test
+ *       force the 503 branch by passing a non-existent path.
+ *    2. `../web/dist/` relative to the compiled server file (the
+ *       standard monorepo layout for `apps/conformance-v2/`)
+ *    3. `WEB_DIST` env override
+ *    4. otherwise null
+ */
+function resolveWebDist(explicit: string | undefined): string | null {
+  if (explicit) {
+    if (existsSync(explicit) && statSync(explicit).isDirectory()) {
+      if (existsSync(resolve(explicit, 'index.html'))) return explicit;
+    }
+    return null;
+  }
+  const candidates: Array<string | undefined> = [
+    resolve(__dirname, '..', 'web', 'dist'),
+    process.env.WEB_DIST,
+  ];
+  for (const c of candidates) {
+    if (!c) continue;
+    if (existsSync(c) && statSync(c).isDirectory()) {
+      if (existsSync(resolve(c, 'index.html'))) return c;
+    }
+  }
+  return null;
 }
 
 /** Reshape a runner event to the stable SSE payload the UI depends on.
@@ -265,22 +312,51 @@ export async function buildApp(opts: ServerOptions): Promise<{ app: FastifyInsta
     version: '2.0.0',
   }));
 
-  // The web UI (MAS-256) will own GET /. Until it ships, surface a 503
-  // with a clear human message so a confused operator gets a hint, not a
-  // confusing 404.
-  app.get('/', async (_req, reply) => {
-    return reply.code(503).send({
-      error: 'ui_not_built',
-      message: 'UI not yet built — see MAS-256. Use the CLI or the API for now.',
-      api: {
-        health: 'GET /api/health',
-        createRun: 'POST /api/runs',
-        snapshot: 'GET /api/runs/:id',
-        events: 'GET /api/runs/:id/events (SSE)',
-        report: 'GET /api/runs/:id/report?format=json|junit|html',
-      },
+  // Resolve the SPA dist directory. When present we register the static
+  // plugin so the built index.html + assets are served from `/` and the
+  // v2 server is the single entrypoint for both API and UI. When absent
+  // we keep the 503 placeholder so a confused operator gets a clear
+  // message instead of a confusing 404.
+  const webDist = resolveWebDist(opts.webDist);
+  const webBuilt = webDist !== null;
+
+  if (webBuilt && webDist) {
+    await app.register(fastifyStatic, {
+      root: webDist,
+      prefix: '/',
+      index: ['index.html'],
+      // SPA fallback: any GET that doesn't match an asset or an API
+      // route should serve index.html so React Router can take over.
+      // We achieve this with a setNotFoundHandler below.
     });
-  });
+    // SPA fallback for client-side routes (e.g. /runs/abc/report).
+    app.setNotFoundHandler((req, reply) => {
+      const accept = req.headers.accept ?? '';
+      // Only fall back to index.html for navigations (HTML), not for
+      // arbitrary asset misses (those 404 cleanly).
+      if (req.method === 'GET' && accept.includes('text/html') && !req.url.startsWith('/api/')) {
+        return reply.sendFile('index.html');
+      }
+      return reply.code(404).send({ error: 'not_found' });
+    });
+  } else {
+    // The web UI (MAS-256) will own GET /. Until it ships, surface a
+    // 503 with a clear human message so a confused operator gets a
+    // hint, not a confusing 404.
+    app.get('/', async (_req, reply) => {
+      return reply.code(503).send({
+        error: 'ui_not_built',
+        message: 'UI not yet built — see MAS-256. Use the CLI or the API for now.',
+        api: {
+          health: 'GET /api/health',
+          createRun: 'POST /api/runs',
+          snapshot: 'GET /api/runs/:id',
+          events: 'GET /api/runs/:id/events (SSE)',
+          report: 'GET /api/runs/:id/report?format=json|junit|html',
+        },
+      });
+    });
+  }
 
   // ----- Run creation + listing --------------------------------------
   const CreateRunBody = z.object({
@@ -499,8 +575,9 @@ async function main(): Promise<void> {
   const port = Number(getOpt('--port') ?? process.env.PORT ?? '8080');
   const host = getOpt('--host') ?? process.env.HOST ?? '0.0.0.0';
   const catalogDir = getOpt('--catalog') ?? process.env.CATALOG_DIR ?? 'references/testcases';
+  const webDist = getOpt('--web-dist') ?? process.env.WEB_DIST;
 
-  const { app } = await buildApp({ catalogDir, logger: true, host, port });
+  const { app } = await buildApp({ catalogDir, logger: true, host, port, webDist });
   await app.listen({ port, host });
   app.log.info(`conformance-v2 server listening on http://${host}:${port}`);
   app.log.info(`catalog: ${resolve(catalogDir)}`);

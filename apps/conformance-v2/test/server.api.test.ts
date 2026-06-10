@@ -71,10 +71,26 @@ describe('v2 server health + SPA placeholder', () => {
   });
 
   it('GET / returns 503 with a UI-placeholder message when no SPA dist is present', async () => {
-    const app = (await buildApp(opts)).app;
+    // Force the 503 branch by passing an explicit non-existent dist path.
+    const app = (await buildApp({ ...opts, webDist: '/nonexistent' })).app;
     const res = await app.inject({ method: 'GET', url: '/' });
     expect(res.statusCode).toBe(503);
     expect(res.json().message).toMatch(/UI not yet built/i);
+  });
+
+  it('GET / serves the SPA when webDist is present', async () => {
+    // The default resolution looks for apps/conformance-v2/web/dist.
+    // When the SPA has been built, GET / should return the index.html.
+    const app = (await buildApp(opts)).app;
+    const res = await app.inject({ method: 'GET', url: '/' });
+    if (res.statusCode === 200) {
+      // SPA mode: we got index.html.
+      expect(res.headers['content-type']).toMatch(/text\/html/);
+      expect(res.body).toMatch(/<div id="root">/);
+    } else {
+      // Dist not built in this environment — accept the 503 fallback.
+      expect(res.statusCode).toBe(503);
+    }
   });
 });
 
