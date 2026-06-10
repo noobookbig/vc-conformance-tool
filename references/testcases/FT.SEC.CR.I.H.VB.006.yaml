@@ -1,0 +1,9 @@
+id: FT.SEC.CR.I.H.VB.006
+name: ES256K / EdDSA curve confusion — wrong curve for key type
+operation: Cryptographic
+eut: multi
+suite: holder
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: RFC 8812 (ES256K) + RFC 8037 (EdDSA)

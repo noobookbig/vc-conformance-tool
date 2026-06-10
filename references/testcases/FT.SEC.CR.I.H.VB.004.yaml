@@ -1,0 +1,9 @@
+id: FT.SEC.CR.I.H.VB.004
+name: JWK thumbprint mismatch — `jkt` does not match advertised key
+operation: Cryptographic
+eut: multi
+suite: holder
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: RFC 8785 §3.4 (JWK thumbprint)

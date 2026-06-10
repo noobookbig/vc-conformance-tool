@@ -1,0 +1,9 @@
+id: FT.PR.AU.V.H.IB.001
+name: "Authorization_Response(response_type: vp_token) with Omitting Required Parameter(vp_token)"
+operation: Present VP — Authorization
+eut: verifier
+suite: holder
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VP 1.0 Final §6.1 + §5.1 (DCQL §6.4, response_mode §5.1)

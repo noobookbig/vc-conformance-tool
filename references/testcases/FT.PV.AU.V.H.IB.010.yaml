@@ -1,0 +1,9 @@
+id: FT.PV.AU.V.H.IB.010
+name: Verifier Authorization Request — unreachable `redirect_uri`
+operation: Present VP — Authorization Request
+eut: verifier
+suite: holder
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VP 1.0 Final §5.1 (redirect_uri) + RFC 6749 §3.1.2

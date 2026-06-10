@@ -1,0 +1,10 @@
+id: FT.SEC.DR.R.E.VB.001
+name: DID resolution — `did:web` over plaintext HTTP
+operation: DID Security
+eut: multi
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: did:web Method Spec §3.1 (HTTPS required), DIF DID Resolution 1.0 §4.1
+justification: "multi-entity (3 roles: issuer+holder+verifier); spec=did:web Method Spec §3.1 (HTTPS required), DIF DID Resolution 1.0 §4.1"

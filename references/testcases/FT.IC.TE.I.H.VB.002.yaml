@@ -1,0 +1,9 @@
+id: FT.IC.TE.I.H.VB.002
+name: Token Exchange_Request with Conditional and Optional Parameters
+operation: Issue VC — Token Exchange
+eut: issuer
+suite: holder
+behavior: valid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §6.1 + RFC 6749 §4.1.3

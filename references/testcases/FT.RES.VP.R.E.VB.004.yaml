@@ -1,0 +1,10 @@
+id: FT.RES.VP.R.E.VB.004
+name: Resolve DID with trust list lookup — ETDA trust anchor
+operation: Trust List Resolution
+eut: resolver
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VP 1.0 Final §5.9, ETDA Trust List Spec v1.0, DIF DID Resolution 1.0 §4.1
+justification: resolver is not yet a v2 engine target; spec=OID4VP 1.0 Final §5.9, ETDA Trust List Spec v1.0, DIF DID Resolution 1.0 §4.1

@@ -1,0 +1,10 @@
+id: FT.SEC.AB.I.H.VB.002
+name: Audience binding — `client_id` mismatch in KB-JWT
+operation: Audience Binding
+eut: multi
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VP 1.0 Final §6.3 (KB-JWT verification), RFC 7519 §4.1.4
+justification: "multi-entity (3 roles: issuer+holder+verifier); spec=OID4VP 1.0 Final §6.3 (KB-JWT verification), RFC 7519 §4.1.4"

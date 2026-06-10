@@ -1,0 +1,9 @@
+id: FT.IC.AU.I.H.IB.005
+name: Authorization_Request with invalid value of Conditional Parameter(credential_configuration_id)
+operation: Issue VC — Authorization
+eut: issuer
+suite: holder
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §5.1.1 + §5.1.2 (PKCE §3.5 + RFC 7636, authorization_details RFC 9396)

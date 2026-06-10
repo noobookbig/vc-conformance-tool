@@ -1,0 +1,10 @@
+id: FT.RES.AU.R.E.VB.002
+name: Resolve DID — multiple key types in DID Document
+operation: Multi-method
+eut: resolver
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: W3C DID Core §5.3, DIF DID Resolution 1.0 §4.1
+justification: resolver is not yet a v2 engine target; spec=W3C DID Core §5.3, DIF DID Resolution 1.0 §4.1

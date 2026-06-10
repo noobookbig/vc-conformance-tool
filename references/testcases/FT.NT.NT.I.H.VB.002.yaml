@@ -1,0 +1,9 @@
+id: FT.NT.NT.I.H.VB.002
+name: Notification_Request with Required and Optional Parameters(notification_id, event, event_description)
+operation: Notification — Notification
+eut: holder
+suite: issuer
+behavior: valid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §9.1 + §9.2

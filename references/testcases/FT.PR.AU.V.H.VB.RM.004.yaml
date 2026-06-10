@@ -1,0 +1,10 @@
+id: FT.PR.AU.V.H.VB.RM.004
+name: Authorization Request with response_mode = dc_api.jwt
+operation: unknown
+eut: multi
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final / OID4VP 1.0 Final (operation TBD)
+justification: no runnable counterpart (EUT=unknown, suite=holder); spec=OID4VCI 1.0 Final / OID4VP 1.0 Final (operation TBD)

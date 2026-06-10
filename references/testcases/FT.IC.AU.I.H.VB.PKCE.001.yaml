@@ -1,0 +1,9 @@
+id: FT.IC.AU.I.H.VB.PKCE.001
+name: Authorization Request with valid PKCE code_challenge using S256 method
+operation: Issue VC — Authorization (PKCE)
+eut: issuer
+suite: holder
+behavior: valid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final / OID4VP 1.0 Final (operation TBD)

@@ -1,0 +1,9 @@
+id: FT.SEC.CR.V.H.VB.002
+name: Presentation — JWK thumbprint mismatch at Verifier
+operation: Cryptographic
+eut: verifier
+suite: holder
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: RFC 8785 §3.4 (JWK thumbprint)` + `OID4VP 1.0 Final §6.3

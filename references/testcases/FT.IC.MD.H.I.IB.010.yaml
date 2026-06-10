@@ -1,0 +1,9 @@
+id: FT.IC.MD.H.I.IB.010
+name: Issuer metadata fetch — unreachable `credential_issuer` URL
+operation: Issue VC — Metadata Fetch
+eut: holder
+suite: issuer
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §4.1.1 (credential_issuer) + §11.2 (Credential Issuer Metadata) + RFC 3986 §3 (URI syntax)

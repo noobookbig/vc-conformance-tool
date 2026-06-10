@@ -1,0 +1,9 @@
+id: FT.PR.AU.V.H.VB.VA.001
+name: Authorization Request with valid Verifier Attestation JWT
+operation: unknown
+eut: verifier
+suite: holder
+behavior: valid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final / OID4VP 1.0 Final (operation TBD)

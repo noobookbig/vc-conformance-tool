@@ -1,0 +1,10 @@
+id: IT.CK.CK.V.H.VB.002
+name: Credential Revocation Detection by Verifier
+operation: Credential Revoke — Revocation Detection
+eut: multi
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final / OID4VP 1.0 Final (operation TBD)
+justification: EUT pair (verifier+holder) not in v2 four-mode set; spec=OID4VCI 1.0 Final / OID4VP 1.0 Final (operation TBD)

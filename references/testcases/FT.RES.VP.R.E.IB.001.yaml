@@ -1,0 +1,10 @@
+id: FT.RES.VP.R.E.IB.001
+name: Resolve DID — DNS resolution failure
+operation: VP Time Resolution
+eut: resolver
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: DIF DID Resolution 1.0 §4.1, did:web Method Spec
+justification: resolver is not yet a v2 engine target; spec=DIF DID Resolution 1.0 §4.1, did:web Method Spec

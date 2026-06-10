@@ -1,0 +1,10 @@
+id: FT.SEC.AB.I.H.VB.003
+name: Audience binding — cross-Issuer token reuse
+operation: Audience Binding
+eut: multi
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: RFC 6749 §5.1 (access token), RFC 7519 §4.1.3
+justification: "multi-entity (3 roles: issuer+holder+verifier); spec=RFC 6749 §5.1 (access token), RFC 7519 §4.1.3"

@@ -1,0 +1,10 @@
+id: IT.INT.CR.I.H.V.IB.002
+name: E2E — Issuer key rotation mid-flow
+operation: Integration
+eut: multi
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: W3C DID Core §5.3 (verificationMethod), DIF DID Resolution 1.0 §4.1
+justification: "multi-entity (3 roles: issuer+holder+verifier); spec=W3C DID Core §5.3 (verificationMethod), DIF DID Resolution 1.0 §4.1"

@@ -1,0 +1,10 @@
+id: FT.RES.AU.R.E.IB.002
+name: Resolve DID — DID Document signature mismatch
+operation: VP Time Resolution
+eut: resolver
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: W3C DID Core §7.1, DIF DID Resolution 1.0 §4.1
+justification: resolver is not yet a v2 engine target; spec=W3C DID Core §7.1, DIF DID Resolution 1.0 §4.1

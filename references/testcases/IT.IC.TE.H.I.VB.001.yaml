@@ -1,0 +1,10 @@
+id: IT.IC.TE.H.I.VB.001
+name: Issue VC – Token Exchange
+operation: Issue VC — Token Exchange
+eut: multi
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §6.1 + RFC 6749 §4.1.3
+justification: EUT pair (holder+issuer) not in v2 four-mode set; spec=OID4VCI 1.0 Final §6.1 + RFC 6749 §4.1.3

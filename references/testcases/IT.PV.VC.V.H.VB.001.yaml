@@ -1,0 +1,10 @@
+id: IT.PV.VC.V.H.VB.001
+name: Verify VC - VC Verification
+operation: Present VP — VC Verification
+eut: multi
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VP 1.0 Final §6.3 (KB-JWT verification) + §5.9 (Verifier Attestation JWT)
+justification: EUT pair (verifier+holder) not in v2 four-mode set; spec=OID4VP 1.0 Final §6.3 (KB-JWT verification) + §5.9 (Verifier Attestation JWT)

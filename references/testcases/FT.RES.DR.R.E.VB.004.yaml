@@ -1,0 +1,10 @@
+id: FT.RES.DR.R.E.VB.004
+name: Resolve did:ethr — Ethereum mainnet
+operation: DID Resolution
+eut: resolver
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: DIF DID Resolution 1.0 §4.1, EIP-1056
+justification: resolver is not yet a v2 engine target; spec=DIF DID Resolution 1.0 §4.1, EIP-1056

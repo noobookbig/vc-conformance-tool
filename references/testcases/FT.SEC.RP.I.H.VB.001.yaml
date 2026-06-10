@@ -1,0 +1,10 @@
+id: FT.SEC.RP.I.H.VB.001
+name: Replay attack — Authorization Code reuse
+operation: Replay
+eut: multi
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §6.1, RFC 6749 §4.1.2 (single-use auth code)
+justification: "multi-entity (3 roles: issuer+holder+verifier); spec=OID4VCI 1.0 Final §6.1, RFC 6749 §4.1.2 (single-use auth code)"

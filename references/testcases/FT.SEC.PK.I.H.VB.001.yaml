@@ -1,0 +1,10 @@
+id: FT.SEC.PK.I.H.VB.001
+name: PKCE downgrade — `code_challenge_method=plain`
+operation: PKCE
+eut: multi
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §3.5, RFC 7636 §4.2 (S256 required)
+justification: "multi-entity (3 roles: issuer+holder+verifier); spec=OID4VCI 1.0 Final §3.5, RFC 7636 §4.2 (S256 required)"

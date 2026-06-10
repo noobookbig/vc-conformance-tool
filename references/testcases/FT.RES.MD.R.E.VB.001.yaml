@@ -1,0 +1,10 @@
+id: FT.RES.MD.R.E.VB.001
+name: Resolve DID — multi-method universal resolver
+operation: Multi-method
+eut: resolver
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: DIF Universal Resolver Driver Spec §3
+justification: resolver is not yet a v2 engine target; spec=DIF Universal Resolver Driver Spec §3

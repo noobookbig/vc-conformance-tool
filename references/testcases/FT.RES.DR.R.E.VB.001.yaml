@@ -1,0 +1,10 @@
+id: FT.RES.DR.R.E.VB.001
+name: Resolve did:key — single fragment
+operation: DID Resolution
+eut: resolver
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: DIF DID Resolution 1.0 §4.1 (Resolution), W3C DID Core §7
+justification: resolver is not yet a v2 engine target; spec=DIF DID Resolution 1.0 §4.1 (Resolution), W3C DID Core §7

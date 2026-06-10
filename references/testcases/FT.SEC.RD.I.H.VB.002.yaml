@@ -1,0 +1,10 @@
+id: FT.SEC.RD.I.H.VB.002
+name: Open redirect — `response_mode=direct_post` to wrong URI
+operation: Redirect
+eut: multi
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VP 1.0 Final §5.1 (response_mode), §6.2 (response_uri)
+justification: "multi-entity (3 roles: issuer+holder+verifier); spec=OID4VP 1.0 Final §5.1 (response_mode), §6.2 (response_uri)"

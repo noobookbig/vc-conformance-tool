@@ -1,0 +1,9 @@
+id: FT.PR.TE.H.V.VB.001
+name: Token Exchange_Request with Required parameters in [RFC 6749]
+operation: Present VP — Token Exchange
+eut: holder
+suite: verifier
+behavior: valid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VP 1.0 Final §6.2 + §6.3

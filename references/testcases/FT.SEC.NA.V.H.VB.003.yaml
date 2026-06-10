@@ -1,0 +1,10 @@
+id: FT.SEC.NA.V.H.VB.003
+name: Negative authentication — revoked signing key (no status list check)
+operation: Authentication
+eut: multi
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §9.3 (Status List), OID4VP 1.0 Final §6.3
+justification: "multi-entity (3 roles: issuer+holder+verifier); spec=OID4VCI 1.0 Final §9.3 (Status List), OID4VP 1.0 Final §6.3"

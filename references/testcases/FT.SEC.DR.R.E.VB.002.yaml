@@ -1,0 +1,10 @@
+id: FT.SEC.DR.R.E.VB.002
+name: DID resolution — `did:web` path traversal
+operation: DID Security
+eut: multi
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: did:web Method Spec §3.2, OWASP Path Traversal
+justification: "multi-entity (3 roles: issuer+holder+verifier); spec=did:web Method Spec §3.2, OWASP Path Traversal"

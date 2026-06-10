@@ -1,0 +1,10 @@
+id: FT.RES.DR.R.E.IB.003
+name: Resolve DID with unsupported method
+operation: DID Resolution
+eut: resolver
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: DIF DID Resolution 1.0 §4.1, W3C DID Core §7.2.1
+justification: resolver is not yet a v2 engine target; spec=DIF DID Resolution 1.0 §4.1, W3C DID Core §7.2.1

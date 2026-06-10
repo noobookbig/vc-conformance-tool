@@ -1,0 +1,9 @@
+id: FT.PR.AU.H.V.IB.007
+name: Authorization_Request with Invalid value Required Parameter in pre-existing Authorization Request(nonce)
+operation: Present VP — Authorization
+eut: holder
+suite: verifier
+behavior: invalid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VP 1.0 Final §6.1 + §5.1 (DCQL §6.4, response_mode §5.1)

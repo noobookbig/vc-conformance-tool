@@ -1,0 +1,10 @@
+id: FT.RES.AU.R.E.VB.001
+name: Resolve DID — authentication in presentation
+operation: VP Time Resolution
+eut: resolver
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VP 1.0 Final §6.3, DIF DID Resolution 1.0 §4.1
+justification: resolver is not yet a v2 engine target; spec=OID4VP 1.0 Final §6.3, DIF DID Resolution 1.0 §4.1

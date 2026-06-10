@@ -1,0 +1,10 @@
+id: IT.IC.AU.I.H.VB.001
+name: Issue VC – Authorization - Request
+operation: Issue VC — Authorization
+eut: multi
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VCI 1.0 Final §5.1.1 + §5.1.2 (PKCE §3.5 + RFC 7636, authorization_details RFC 9396)
+justification: EUT pair (issuer+holder) not in v2 four-mode set; spec=OID4VCI 1.0 Final §5.1.1 + §5.1.2 (PKCE §3.5 + RFC 7636, authorization_details RFC 9396)

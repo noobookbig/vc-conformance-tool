@@ -1,0 +1,10 @@
+id: FT.RES.DR.R.E.VB.011
+name: Universal Resolver endpoint shape — /1.0/identifiers/{did}
+operation: DID Resolution
+eut: resolver
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: DIF DID Resolution 1.0 §6 (Universal Resolver API)
+justification: resolver is not yet a v2 engine target; spec=DIF DID Resolution 1.0 §6 (Universal Resolver API)

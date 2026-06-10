@@ -1,0 +1,10 @@
+id: FT.SEC.RD.I.H.VB.001
+name: Open redirect — `redirect_uri` mismatch
+operation: Redirect
+eut: multi
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: RFC 6749 §3.1.2 (redirect URI validation), OID4VCI 1.0 Final §5.1.1
+justification: "multi-entity (3 roles: issuer+holder+verifier); spec=RFC 6749 §3.1.2 (redirect URI validation), OID4VCI 1.0 Final §5.1.1"

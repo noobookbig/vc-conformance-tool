@@ -1,0 +1,10 @@
+id: FT.SEC.NA.V.H.VB.001
+name: Negative authentication — empty `client_id`
+operation: Authentication
+eut: multi
+suite: holder
+behavior: invalid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: RFC 6749 §2.3.1 (client authentication), OID4VCI 1.0 Final §6.1
+justification: "multi-entity (3 roles: issuer+holder+verifier); spec=RFC 6749 §2.3.1 (client authentication), OID4VCI 1.0 Final §6.1"

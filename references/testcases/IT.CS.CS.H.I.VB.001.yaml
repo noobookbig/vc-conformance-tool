@@ -1,0 +1,10 @@
+id: IT.CS.CS.H.I.VB.001
+name: VC Store
+operation: VC Store — VC Store
+eut: multi
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: W3C VC Data Model 2.0 + OID4VCI 1.0 Final §7.3 (credential response storage)
+justification: EUT pair (holder+issuer) not in v2 four-mode set; spec=W3C VC Data Model 2.0 + OID4VCI 1.0 Final §7.3 (credential response storage)

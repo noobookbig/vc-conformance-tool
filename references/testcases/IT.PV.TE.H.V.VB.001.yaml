@@ -1,0 +1,10 @@
+id: IT.PV.TE.H.V.VB.001
+name: Present VP - Token Exchange
+operation: Present VP — Token Exchange
+eut: multi
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VP 1.0 Final §6.2 + §6.3
+justification: EUT pair (holder+verifier) not in v2 four-mode set; spec=OID4VP 1.0 Final §6.2 + §6.3

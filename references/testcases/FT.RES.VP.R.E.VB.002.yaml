@@ -1,0 +1,10 @@
+id: FT.RES.VP.R.E.VB.002
+name: Resolve DID during VP verification — Verifier Attestation JWT
+operation: VP Time Resolution
+eut: resolver
+suite: holder
+behavior: valid
+kind: coverage
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VP 1.0 Final §5.9 (Verifier Attestation), DIF DID Resolution 1.0 §4.1
+justification: resolver is not yet a v2 engine target; spec=OID4VP 1.0 Final §5.9 (Verifier Attestation), DIF DID Resolution 1.0 §4.1
