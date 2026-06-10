@@ -61,6 +61,22 @@ describe('SuiteRoute', () => {
     expect(runBtn.disabled).toBe(false);
   });
 
+  it('shows a green "Ready" precheck pill at idle when useMock is on (the default)', () => {
+    renderAt();
+    const pill = screen.getByTestId('precheck-pill');
+    expect(pill.textContent).toBe('Ready');
+    expect(pill.className).toContain('ok');
+  });
+
+  it('shows an amber "Precheck not run" pill at idle when useMock is off', async () => {
+    const user = userEvent.setup();
+    renderAt();
+    await user.click(screen.getByTestId('toggle-usemock')); // turn mock off
+    const pill = screen.getByTestId('precheck-pill');
+    expect(pill.textContent).toBe('Precheck not run');
+    expect(pill.className).not.toContain('ok');
+  });
+
   it('runs the precheck and shows a precheck-failed pill on a bad URL', async () => {
     const user = userEvent.setup();
     // Override the stub: probe returns 500.

@@ -130,11 +130,12 @@ export function SuiteRoute(): JSX.Element {
           </p>
         </div>
         <span
-          className={`precheck ${precheck.kind === 'ok' ? 'ok' : precheck.kind === 'bad' ? 'bad' : precheck.kind === 'checking' ? 'checking' : ''}`}
+          className={`precheck ${precheck.kind === 'ok' || (precheck.kind === 'idle' && useMock) ? 'ok' : precheck.kind === 'bad' ? 'bad' : precheck.kind === 'checking' ? 'checking' : ''}`}
           data-testid="precheck-pill"
           role="status"
         >
-          {precheck.kind === 'idle' && 'Precheck not run'}
+          {precheck.kind === 'idle' && useMock && 'Ready'}
+          {precheck.kind === 'idle' && !useMock && 'Precheck not run'}
           {precheck.kind === 'checking' && (
             <>
               <span className="loading" aria-hidden="true" /> Checking…
