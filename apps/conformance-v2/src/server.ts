@@ -168,8 +168,13 @@ function newRunId(): string {
  */
 function resolveWebDist(explicit: string | undefined): string | null {
   if (explicit) {
-    if (existsSync(explicit) && statSync(explicit).isDirectory()) {
-      if (existsSync(resolve(explicit, 'index.html'))) return explicit;
+    // Resolve to an absolute path so downstream consumers (e.g.
+    // @fastify/static) can rely on a stable invariant — they refuse
+    // relative roots. The caller may pass a relative path on the CLI;
+    // the resolved absolute is what we return.
+    const abs = resolve(explicit);
+    if (existsSync(abs) && statSync(abs).isDirectory()) {
+      if (existsSync(resolve(abs, 'index.html'))) return abs;
     }
     return null;
   }
@@ -179,8 +184,9 @@ function resolveWebDist(explicit: string | undefined): string | null {
   ];
   for (const c of candidates) {
     if (!c) continue;
-    if (existsSync(c) && statSync(c).isDirectory()) {
-      if (existsSync(resolve(c, 'index.html'))) return c;
+    const abs = resolve(c);
+    if (existsSync(abs) && statSync(abs).isDirectory()) {
+      if (existsSync(resolve(abs, 'index.html'))) return abs;
     }
   }
   return null;
