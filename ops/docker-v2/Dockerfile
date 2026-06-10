@@ -38,18 +38,6 @@ COPY apps/conformance-v2 ./apps/conformance-v2
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --no-audit --no-fund --prefix apps/conformance-v2/web
 
-# MAS-256 follow-up: the SPA's package.json does not declare
-# `typescript` in devDependencies even though the build script uses
-# `tsc -b --noEmit`. In a local monorepo it picks up the root's
-# hoisted tsc; in a clean install (or in Docker) it does not. We
-# install it ad-hoc here so the build stage is self-contained.
-# Filed as a follow-up to either (a) add `typescript` to the SPA's
-# devDeps, or (b) drop the `tsc -b --noEmit` step if the SPA moves
-# to vite-only typecheck. Either way the Dockerfile should not
-# change.
-RUN --mount=type=cache,target=/root/.npm \
-    npm install --no-save --no-audit --no-fund --prefix apps/conformance-v2/web typescript@^5.7.3
-
 RUN npm run build --prefix apps/conformance-v2/web
 
 # ----------------------------------------------------------------------------
