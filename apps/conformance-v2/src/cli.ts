@@ -22,7 +22,7 @@
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve, basename } from 'node:path';
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { loadCatalog, CatalogLoadError } from './catalog/loader.js';
+import { loadCatalog, CatalogLoadError, filterCatalogByRole, type Role } from './catalog/loader.js';
 import { precheck } from './precheck.js';
 import { runConformance, type RunnerEvent, type Report, type CaseRunResult, type RunTarget } from './runner.js';
 import { httpRequest, HttpError } from './http.js';
@@ -36,7 +36,35 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 function printUsage(): void {
   console.error('Usage:');
   console.error('  conformance-v2 run --config <yaml> --catalog <dir> --out <dir>');
+  console.error('                  [--role <issuer|verifier|wallet>] [--include-coverage]');
   console.error('  conformance-v2 parse --in <md> --out <dir>');
+  console.error('');
+  console.error('Options:');
+  console.error('  --role <issuer|verifier|wallet>  Run only the cases whose EUT matches the role.');
+  console.error('                                   Default: run every case in the catalog.');
+  console.error('  --include-coverage               Include `kind: coverage` cases for the selected');
+  console.error('                                   role. Default: live cases only.');
+}
+
+const VALID_ROLES: ReadonlySet<Role> = new Set<Role>(['issuer', 'verifier', 'wallet']);
+
+/**
+ * Parse and validate `--role`. Returns:
+ *   - `undefined` when the flag is absent (no filter)
+ *   - a valid `Role` when the flag is present and the value is in the
+ *     allow-list
+ *   - the raw string when the flag is present but the value is invalid
+ *     (so the caller can print a precise error)
+ *
+ * The allow-list is intentionally small and the values are case-folded
+ * to lowercase so `Issuer`, `ISSUER`, and `issuer` all work the same.
+ */
+function parseRoleOpt(args: string[]): { role: Role | undefined; invalid: string | undefined } {
+  const raw = getOpt(args, '--role');
+  if (raw === undefined) return { role: undefined, invalid: undefined };
+  const folded = raw.toLowerCase();
+  if (VALID_ROLES.has(folded as Role)) return { role: folded as Role, invalid: undefined };
+  return { role: undefined, invalid: raw };
 }
 
 interface ParsedArgs {
@@ -117,6 +145,14 @@ async function cmdRun(args: string[]): Promise<number> {
     printUsage();
     return 2;
   }
+  const { role, invalid: invalidRole } = parseRoleOpt(args);
+  if (invalidRole !== undefined) {
+    console.error(
+      `invalid --role value "${invalidRole}"; must be one of issuer, verifier, wallet`
+    );
+    return 2;
+  }
+  const includeCoverage = args.includes('--include-coverage');
   const cfg = loadRunConfig(configPath);
   let cases: TestCase[];
   try {
@@ -128,6 +164,37 @@ async function cmdRun(args: string[]): Promise<number> {
       console.error((err as Error).message);
     }
     return 2;
+  }
+  if (role !== undefined) {
+    const before = cases.length;
+    cases = filterCatalogByRole(cases, role, { includeCoverage });
+    const after = cases.length;
+    console.error(
+      `role filter: role=${role} includeCoverage=${includeCoverage} ` +
+        `kept=${after} of ${before} catalog cases`
+    );
+    if (after === 0) {
+      console.error(
+        `role filter produced an empty run: no ${role} cases in the catalog. ` +
+          `Re-run without --role to execute the full suite.`
+      );
+      // Still write a report so the caller has a non-empty artefact
+      // directory and a clear `abortedAt: "empty-role-filter"` record.
+      const emptyReport: Report = {
+        runId: `r-empty-role-${Date.now().toString(36)}`,
+        startedAt: new Date().toISOString(),
+        finishedAt: new Date().toISOString(),
+        durationMs: 0,
+        target: cfg.target,
+        results: [],
+        summary: { total: 0, passed: 0, failed: 0, skipped: 0 },
+        aborted: true,
+        abortedAt: `empty-role-filter:${role}`,
+        error: `no ${role} cases in catalog`,
+      };
+      writeReport(outDir, emptyReport);
+      return 2;
+    }
   }
   mkdirSync(resolve(outDir), { recursive: true });
 

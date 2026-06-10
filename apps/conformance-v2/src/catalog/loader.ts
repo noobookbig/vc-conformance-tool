@@ -144,3 +144,63 @@ export function loadCatalog(dir: string): TestCase[] {
 
   return cases.sort((a, b) => a.id.localeCompare(b.id));
 }
+
+/**
+ * Filter a loaded catalog by the Entity Under Test (EUT) the operator
+ * wants to target, so a single role's conformance run is independent of
+ * the other two. The four protocol pairings stay covered because the
+ * partner role is implicit in the test case body (an Issuer test case
+ * is a Wallet↔Issuer exchange at the wire level even though only the
+ * Issuer side is asserted).
+ *
+ *   role=issuer   → kind:live AND eut === 'issuer'    (Issuer↔Wallet)
+ *   role=verifier → kind:live AND eut === 'verifier'  (Verifier↔Wallet)
+ *   role=wallet   → kind:live AND eut === 'holder'    (Wallet↔Issuer + Wallet↔Verifier)
+ *
+ * `eut === 'holder'` is the catalog's spelling of "wallet-driven": the
+ * test exercises a wallet, and the partner (Issuer or Verifier) is the
+ * counterparty under test at the wire level. Today there are no cases
+ * with `eut === 'wallet'`; if the catalog ever introduces one, this
+ * helper is the place to widen the `wallet` branch.
+ *
+ * `kind === 'multi'` cases are intentionally NOT picked up by any of
+ * the three role filters — they are a future "all roles" filter and
+ * remain in the default (un-filtered) run. The role-filter contract
+ * is "one role at a time"; cross-role scenarios stay in the default.
+ *
+ * The loader's structural guards run on the full catalog before this
+ * filter is applied, so a malformed file in any role still trips the
+ * >50% coverage / duplicate-id / empty-dir guards.
+ *
+ * @param cases       Output of `loadCatalog(dir)`. Treated as read-only.
+ * @param role        The role the operator wants to target. Case-insensitive.
+ * @param options.includeCoverage  When true, `kind: coverage` cases for
+ *                    that role are also kept. Default `false` (live only)
+ *                    to match the runner's "actually run against the
+ *                    target" contract; coverage cases do not contact a
+ *                    target and would only inflate the denominator.
+ */
+export type Role = 'issuer' | 'verifier' | 'wallet';
+
+export interface FilterCatalogByRoleOptions {
+  includeCoverage?: boolean;
+}
+
+export function filterCatalogByRole(
+  cases: TestCase[],
+  role: Role,
+  options: FilterCatalogByRoleOptions = {}
+): TestCase[] {
+  const allowed: Record<Role, Eut> = {
+    issuer: 'issuer',
+    verifier: 'verifier',
+    wallet: 'holder',
+  };
+  const targetEut = allowed[role];
+  const includeCoverage = options.includeCoverage === true;
+  return cases.filter((c) => {
+    if (c.eut !== targetEut) return false;
+    if (!includeCoverage && c.kind !== 'live') return false;
+    return true;
+  });
+}

@@ -127,6 +127,49 @@ npm run v2:run -- --config /tmp/v2-real.yaml \
   --catalog references/testcases --out /tmp/v2-out
 ```
 
+### Run by role (Issuer / Verifier / Wallet)
+
+The catalog partitions cleanly by Entity Under Test. Use `--role` to
+target one role at a time so an operator can validate a single
+counterparty in isolation while the partner role is implicit at the
+wire level (e.g. an Issuer test case is a Wallet↔Issuer exchange even
+though only the Issuer side is asserted).
+
+| Flag                     | Filter                                | Pairings covered                  | Live count in shipped catalog |
+| ------------------------ | ------------------------------------- | --------------------------------- | ----------------------------: |
+| `--role=issuer`          | `kind: live` AND `eut === 'issuer'`   | Issuer ↔ Wallet                   | 90                            |
+| `--role=verifier`        | `kind: live` AND `eut === 'verifier'` | Verifier ↔ Wallet                 | 26                            |
+| `--role=wallet`          | `kind: live` AND `eut === 'holder'`   | Wallet ↔ Issuer + Wallet ↔ Verifier | 95                          |
+| (none)                   | no filter                             | all four pairings (default)       | 317                           |
+
+`--role` is **case-insensitive** and accepts `issuer`, `verifier`,
+`wallet`. Anything else exits `2` with a clear error. Pass
+`--include-coverage` to also run the `kind: coverage` cases for the
+selected role (the default is `live` only, matching the runner's
+"actually run against the target" contract).
+
+```bash
+# Run only the live issuer cases (90 of 317).
+npm run v2:run -- --config /tmp/v2-mock.yaml \
+  --catalog references/testcases --out /tmp/v2-issuer --role issuer
+
+# Run the live wallet cases plus the coverage wallet cases, if any.
+npm run v2:run -- --config /tmp/v2-mock.yaml \
+  --catalog references/testcases --out /tmp/v2-wallet --role wallet --include-coverage
+
+# Default: no --role flag → every case that ran before still runs (317).
+npm run v2:run -- --config /tmp/v2-mock.yaml \
+  --catalog references/testcases --out /tmp/v2-out
+```
+
+The CLI prints a `role filter: role=<r> includeCoverage=<b> kept=<k> of <n> catalog cases`
+line to stderr so the audit trail shows exactly what the engine
+executed, and `run.started: total=<k>` (not 317) so downstream log
+scrapers can confirm the role partition. The `eut: multi` cases
+(6 live, 65 coverage in the shipped catalog) are intentionally NOT
+picked up by any role filter — they remain in the default (un-filtered)
+run as the "all roles" set.
+
 ### Run the web UI (the v2 server)
 
 ```bash
@@ -204,10 +247,12 @@ refused counts as a real failure and trips the abort.
 npm run v2:test
 ```
 
-8 spec files, 58 tests:
+9 spec files, 70 tests:
 
 - `abort.test.ts` — latch, idempotency, exit-code contract.
 - `loader.test.ts` — YAML parsing, validation, the >50% coverage guard.
+- `role-filter.test.ts` — `--role` filter on the loader; 90/26/95 partition
+  on the shipped catalog; invalid-`--role` CLI exit-code contract.
 - `http.test.ts` — fetch wrapper, timeout, 4xx/5xx body capture, refused.
 - `precheck.test.ts` — closed port, in-process mock, 4xx/5xx.
 - `stop-on-error.test.ts` — first failure halts the suite; `abortedAt`.

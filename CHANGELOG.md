@@ -88,6 +88,23 @@ maintained v0.1.0 webapp. Built on
     spec section.
   - Stop-on-error is on by default.
 
+- **Role filter** on the CLI ([MAS-292](/MAS/issues/MAS-292)):
+  - `--role <issuer|verifier|wallet>` partitions the catalog by
+    Entity Under Test so each role's conformance run is independent
+    of the other two. The four protocol pairings stay covered: an
+    Issuer test case is a Wallet↔Issuer exchange at the wire level
+    even though only the Issuer side is asserted.
+  - `--include-coverage` opts the selected role into `kind: coverage`
+    cases (default: `live` only, matching the runner's
+    "actually run against the target" contract).
+  - `run.started` reports the **filtered** count, not the total.
+    A `role filter: role=<r> includeCoverage=<b> kept=<k> of <n>`
+    line is printed to stderr so the audit trail shows exactly what
+    the engine executed. Shipped catalog partitions to 90 issuer /
+    26 verifier / 95 wallet (holder); default (no flag) still
+    runs all 317.
+  - Invalid `--role` value → exit 2 with a clear error message.
+
 ### Changed (breaking vs v0.1.0)
 
 - The v0.1.0 webapp's runner used a "shape-only" pass condition
