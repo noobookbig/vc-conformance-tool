@@ -18,7 +18,33 @@ Test cases are derived from the corrected Thailand VC OID4VCI / OID4VP 1.0
 conformance testcase v2.0 — see `references/testcase-source.md` and
 `references/design.md` for design notes.
 
-## Quick start (Docker)
+## Quick start (v2.0.0)
+
+Build and run the v2 image from local source with Docker Compose from the
+repo root:
+
+```bash
+docker compose up -d --build
+docker compose logs -f
+# Server is on http://localhost:8080
+```
+
+This is the v2 release flow — same `docker compose up` shape the board used
+on v0.1.0, but pointing at the v2 source. The compose file at
+`docker-compose.yml` builds `ops/docker-v2/Dockerfile` on port `8080:8080`
+with the same in-process mock issuer + verifier on the same origin as v0.1.0.
+The `--build` flag forces a fresh build of the local Dockerfile; on a
+warm Docker cache this is ~30s, on a clean cache it is a few minutes.
+For the v0.1.0 dev compose, see `ops/docker/docker-compose.yml`.
+
+v2.0.0 is **source-only** (the board picked `skip_ghcr` on [MAS-278](/MAS/issues/MAS-278)
+at 13:42:07Z) — there is no GHCR image to pull. The GHCR image, when it
+ships, will be on the v2.0.1 line via [MAS-289](/MAS/issues/MAS-289).
+
+If port `8080` is already in use (e.g. a v0.1.0 container is still running),
+stop it first: `docker stop vc-conformance-test`.
+
+## Quick start (Docker, v0.1.0)
 
 ```bash
 cd ops/docker
