@@ -21,13 +21,14 @@
 
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve, basename } from 'node:path';
-import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { loadCatalog, CatalogLoadError } from './catalog/loader.js';
 import { precheck } from './precheck.js';
 import { runConformance, type RunnerEvent, type Report, type CaseRunResult, type RunTarget } from './runner.js';
 import { httpRequest, HttpError } from './http.js';
 import { AbortCoordinator, EXIT_CODES } from './abort.js';
 import { toReportJson, toJunitXml, toReportHtml } from './report/writer.js';
+import { loadRunConfig, type RunConfig } from './config.js';
 import type { TestCase } from './catalog/types.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -56,47 +57,6 @@ function getOpt(args: string[], flag: string): string | undefined {
   const v = args[i + 1];
   if (!v) throw new Error(`flag ${flag} requires a value`);
   return v;
-}
-
-interface RunConfig {
-  target: RunTarget;
-  /** Optional in-process mock override; defaults to "use configured target". */
-  useMock?: boolean;
-  /** When true, log every event to stderr (default: true). */
-  verbose?: boolean;
-}
-
-function loadRunConfig(path: string): RunConfig {
-  if (!existsSync(path)) {
-    throw new Error(`config file not found: ${path}`);
-  }
-  const text = readFileSync(path, 'utf8');
-  // Tiny YAML reader for our limited config shape. We avoid a YAML dep
-  // in the CLI path to keep startup fast; the engine only ever sees
-  // RunTarget + a couple of booleans, so a hand-rolled reader is fine.
-  const target: RunTarget = {};
-  let useMock: boolean | undefined;
-  let verbose: boolean | undefined;
-  for (const rawLine of text.split('\n')) {
-    const line = rawLine.replace(/#.*$/, '').trim();
-    if (!line || !line.includes(':')) continue;
-    const colon = line.indexOf(':');
-    const key = line.slice(0, colon).trim();
-    let value = line.slice(colon + 1).trim();
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
-      value = value.slice(1, -1);
-    }
-    if (key === 'targetIssuer' || key === 'targetVerifier' || key === 'wallet' || key === 'issuerMetadataUrl') {
-      target[key] = value;
-    } else if (key === 'credentialConfigurationId') {
-      target.credentialConfigurationId = value;
-    } else if (key === 'useMock') {
-      useMock = value === 'true';
-    } else if (key === 'verbose') {
-      verbose = value === 'true';
-    }
-  }
-  return { target, useMock, verbose };
 }
 
 /** Build a runCase function that, when no real target is configured,
