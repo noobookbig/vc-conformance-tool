@@ -178,7 +178,7 @@ NOTES
 
 Use the GitHub web UI:
 
-1. Open `https://github.com/noobookbig/vc-conformance-test/releases/new`.
+1. Open `https://github.com/noobookbig/vc-conformance-tool/releases/new`.
 2. Choose tag `v2.0.0`.
 3. Release title: `v2.0.0 — first release of the v2 conformance test tool`.
 4. Paste the notes from the `--notes-file` block above.
@@ -200,7 +200,7 @@ docker pull ghcr.io/noobookbig/vc-conformance-v2:2.0.0
 IMAGE_TAG=ghcr.io/noobookbig/vc-conformance-v2:2.0.0 bash ops/smoke/v2-server.sh
 
 # 2. Pull the source tarball, verify the build is reproducible
-curl -L https://github.com/noobookbig/vc-conformance-test/releases/download/v2.0.0/vc-conformance-v2-2.0.0.tar.gz | tar -xz
+curl -L https://github.com/noobookbig/vc-conformance-tool/releases/download/v2.0.0/vc-conformance-v2-2.0.0.tar.gz | tar -xz
 cd vc-conformance-v2-2.0.0
 bash ops/smoke/v2-cli.sh
 bash ops/smoke/v2-server.sh
@@ -216,7 +216,7 @@ bash ops/smoke/v2-server.sh
 - **GHCR push rejected with `denied: requested access to the resource is denied`**
   → the PAT is missing `write:packages` scope. Generate a new PAT
   with the right scopes (or use a fine-grained token scoped to the
-  `vc-conformance-test` repo + `packages:write`).
+  `vc-conformance-tool` repo + `packages:write`).
 - **GitHub release upload fails with a 502**
   → retry. The GitHub release API occasionally 502s on the upload;
   re-running `gh release create` with the same args is idempotent.
