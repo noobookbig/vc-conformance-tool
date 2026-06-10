@@ -133,6 +133,7 @@ export function SuiteRoute(): JSX.Element {
           className={`precheck ${precheck.kind === 'ok' || (precheck.kind === 'idle' && useMock) ? 'ok' : precheck.kind === 'bad' ? 'bad' : precheck.kind === 'checking' ? 'checking' : ''}`}
           data-testid="precheck-pill"
           role="status"
+          title={precheck.kind === 'bad' ? `Precheck failed: ${precheck.reason}` : undefined}
         >
           {precheck.kind === 'idle' && useMock && 'Ready'}
           {precheck.kind === 'idle' && !useMock && 'Precheck not run'}
@@ -142,7 +143,12 @@ export function SuiteRoute(): JSX.Element {
             </>
           )}
           {precheck.kind === 'ok' && 'Precheck OK'}
-          {precheck.kind === 'bad' && `Precheck failed: ${precheck.reason}`}
+          {precheck.kind === 'bad' && (
+            <>
+              <span className="precheck-icon" aria-hidden="true">!</span>
+              Precheck failed
+            </>
+          )}
         </span>
       </header>
 

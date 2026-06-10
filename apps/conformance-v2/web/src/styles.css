@@ -894,6 +894,19 @@ textarea {
   border: 1px solid var(--line);
   background: var(--bg-2);
   color: var(--ink-2);
+  /* Keep the rounded pill shape intact on long error messages / URLs.
+     The detailed reason is exposed via the title attribute and the
+     inline .run-hint line below the Run button (see MAS-261), so we
+     can safely clamp the visible label to a single line. */
+  white-space: nowrap;
+  max-width: min(100%, 36ch);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.precheck .precheck-icon {
+  flex: 0 0 auto;
+  font-weight: 700;
+  line-height: 1;
 }
 .precheck.ok {
   border-color: var(--green-2);
