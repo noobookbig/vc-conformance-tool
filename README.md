@@ -50,6 +50,21 @@ compose file exports `CONFORMANCE_V2_VERSION=2.1.2` so the server's
 If port `8080` is already in use (e.g. a v0.1.0 container is still running),
 stop it first: `docker stop vc-conformance-test`.
 
+### v2.1.0 / v2.1.1 source tarballs (historical)
+
+The v2.1.0 line's source tarball (`vc-conformance-v2-2.1.0.tar.gz`)
+is missing two untracked files required by the Dockerfile `ui-build`
+stage and fails the post-cut smoke — **do not consume it**. The
+build-clean replacement is the v2.1.1 source tarball
+(`vc-conformance-v2-2.1.1.tar.gz`), which is the artifact the
+v2.1.0 cut ([MAS-304](/MAS/issues/MAS-304)) actually shipped. Both
+tarballs and the v2.1.1 release notes are attached to
+[MAS-304](/MAS/issues/MAS-304); there is no GitHub Release for
+either tag (board decision on [MAS-304](/MAS/issues/MAS-304),
+`ask_user_questions` answer `publish-target: skip-release`,
+2026-06-11T04:27:19Z — distribution is source-only via Paperclip
+and `docker compose up -d --build` from the extracted tarball).
+
 ### Run the v2 CLI by role (Issuer / Verifier / Wallet)
 
 The same compose file exposes a one-shot `runner` service that runs the
