@@ -28,6 +28,12 @@ ARG IMAGE_VERSION=2.1.0
 FROM node:${NODE_VERSION} AS ui-build
 WORKDIR /app
 
+# bash is required by scripts/refresh-case-roles.sh (uses `set -euo pipefail`
+# and `[[ ]]`). node:alpine ships with busybox ash only; the runtime stage
+# gets bash transitively via su-exec on glibc images, but we install it
+# explicitly here so the ui-build layer is self-sufficient.
+RUN apk add --no-cache bash
+
 # Copy the SPA's own manifests + lockfile first so the install layer caches
 # when only source changes.
 COPY apps/conformance-v2/web/package.json apps/conformance-v2/web/package-lock.json* ./apps/conformance-v2/web/
