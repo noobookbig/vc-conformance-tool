@@ -43,6 +43,31 @@ const api = {
     return r.json();
   },
   async catalog() { return (await fetch('/api/catalog')).json(); },
+  // MAS-312.B: VP-via-QR submission. The endpoint reshapes the runner's
+  // structured QrVpResult into its own JSON contract; we mirror the
+  // shapes here so the UI can render both 2xx and 4xx/5xx outcomes
+  // uniformly (the HTTP-level error envelope is { statusCode, error,
+  // message } and the body-level success/failure is { ok, ... }).
+  async validateQr(payload) {
+    const r = await fetch('/api/qr/validate', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ flow: 'send-vp-request', payload }),
+    });
+    let body = null;
+    try { body = await r.json(); } catch { /* non-json */ }
+    return { ok: r.ok, status: r.status, body };
+  },
+  async sendQrVp(body) {
+    const r = await fetch('/api/qr/send-vp', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    let resp = null;
+    try { resp = await r.json(); } catch { /* non-json */ }
+    return { ok: r.ok, status: r.status, body: resp };
+  },
 };
 
 // ---------- View switching ----------
@@ -53,6 +78,13 @@ function showView(name) {
   if (name === 'history') renderHistory();
   if (name === 'catalog') renderCatalog();
   if (name === 'config') renderConfig();
+  if (name === 'qrvp') {
+    // MAS-312.B: the QR panel has no async boot work but the camera
+    // stream needs to be stopped when the user navigates away. We do
+    // that here so a view switch cleans up getUserMedia handles even
+    // if the user clicks a different nav button.
+    stopQrCamera();
+  }
 }
 
 // ---------- Toast ----------
@@ -312,6 +344,414 @@ function hintForStartRunError(err, body) {
     </div>`;
   }
   return '';
+}
+
+// ---------- VP-via-QR view (MAS-312.B) ----------
+
+// Camera state. Module-scoped so a view switch can stop an in-flight
+// stream and a successful scan can replace the textarea without
+// re-binding. The stream is deliberately closed on every stop: leaving
+// the camera LED on after a successful scan is a fast way to lose
+// tester trust.
+let qrCameraStream = null;
+let qrCameraDetector = null;
+let qrCameraTimer = null;
+let qrCameraSupported = null;
+
+async function isBarcodeDetectorSupported() {
+  if (qrCameraSupported !== null) return qrCameraSupported;
+  // `BarcodeDetector` is a Chrome/Edge surface. Firefox / Safari ship
+  // without it. We feature-detect the constructor and a known
+  // format so the camera button can be hidden or replaced with a
+  // paste-only hint on unsupported browsers.
+  if (typeof window === 'undefined' || !('BarcodeDetector' in window)) {
+    qrCameraSupported = false;
+    return qrCameraSupported;
+  }
+  try {
+    const fmts = await window.BarcodeDetector.getSupportedFormats();
+    qrCameraSupported = Array.isArray(fmts) && fmts.includes('qr_code');
+  } catch {
+    qrCameraSupported = false;
+  }
+  return qrCameraSupported;
+}
+
+/**
+ * Render the parsed QR fields into a small preview card so the tester
+ * can see what the verifier is asking for BEFORE they submit. We call
+ * `/api/qr/validate` (the same endpoint the catalog run uses) so the
+ * preview is consistent with what the runner will see on submit. A
+ * failed parse is rendered as an inline error inside the same card.
+ */
+async function renderQrPreview() {
+  const side = $('#qr-side');
+  const payload = $('#qr-payload').value.trim();
+  if (!payload) {
+    side.innerHTML = '';
+    side.appendChild(qrEmptyCard());
+    return;
+  }
+  side.setAttribute('aria-busy', 'true');
+  const prev = side.innerHTML;
+  side.innerHTML = `
+    <div class="report-head"><h3><span class="dim">Parsing QR…</span></h3></div>
+    <div class="skeleton" aria-hidden="true">
+      <div class="sk s1"></div><div class="sk s2"></div><div class="sk s3"></div>
+    </div>`;
+  try {
+    const r = await api.validateQr(payload);
+    side.removeAttribute('aria-busy');
+    if (!r.body || r.body.ok !== true) {
+      const errMsg = r.body?.error || `validate_failed_${r.status}`;
+      side.innerHTML = qrPreviewError(errMsg, r.body);
+      return;
+    }
+    side.innerHTML = qrPreviewCard(r.body);
+  } catch (e) {
+    side.removeAttribute('aria-busy');
+    side.innerHTML = qrPreviewError(e.message, null);
+  }
+}
+
+function qrEmptyCard() {
+  const d = document.createElement('div');
+  d.className = 'empty';
+  d.id = 'qr-empty';
+  d.innerHTML = `
+    <svg class="icon" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="0.8"/><rect x="13" y="3" width="6" height="6" rx="0.8"/><rect x="3" y="13" width="6" height="6" rx="0.8"/><path d="M13 13h2M13 17h2M17 13v2M17 17v2"/></svg>
+    <div>No submission yet. Paste a QR URL above (or scan with the camera) and hit <strong>Submit VP</strong>.</div>
+  `;
+  return d;
+}
+
+function qrPreviewCard(body) {
+  const d = body.details || {};
+  // Render the verifier-asked-for fields in a stable order. The
+  // request_uri / dcql_query / presentation_definition are mutually
+  // exclusive in OID4VP 1.0 (well, two-of-three common; the spec lets
+  // you mix), so we just emit whichever keys are present.
+  const dcql = d.dcql_query
+    ? `<details open><summary>DCQL query</summary><pre>${escapeHtml(JSON.stringify(d.dcql_query, null, 2))}</pre></details>`
+    : '';
+  const pd = d.presentation_definition
+    ? `<details open><summary>Presentation definition</summary><pre>${escapeHtml(JSON.stringify(d.presentation_definition, null, 2))}</pre></details>`
+    : '';
+  const ru = d.request_uri
+    ? `<div class="qr-row"><span class="k">request_uri</span><span class="v mono">${escapeHtml(d.request_uri)}</span></div>`
+    : '';
+  const respUri = d.response_uri
+    ? `<div class="qr-row"><span class="k">response_uri</span><span class="v mono">${escapeHtml(d.response_uri)}</span></div>`
+    : '';
+  return `
+    <div class="report-head">
+      <h3>Parsed QR <span class="dim">· ${escapeHtml(body.flow)}</span></h3>
+    </div>
+    <div class="qr-card">
+      <div class="qr-row"><span class="k">scheme</span><span class="v mono">${escapeHtml(body.normalizedUrl.split(':')[0])}</span></div>
+      <div class="qr-row"><span class="k">client_id</span><span class="v mono">${escapeHtml(d.client_id || '—')}</span></div>
+      <div class="qr-row"><span class="k">response_type</span><span class="v mono">${escapeHtml(d.response_type || '—')}</span></div>
+      ${respUri}
+      ${ru}
+      ${dcql}${pd}
+    </div>
+  `;
+}
+
+function qrPreviewError(message, body) {
+  return `
+    <div class="report-head"><h3><span class="dim">Parse error</span></h3></div>
+    <div class="qr-card qr-card-error">
+      <div class="qr-row"><span class="k">error</span><span class="v">${escapeHtml(message)}</span></div>
+      ${body && body.details
+        ? `<details><summary>raw details</summary><pre>${escapeHtml(JSON.stringify(body.details, null, 2))}</pre></details>`
+        : ''}
+    </div>
+  `;
+}
+
+async function startQrCamera() {
+  const region = $('#qr-camera-region');
+  const video = $('#qr-camera-video');
+  const status = $('#qr-camera-status');
+  const btn = $('#btn-qr-scan');
+  const supported = await isBarcodeDetectorSupported();
+  if (!supported) {
+    status.textContent = 'Camera scanning not supported in this browser — paste the URL instead.';
+    status.classList.add('bad');
+    return;
+  }
+  if (qrCameraStream) {
+    // Already running — treat as a stop toggle.
+    stopQrCamera();
+    btn.setAttribute('aria-expanded', 'false');
+    return;
+  }
+  if (!navigator.mediaDevices?.getUserMedia) {
+    status.textContent = 'No camera API available in this browser.';
+    status.classList.add('bad');
+    return;
+  }
+  try {
+    qrCameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' },
+      audio: false,
+    });
+    video.srcObject = qrCameraStream;
+    region.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+    status.textContent = 'Point the camera at the QR code…';
+    status.classList.remove('bad');
+    await video.play();
+    qrCameraDetector = new window.BarcodeDetector({ formats: ['qr_code'] });
+    qrCameraTimer = setInterval(scanQrFrame, 350);
+  } catch (e) {
+    status.textContent = `Camera unavailable: ${e.message}`;
+    status.classList.add('bad');
+    stopQrCamera();
+  }
+}
+
+function stopQrCamera() {
+  if (qrCameraTimer) { clearInterval(qrCameraTimer); qrCameraTimer = null; }
+  qrCameraDetector = null;
+  if (qrCameraStream) {
+    qrCameraStream.getTracks().forEach((t) => t.stop());
+    qrCameraStream = null;
+  }
+  const region = $('#qr-camera-region');
+  const video = $('#qr-camera-video');
+  const btn = $('#btn-qr-scan');
+  if (region) region.hidden = true;
+  if (video) video.srcObject = null;
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+  const status = $('#qr-camera-status');
+  if (status) { status.textContent = ''; status.classList.remove('bad'); }
+}
+
+async function scanQrFrame() {
+  if (!qrCameraDetector || !qrCameraStream) return;
+  const video = $('#qr-camera-video');
+  if (!video || video.readyState < 2) return;
+  try {
+    const codes = await qrCameraDetector.detect(video);
+    if (codes && codes.length) {
+      const value = codes[0].rawValue || codes[0].value || '';
+      if (value) {
+        $('#qr-payload').value = value;
+        stopQrCamera();
+        toast('QR scanned — review fields, then Submit.', 'ok');
+        // Auto-refresh the preview so the tester sees the parsed
+        // fields immediately, before they commit to a submit.
+        renderQrPreview();
+      }
+    }
+  } catch {
+    // Detection can throw transiently when the camera is still
+    // warming up; swallow and try again on the next tick.
+  }
+}
+
+async function submitQrVp() {
+  const btn = $('#btn-qr-submit');
+  const btnLabel = btn.querySelector('.btn-label');
+  if (btn.disabled) return;
+  const payload = $('#qr-payload').value.trim();
+  if (!payload) {
+    toast('Paste an openid4vp:// URL (or scan one) before submitting.', 'bad');
+    return;
+  }
+  const target = $('#qr-target').value.trim();
+  const body = {
+    qrPayload: payload,
+    targetVerifier: target || '',
+  };
+  btn.disabled = true;
+  btn.classList.add('running');
+  if (btnLabel) btnLabel.textContent = 'Submitting…';
+  const side = $('#qr-side');
+  const meta = $('#qrvp-meta');
+  if (meta) meta.textContent = 'Submitting VP…';
+  side.setAttribute('aria-busy', 'true');
+  side.innerHTML = `
+    <div class="report-head"><h3><span class="dim">Submitting VP to verifier…</span></h3></div>
+    <div class="skeleton" aria-hidden="true">
+      <div class="sk s1"></div><div class="sk s2"></div><div class="sk s3"></div><div class="sk tall"></div>
+    </div>`;
+  try {
+    const r = await api.sendQrVp(body);
+    side.removeAttribute('aria-busy');
+    if (r.body && r.body.ok === true) {
+      // Happy path: verifier accepted. The endpoint returns
+      // { ok, status, response, vpToken, sentTo, evidence } and we
+      // render a small confirmation card. We deliberately do NOT
+      // render a full report for the one-shot — the user asked for
+      // a single VP submission, not the catalog. The evidence
+      // block (request + response) is rendered so QA can copy it.
+      side.innerHTML = renderQrSuccess(r.body);
+      if (meta) meta.textContent = `Done · ${r.status}`;
+      toast(`Verifier accepted (HTTP ${r.status})`, 'ok');
+      // Append to run history so the user can replay it from the
+      // History view. The run is a synthetic one-row "report" with
+      // summary fields the existing /api/runs history picker can
+      // render. We POST to /api/runs so the file store picks it up
+      // exactly like a catalog run.
+      await appendQrRunToHistory({ ok: true, status: r.status, body: r.body });
+    } else {
+      // Either the endpoint returned a typed error envelope
+      // (verifier_rejected, invalid_qr, …) or the network
+      // surfaced a Fastify 4xx. Render the same error card shape
+      // and the targeted hint so the tester knows what went wrong.
+      const errMsg = r.body?.error || `send_failed_${r.status}`;
+      const detailStatus = r.body?.status ?? r.status;
+      side.innerHTML = renderQrFailure(errMsg, detailStatus, r.body);
+      if (meta) meta.textContent = `Failed · ${detailStatus}`;
+      toast(`Submission failed: ${errMsg}`, 'bad');
+      await appendQrRunToHistory({ ok: false, status: detailStatus, body: r.body, error: errMsg });
+    }
+  } catch (e) {
+    side.removeAttribute('aria-busy');
+    side.innerHTML = renderQrFailure(e.message, null, null);
+    if (meta) meta.textContent = 'Failed';
+    toast(`Submission failed: ${e.message}`, 'bad');
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('running');
+    if (btnLabel) btnLabel.textContent = 'Submit VP';
+  }
+}
+
+function renderQrSuccess(body) {
+  const evidence = body.evidence || {};
+  const qr = evidence.qr || {};
+  const req = evidence.request || {};
+  const resp = evidence.response || {};
+  return `
+    <div class="report-head">
+      <h3>Verifier accepted <span class="dim">· HTTP ${body.status}</span></h3>
+      <div class="report-actions">
+        <span class="tag ok">pass</span>
+      </div>
+    </div>
+    <div class="kpis">
+      <div class="kpi passed"><div class="v">${body.status}</div><div class="l">HTTP status</div></div>
+      <div class="kpi"><div class="v mono" style="font-size:0.9rem">${escapeHtml(qr.client_id || '—')}</div><div class="l">client_id</div></div>
+      <div class="kpi"><div class="v mono" style="font-size:0.86rem">${escapeHtml(truncate(body.sentTo || '', 40))}</div><div class="l">sent to</div></div>
+    </div>
+    <div class="qr-card">
+      <div class="qr-row"><span class="k">request</span><span class="v mono">${escapeHtml(req.method || 'POST')} ${escapeHtml(req.url || body.sentTo || '—')}</span></div>
+      <div class="qr-row"><span class="k">response</span><span class="v mono">HTTP ${resp.status ?? '—'}</span></div>
+      <details><summary>vp_token (KB-JWT)</summary><pre>${escapeHtml(body.vpToken || '')}</pre></details>
+      <details><summary>request body</summary><pre>${escapeHtml(JSON.stringify(req.body || {}, null, 2))}</pre></details>
+      <details><summary>response body</summary><pre>${escapeHtml(JSON.stringify(resp.body ?? {}, null, 2))}</pre></details>
+    </div>
+  `;
+}
+
+function renderQrFailure(message, status, body) {
+  const safe = (v) => (v == null ? '—' : String(v));
+  const hint = hintForQrError(message, status, body);
+  return `
+    <div class="report-head">
+      <h3>Submission failed <span class="dim">· HTTP ${safe(status)}</span></h3>
+      <div class="report-actions"><span class="tag bad">fail</span></div>
+    </div>
+    <div class="qr-card qr-card-error">
+      <div class="qr-row"><span class="k">error</span><span class="v">${escapeHtml(message)}</span></div>
+      <div class="qr-row"><span class="k">verifier status</span><span class="v mono">${safe(status)}</span></div>
+      ${body && body.details
+        ? `<details><summary>raw details</summary><pre>${escapeHtml(JSON.stringify(body.details, null, 2))}</pre></details>`
+        : ''}
+      ${hint ? `<div class="qr-hint">${hint}</div>` : ''}
+    </div>
+  `;
+}
+
+function hintForQrError(message, status, body) {
+  const m = String(message || '');
+  if (/client_id/.test(m)) {
+    return 'The QR is missing the <code>client_id</code> parameter — verifiers must include it per OID4VP 1.0 §5.1.';
+  }
+  if (/request_uri|dcql_query|presentation_definition/.test(m)) {
+    return 'The QR is missing all of <code>request_uri</code>, <code>dcql_query</code>, and <code>presentation_definition</code>. The verifier must advertise at least one.';
+  }
+  if (m === 'verifier_rejected' || status === 502) {
+    return 'The verifier accepted the request and rejected the VP itself. Check the verifier logs for the exact reason (typically an audience mismatch on the KB-JWT).';
+  }
+  if (m === 'target_verifier_required') {
+    return 'Provide a <strong>Target verifier URL</strong> above — the runner needs a base URL to resolve a relative <code>response_uri</code> and to set the KB-JWT <code>aud</code> claim.';
+  }
+  if (m === 'verifier_unreachable') {
+    return 'The runner could not reach the verifier at the <code>response_uri</code>. Check the network path and the verifier health pill at the top of the page.';
+  }
+  return '';
+}
+
+async function appendQrRunToHistory({ ok, status, body, error }) {
+  // MAS-312.B: a VP-via-QR submission is a one-shot, but QA still
+  // wants to be able to replay it. We synthesize a single-result
+  // "report" with the same shape as a catalog run
+  // ({ runId, mode, summary, results, target, startedAt, durationMs,
+  // evidence }) and POST it to /api/runs. The endpoint persists it
+  // like any other run, so the History view shows it with a pass /
+  // fail row. The `mode` is `Q->V` (a synthetic token that
+  // distinguishes one-shot QRs from catalog runs) and the
+  // `target.credentialConfigurationId` is the dcql_query id when
+  // there is one.
+  try {
+    const dcql = body?.evidence?.qr?.dcql_query;
+    const cid = Array.isArray(dcql?.credentials) && dcql.credentials.length
+      ? dcql.credentials.map((c) => c?.id).filter(Boolean).join('+') || 'qr'
+      : 'qr';
+    const start = Date.now();
+    const report = {
+      mode: 'Q->V',
+      target: {
+        mode: 'Q->V',
+        targetVerifier: body?.sentTo ?? '',
+        credentialConfigurationId: cid,
+      },
+      summary: { total: 1, passed: ok ? 1 : 0, failed: ok ? 0 : 1, skipped: 0, passRate: ok ? 1 : 0 },
+      results: [{
+        id: 'IT.PV.AU.H.V.VB.QRP.001',
+        name: 'VP-via-QR submission',
+        pass: ok,
+        message: ok
+          ? `Verifier accepted HTTP ${status}`
+          : `Submission failed: ${error || `HTTP ${status}`}`,
+        durationMs: Date.now() - start,
+        evidence: {
+          ...(body?.evidence || {}),
+          ...(ok ? {} : { error, status }),
+        },
+      }],
+      startedAt: new Date(start).toISOString(),
+      durationMs: 1,
+    };
+    // POST the synthesized report so /api/runs persists it. We
+    // don't await UI feedback — fire-and-forget so a save failure
+    // doesn't take down the success toast.
+    void api.startRun(report).catch(() => { /* non-fatal */ });
+  } catch {
+    /* non-fatal: history is best-effort */
+  }
+}
+
+function clearQrForm() {
+  $('#qr-payload').value = '';
+  $('#qr-target').value = '';
+  stopQrCamera();
+  const side = $('#qr-side');
+  side.innerHTML = '';
+  side.appendChild(qrEmptyCard());
+  const meta = $('#qrvp-meta');
+  if (meta) meta.textContent = 'No submission yet';
+  $('#qr-payload').focus();
+}
+
+function truncate(s, n) {
+  s = String(s || '');
+  return s.length > n ? `${s.slice(0, n - 1)}…` : s;
 }
 
 // ---------- Config view ----------
@@ -682,6 +1122,16 @@ window.addEventListener('DOMContentLoaded', async () => {
   $('#config-form').addEventListener('submit', saveConfig);
   $('#btn-regen').addEventListener('click', regenKeys);
 
+  // MAS-312.B: VP-via-QR panel wiring. We bind the form, camera
+  // toggle, clear button, and the textarea blur (for preview-on-paste)
+  // in the boot block so the panel works the first time the user
+  // navigates to it. A short ⌘/Ctrl+↵ shortcut submits the VP when
+  // the QR view is active.
+  $('#btn-qr-submit')?.addEventListener('click', submitQrVp);
+  $('#btn-qr-clear')?.addEventListener('click', clearQrForm);
+  $('#btn-qr-scan')?.addEventListener('click', startQrCamera);
+  $('#qr-payload')?.addEventListener('blur', () => { renderQrPreview(); });
+
   // ⌘/Ctrl + ↵ from the Run view triggers the run
   document.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
@@ -689,6 +1139,12 @@ window.addEventListener('DOMContentLoaded', async () => {
       if (runView && runView.classList.contains('active')) {
         e.preventDefault();
         startRun();
+        return;
+      }
+      const qrView = $('#view-qrvp');
+      if (qrView && qrView.classList.contains('active')) {
+        e.preventDefault();
+        submitQrVp();
       }
     }
   });

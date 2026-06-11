@@ -53,20 +53,25 @@
         <span>Configure</span>
         <span class="nav-num">02</span>
       </button>
+      <button class="nav" data-view="qrvp" type="button">
+        <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="2.5" width="4" height="4" rx="0.5"/><rect x="9.5" y="2.5" width="4" height="4" rx="0.5"/><rect x="2.5" y="9.5" width="4" height="4" rx="0.5"/><path d="M9.5 9.5h1M13.5 9.5v1M9.5 13.5h1M13.5 13.5v-1"/></svg>
+        <span>VP via QR</span>
+        <span class="nav-num">03</span>
+      </button>
       <button class="nav" data-view="history" type="button">
         <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M8 4.4V8l2.4 1.6"/></svg>
         <span>History</span>
-        <span class="nav-num">03</span>
+        <span class="nav-num">04</span>
       </button>
       <button class="nav" data-view="catalog" type="button">
         <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="5" height="5" rx="1"/><rect x="9" y="3" width="5" height="5" rx="1"/><rect x="2" y="10" width="5" height="5" rx="1"/><rect x="9" y="10" width="5" height="5" rx="1"/></svg>
         <span>Test catalog</span>
-        <span class="nav-num">04</span>
+        <span class="nav-num">05</span>
       </button>
       <button class="nav" data-view="about" type="button">
         <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M8 7.2v4M8 5.2v.05"/></svg>
         <span>About</span>
-        <span class="nav-num">05</span>
+        <span class="nav-num">06</span>
       </button>
       <div class="sidebar-foot">
         <div class="hint">Test suite for issuers &amp; verifiers implementing <strong>OID4VCI 1.0 Final</strong> and <strong>OID4VP 1.0 Final</strong>.</div>
@@ -243,6 +248,61 @@
               </ul>
             </div>
           </div>
+        </div>
+      </article>
+
+      <!-- VP-VIA-QR VIEW (MAS-312.B) -->
+      <article class="view" id="view-qrvp" aria-labelledby="qrvp-h">
+        <header class="view-header">
+          <div>
+            <span class="eyebrow">Step 03 · VP via QR</span>
+            <h2 id="qrvp-h">Send a VP by <em>scanning a QR.</em></h2>
+            <p>One-shot tester flow. Point a phone camera at the <code>openid4vp://</code> QR the verifier produced, review what it is asking for, and submit a signed VP back to the verifier. The result lands in the run history so QA can replay it.</p>
+          </div>
+          <span class="meta" id="qrvp-meta">No submission yet</span>
+        </header>
+
+        <div class="qr-grid">
+          <form class="qr-form" id="qr-form" autocomplete="off" onsubmit="event.preventDefault(); document.getElementById('btn-qr-submit').click();">
+            <label class="full">
+              <span>openid4vp:// URL</span>
+              <textarea id="qr-payload" rows="3" placeholder="openid4vp://authorize?client_id=https%3A%2F%2Fverifier.example.com&amp;response_type=vp_token&amp;dcql_query=%7B%22credentials%22%3A%5B%7B%22id%22%3A%22pid%22%2C%22format%22%3A%22dc%2Bsd-jwt%22%7D%5D%7D" spellcheck="false" aria-describedby="qr-payload-hint"></textarea>
+              <em class="hint-inline hint-meta" id="qr-payload-hint">Paste a verifier-issued openid4vp:// URL, or use the camera button to scan a QR.</em>
+            </label>
+            <div class="qr-camera-row">
+              <button id="btn-qr-scan" class="ghost" type="button" aria-expanded="false" aria-controls="qr-camera-region">
+                <svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="3" width="11" height="8" rx="1.5"/><circle cx="7" cy="7" r="2.4"/><path d="M5 3l1-1.5h2L9 3"/></svg>
+                <span class="btn-label">Scan with camera</span>
+              </button>
+              <span id="qr-camera-status" class="qr-camera-status" role="status" aria-live="polite"></span>
+            </div>
+            <div id="qr-camera-region" class="qr-camera-region" hidden>
+              <video id="qr-camera-video" playsinline muted aria-label="Camera preview for QR scanning"></video>
+              <div class="qr-camera-overlay" aria-hidden="true">
+                <div class="qr-camera-frame"></div>
+              </div>
+            </div>
+            <label class="full">
+              <span>Target verifier URL <em class="hint-inline">(used to resolve a relative <code>response_uri</code> and to sign the KB-JWT for the verifier base)</em></span>
+              <input id="qr-target" type="url" placeholder="https://verifier.example.com" autocomplete="off" spellcheck="false">
+              <em class="hint-inline hint-meta">Leave blank to use the in-process mock verifier at <code>/response</code>. The full URL goes into the KB-JWT <code>aud</code> claim per OID4VP 1.0 §6.1.</em>
+            </label>
+            <div class="actions">
+              <button id="btn-qr-submit" class="primary" type="button">
+                <svg class="icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3,2 12,7 3,12"/></svg>
+                <span class="btn-label">Submit VP</span>
+              </button>
+              <button id="btn-qr-clear" class="ghost" type="button">Clear</button>
+              <span class="spacer"></span>
+              <span class="kbd">or press <kbd>⌘</kbd><kbd>↵</kbd></span>
+            </div>
+          </form>
+          <aside class="qr-side" id="qr-side" aria-label="VP-via-QR result">
+            <div class="empty" id="qr-empty">
+              <svg class="icon" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="0.8"/><rect x="13" y="3" width="6" height="6" rx="0.8"/><rect x="3" y="13" width="6" height="6" rx="0.8"/><path d="M13 13h2M13 17h2M17 13v2M17 17v2"/></svg>
+              <div>No submission yet. Paste a QR URL above (or scan with the camera) and hit <strong>Submit VP</strong>.</div>
+            </div>
+          </aside>
         </div>
       </article>
 
