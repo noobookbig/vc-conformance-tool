@@ -1,0 +1,45 @@
+# MAS-307 / MAS-308 — real-target walt.id Draft 13 issuer config
+#
+# Loaded by the v2 CLI:
+#   node --import tsx apps/conformance-v2/src/cli.ts run \
+#     --config ops/qa-reports/mas-307/wconfig.yaml \
+#     --catalog references/testcases \
+#     --out ops/qa-reports/mas-307/
+#
+# Source values:
+#   - Metadata base probed by CEO 2026-06-11T05:38Z:
+#     https://issuer.demo.walt.id/draft13 (HTTP 200 on
+#     /.well-known/openid-credential-issuer, HTTP 404 on the base
+#     path — walt.id's Draft 13 base is metadata-only).
+#   - credentialConfigurationId picked from the live
+#     credential_configurations_supported list: org.iso.18013.5.1.mDL
+#     (the ISO mDL is the Draft 13 issuer's reference test credential
+#     and is the closest international analog to the Thai National ID
+#     the team is targeting long-term).
+#
+# Why this shape:
+#   - targetIssuer points at the well-known metadata URL because
+#     walt.id's Draft 13 base path returns HTTP 404 (the issuer only
+#     serves the well-known document at that root). precheck() in
+#     apps/conformance-v2/src/precheck.ts requires a 2xx on every
+#     configured target, so this keeps the precheck pass honest
+#     (we are actually reaching the issuer's well-known surface).
+#   - issuerMetadataUrl matches targetIssuer. The CLI's per-case
+#     runCase() falls back to issuerMetadataUrl when targetIssuer is
+#     set, so the per-case request URLs that show up in evidence
+#     land on https://issuer.demo.walt.id/draft13/.well-known/...
+#     which is still a real walt.id target — the report signal the
+#     MAS-307 acceptance criterion asks for.
+#   - credentialConfigurationId is informational on a per-case HTTP
+#     probe (the runner's per-case call is GET <base>/case/<id>), but
+#     the report's target block surfaces it so QA can see what was
+#     selected, and the catalog row that matches the vct is the one
+#     the runner reports on.
+#   - useMock is intentionally false: this run must hit the real
+#     walt.id base, not the in-process mock.
+
+targetIssuer: https://issuer.demo.walt.id/draft13/.well-known/openid-credential-issuer
+issuerMetadataUrl: https://issuer.demo.walt.id/draft13/.well-known/openid-credential-issuer
+credentialConfigurationId: org.iso.18013.5.1.mDL
+useMock: false
+verbose: true

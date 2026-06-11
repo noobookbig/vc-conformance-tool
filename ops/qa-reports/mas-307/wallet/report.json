@@ -1,0 +1,50 @@
+{
+  "runId": "r-mq92sx5w-lvycrs",
+  "startedAt": "2026-06-11T05:47:34.810Z",
+  "finishedAt": "2026-06-11T05:47:35.012Z",
+  "durationMs": 202,
+  "target": {
+    "targetIssuer": "https://issuer.demo.walt.id/draft13/.well-known/openid-credential-issuer",
+    "issuerMetadataUrl": "https://issuer.demo.walt.id/draft13/.well-known/openid-credential-issuer",
+    "credentialConfigurationId": "org.iso.18013.5.1.mDL"
+  },
+  "results": [
+    {
+      "id": "FT.IC.AU.H.I.IB.001",
+      "name": "Authorization_Response with Omitting Required Parameter(redirect_uri)",
+      "operation": "Issue VC — Authorization",
+      "passed": false,
+      "skipped": false,
+      "message": "HTTP 404",
+      "responseStatus": 404,
+      "responseBody": "",
+      "evidence": {
+        "request": {
+          "method": "GET",
+          "url": "https://issuer.demo.walt.id/draft13/.well-known/openid-credential-issuer/case/FT.IC.AU.H.I.IB.001"
+        },
+        "response": {
+          "status": 404,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "0",
+            "date": "Thu, 11 Jun 2026 05:47:34 GMT",
+            "strict-transport-security": "max-age=31536000; includeSubDomains",
+            "vary": "Origin",
+            "x-request-id": "c04ccf811b35c561e2c1d24d76d1bf3a"
+          },
+          "body": ""
+        }
+      },
+      "durationMs": 200
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0
+  },
+  "aborted": true,
+  "abortedAt": "FT.IC.AU.H.I.IB.001"
+}

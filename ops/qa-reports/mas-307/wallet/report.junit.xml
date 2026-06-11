@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="conformance-v2" tests="1" failures="1" skipped="0" time="0.202" timestamp="2026-06-11T05:47:34.810Z">
+  <testcase classname="conformance-v2.Issue.VC.Authorization" name="FT.IC.AU.H.I.IB.001 Authorization_Response with Omitting Required Parameter(redirect_uri)" time="0.200">
+    <failure message="HTTP 404" type="assertion">HTTP 404
+Response status: 404
+Response body:
+&quot;&quot;</failure>
+  </testcase>
+  <error message="run aborted at FT.IC.AU.H.I.IB.001"/> (halted at FT.IC.AU.H.I.IB.001)
+</testsuite>
