@@ -1,6 +1,6 @@
 # docker-compose for the v2 conformance test tool (build + run from local source).
 #
-# Brings up the v2.1.0 image built from the local Dockerfile on port 8080
+# Brings up the v2.1.1 image built from the local Dockerfile on port 8080
 # as the `web` service, and exposes a one-shot `runner` service that
 # executes the v2 CLI in the container — including the new
 # `--role issuer|verifier|wallet` filter shipped on MAS-292.
@@ -27,23 +27,29 @@
 # are mounted on the same origin, so a brand-new user can `docker
 # compose up -d --build` and immediately exercise all four cross-modes.
 #
-# v2.1.0 ships source-only (the board picked `skip_ghcr` on MAS-278 at
+# v2.1.1 ships source-only (the board picked `skip_ghcr` on MAS-278 at
 # 13:42:07Z); there is no GHCR image to pull. This is the v2 counterpart
 # to the v0.1.0 dev compose at ops/docker/docker-compose.yml. For the
 # v0.1.0 dev compose, see ops/docker/docker-compose.yml.
 #
+# v2.1.1 (MAS-306) is a packaging patch on v2.1.0. The UI / API
+# surface is identical to v2.1.0; the change commits the
+# build-time case-roles.json and the refresh-case-roles.sh script
+# that v2.1.0's tarball was missing, and wires the script into the
+# Dockerfile ui-build stage so a clean tarball extraction builds
+# cleanly. The image tag is `vc-conformance-v2:2.1.1`; the server
+# reports `version: 2.1.1` from /api/health.
+#
 # v2.1.0 (MAS-302) added an entity-driven form on the Suite page, a
 # per-case log + evidence download on the Run / Report pages, and
-# bumped the API's /api/health version to v2.1.0. The image tag is
-# `vc-conformance-v2:2.1.0`; the server reports `version: 2.1.0` from
-# /api/health; the sidebar reads "v2.1.0 — Suite → Run → Report."
+# bumped the API's /api/health version to v2.1.0.
 
 services:
   web:
     build:
       context: .
       dockerfile: ops/docker-v2/Dockerfile
-    image: vc-conformance-v2:2.1.0
+    image: vc-conformance-v2:2.1.1
     container_name: vc-conformance-v2
     restart: unless-stopped
     ports:
@@ -53,7 +59,7 @@ services:
       - HOST=0.0.0.0
       - LOG_LEVEL=info
       - CONFORMANCE_BASE_URL=http://127.0.0.1:8080
-      - CONFORMANCE_V2_VERSION=2.1.0
+      - CONFORMANCE_V2_VERSION=2.1.1
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8080/api/health"]
       interval: 30s
@@ -71,7 +77,7 @@ services:
     build:
       context: .
       dockerfile: ops/docker-v2/Dockerfile
-    image: vc-conformance-v2:2.1.0
+    image: vc-conformance-v2:2.1.1
     # Entrypoint stays stable across `docker compose run` overrides; the
     # wrapper adds --config/--catalog/--out defaults, folds in the
     # ROLE/INCLUDE_COVERAGE env vars when set, then execs the v2 CLI

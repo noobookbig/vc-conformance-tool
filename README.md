@@ -18,7 +18,7 @@ Test cases are derived from the corrected Thailand VC OID4VCI / OID4VP 1.0
 conformance testcase v2.0 — see `references/testcase-source.md` and
 `references/design.md` for design notes.
 
-## Quick start (v2.1.0)
+## Quick start (v2.1.1)
 
 Build and run the v2 image from local source with Docker Compose from the
 repo root:
@@ -27,8 +27,10 @@ repo root:
 docker compose up -d --build
 docker compose logs -f
 # Server is on http://localhost:8080
-# v2.1.0 added: entity-driven Suite form, per-case log + evidence
-# download on Run/Report, version surfaced via /api/health.
+# v2.1.1 is a packaging patch on v2.1.0 — the UI/API surface is
+# identical, the change is that the build-time case-roles.json and
+# its refresh script are now tracked, so a clean source extraction
+# builds cleanly. See CHANGELOG.md and MAS-306 for the fix.
 ```
 
 This is the v2 release flow — same `docker compose up` shape the board used
@@ -39,11 +41,11 @@ The `--build` flag forces a fresh build of the local Dockerfile; on a
 warm Docker cache this is ~30s, on a clean cache it is a few minutes.
 For the v0.1.0 dev compose, see `ops/docker/docker-compose.yml`.
 
-v2.1.0 is **source-only** (the board picked `skip_ghcr` on [MAS-278](/MAS/issues/MAS-278)
-at 13:42:07Z) — there is no GHCR image to pull. The image tag is
-`vc-conformance-v2:2.1.0`. The shipped compose file exports
-`CONFORMANCE_V2_VERSION=2.1.0` so the server's `/api/health` reports
-`version: 2.1.0`.
+v2.1.1 is **source-only** (the board picked `skip_ghcr` on [MAS-278](/MAS/issues/MAS-278)
+at 13:42:07Z — inherited by every v2.x cut) — there is no GHCR image
+to pull. The image tag is `vc-conformance-v2:2.1.1`. The shipped
+compose file exports `CONFORMANCE_V2_VERSION=2.1.1` so the server's
+`/api/health` reports `version: 2.1.1`.
 
 If port `8080` is already in use (e.g. a v0.1.0 container is still running),
 stop it first: `docker stop vc-conformance-test`.

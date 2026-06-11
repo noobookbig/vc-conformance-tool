@@ -6,6 +6,75 @@ This project does **not** yet follow SemVer strictly; the major version
 identifies the conformance-test generation (v0.1.0 was the original
 webapp, v2.0.0 is the new engine + UI + server stack).
 
+## v2.1.1 — 2026-06-11
+
+Packaging fix on [MAS-306](/MAS/issues/MAS-306) (releases the v2.1.1
+patch on the v2.1.0 line). **No engine / CLI / API / UI behaviour
+change vs v2.1.0** — the UI and API surface are byte-for-byte
+identical to v2.1.0. The only changes are build-time artefacts
+that were missing from the v2.1.0 source tarball but were present
+in every developer's working tree as untracked files.
+
+### Fixed
+
+- **v2.1.0 source tarball was missing two untracked files** required
+  by the `ui-build` stage of `ops/docker-v2/Dockerfile`:
+  - `scripts/refresh-case-roles.sh` — regenerates the
+    build-time role map from `references/testcases/`.
+  - `apps/conformance-v2/web/src/lib/data/case-roles.json` — the
+    317-entry map itself, imported by `roles.ts` at `tsc` time.
+  Both files are gitignored (the `data/` pattern in `.gitignore`
+  covered the JSON, and the script was created in the working tree
+  and never `git add`-ed). As a result a clean tarball extraction
+  of v2.1.0 failed the SPA build with
+  `TS2307: Cannot find module "./data/case-roles.json"`. The
+  v2.1.0 release notes documented an inline `node -e` workaround;
+  v2.1.1 removes the need for any workaround by shipping the files.
+
+- **Packaging shape**:
+  - Tracked `scripts/refresh-case-roles.sh` and the generated
+    `case-roles.json` (the script regenerates the JSON in 0.2s).
+  - Narrowed `.gitignore` to ignore `apps/web/data/` explicitly
+    (the v0.1.0 runtime data dir) instead of the blanket `data/`
+    pattern, so the committed v2 webapp data file is not ignored.
+  - Wired `refresh-case-roles.sh` into the `ui-build` stage of
+    `ops/docker-v2/Dockerfile` so the JSON is always in sync with
+    the catalog at build time (added `apk add --no-cache bash` to
+    that stage — `node:22-alpine` ships only busybox ash).
+  - Added a `"prebuild": "bash ../../../scripts/refresh-case-roles.sh"`
+    script to `apps/conformance-v2/web/package.json` so npm-style
+    consumers and local `npm run build` also refresh the JSON.
+  - Bumped `IMAGE_VERSION` to `2.1.1`, the web `package.json`
+    `version` to `2.1.1`, the `docker-compose.yml` `image:` tags
+    to `vc-conformance-v2:2.1.1`, and the `CONFORMANCE_V2_VERSION`
+    env var to `2.1.1` (so the server's `/api/health` agrees with
+    the tag).
+  - Updated `README.md` quick-start to point at v2.1.1.
+
+### Verification
+
+- `git ls-tree -r v2.1.1` includes
+  `apps/conformance-v2/web/src/lib/data/case-roles.json` (317
+  cases: 90 issuer, 26 verifier, 95 wallet, 71 multi, 35 resolver)
+  and `scripts/refresh-case-roles.sh`.
+- `bash ops/smoke/v2-cli.sh` passes from a clean
+  `vc-conformance-v2-2.1.1.tar.gz` extraction (317/317 cases pass
+  against the in-process mock; all three report formats written).
+- `bash ops/smoke/v2-server.sh` passes from the same clean
+  extraction (image builds, container starts, `/api/health`
+  returns `version: 2.1.1`, SPA served at `GET /`, full run
+  completes, JSON / JUnit / HTML reports downloadable).
+- `npm run test --prefix apps/conformance-v2/web` — 51/51 pass.
+
+### Known limitations
+
+- v2.1.1 inherits the v2.1.0 source-only distribution; no GHCR
+  image is published. The board's `skip_ghcr` decision on
+  [MAS-278](/MAS/issues/MAS-278) still applies.
+- The HTTP server has no built-in auth; do not expose port 8080
+  to the public internet without a reverse proxy that handles
+  auth. Inherited from v2.0.0.
+
 ## v2.1.0 — 2026-06-11
 
 Built on [MAS-302](/MAS/issues/MAS-302) "Update V2.1 Web UI". Ships
