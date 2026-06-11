@@ -1,0 +1,9 @@
+id: IT.PV.AU.H.V.VB.QRP.001
+name: Present VP - QR-driven submission round-trip (response_uri honoured)
+operation: Present VP — Authorization
+eut: verifier
+suite: verifier
+behavior: valid
+kind: live
+sourceFile: conformance-testcase-corrected.md
+specRef: OID4VP 1.0 Final §5.1 (response_uri) + §6.1 (vp_token type kb+jwt, aud=client_id)

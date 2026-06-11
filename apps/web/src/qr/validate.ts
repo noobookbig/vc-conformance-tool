@@ -92,6 +92,20 @@ function validatePresentationRequestQr(flow: QrValidationFlow, payload: string):
   const clientId = url.value.searchParams.get('client_id')?.trim();
   if (!clientId) return invalid(flow, 'VP QR must include client_id');
 
+  const details: Record<string, unknown> = { client_id: clientId };
+
+  // MAS-312.A: surface `response_uri` when the QR carries one. Per
+  // OID4VP 1.0 §5.1 the verifier MAY pin the response endpoint in
+  // the request; honouring it keeps the wallet from re-deriving a
+  // default. Optional — older verifiers omit it and the runner
+  // falls back to `${targetVerifier}/response`.
+  const responseUri = url.value.searchParams.get('response_uri')?.trim();
+  if (responseUri) {
+    const parsedUri = parseAbsoluteHttpUrl(responseUri);
+    if (!parsedUri.ok) return invalid(flow, 'response_uri must be an absolute http(s) URL', { response_uri: responseUri });
+    details.response_uri = parsedUri.value.toString();
+  }
+
   const responseType = url.value.searchParams.get('response_type')?.trim();
   if (responseType && !responseType.split(/\s+/).includes('vp_token')) {
     return invalid(flow, 'response_type must include vp_token', { response_type: responseType });
@@ -103,8 +117,6 @@ function validatePresentationRequestQr(flow: QrValidationFlow, payload: string):
   if (!requestUri && !dcqlQueryRaw && !presentationDefinitionRaw) {
     return invalid(flow, 'VP QR must include request_uri, dcql_query, or presentation_definition');
   }
-
-  const details: Record<string, unknown> = { client_id: clientId };
 
   if (requestUri) {
     const parsed = parseAbsoluteUrlOrUrn(requestUri);

@@ -18,12 +18,14 @@
  *   GET  /api/report/logo.svg        → same logo, no run id
  *   POST /api/wallet/keys/regenerate → issue a fresh key pair
  *   GET  /api/wallet/keys            → current key metadata (no private material)
+ *   POST /api/qr/validate            → parse a QR payload (any of the 3 flows)
+ *   POST /api/qr/send-vp             → parse + sign + POST a VP from a QR (MAS-312.A)
  */
 
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { CATALOG, listForMode } from '../wallet/catalog.js';
-import { runConformance, summarize, type RunRequest, type RunStore, type Report } from '../runners/runner.js';
+import { runConformance, runConformanceQrVp, summarize, type RunRequest, type RunStore, type Report } from '../runners/runner.js';
 import { toHtml, toJson } from '../report/serialize.js';
 import { toCsv } from '../report/csv.js';
 import { diffReports } from '../report/diff.js';
@@ -51,6 +53,22 @@ const ConfigSchema = z.object({
 const QrValidationSchema = z.object({
   flow: z.enum(['receive-vc-offer', 'receive-vp-request', 'send-vp-request']),
   payload: z.string().min(1),
+});
+
+/**
+ * MAS-312.A: VP-via-QR submission. Body shape mirrors the runner entry
+ * point so the UI (MAS-312.B) and the QA fixture (MAS-312.C) can call
+ * either the HTTP endpoint or the runner function with the same
+ * payload. Only `qrPayload` + `targetVerifier` are required; the rest
+ * override the QR-internal values when the tester wants to drive a
+ * specific credential configuration or DCQL query.
+ */
+const QrSendVpSchema = z.object({
+  qrPayload: z.string().min(1),
+  targetVerifier: z.string().url().or(z.literal('').transform(() => undefined)),
+  credentialConfigurationId: z.string().min(1).optional(),
+  dcqlQuery: z.unknown().optional(),
+  state: z.string().min(1).optional(),
 });
 
 interface ServerDeps {
@@ -145,6 +163,46 @@ export async function registerApiRoutes(app: FastifyInstance, deps: ServerDeps):
     const result = validateQrPayload(parsed.data.flow, parsed.data.payload);
     if (!result.ok) return reply.code(400).send(result);
     return result;
+  });
+
+  // MAS-312.A: parse a "send-vp-request" QR, build a VP, and POST it
+  // to the verifier. Returns the verifier's HTTP status + body on a
+  // happy path, and a structured failure envelope on any pre-flight
+  // or verifier-side error. The 502 status on a verifier 4xx mirrors
+  // the way a real wallet would surface the issue: the wire is fine,
+  // but the counter-party rejected the submission.
+  app.post('/api/qr/send-vp', async (req, reply) => {
+    const parsed = QrSendVpSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ ok: false, error: 'invalid_request', details: parsed.error.issues });
+    }
+    const { qrPayload, targetVerifier, dcqlQuery, state } = parsed.data;
+    if (!targetVerifier) {
+      return reply.code(400).send({ ok: false, error: 'target_verifier_required' });
+    }
+    const result = await runConformanceQrVp({ qrPayload, targetVerifier, dcqlQuery, state });
+    if (!result.ok) {
+      // `verifier_rejected` means the wire call happened but the
+      // verifier returned 4xx/5xx. Surface that as 502 so callers can
+      // distinguish "we never sent anything" (400) from "we sent it
+      // and it was rejected" (502). The structured body keeps the
+      // verifier's response so the UI can show it.
+      const httpStatus = result.error === 'verifier_rejected' ? 502 : 400;
+      return reply.code(httpStatus).send({
+        ok: false,
+        error: result.error,
+        status: (result.details as { status?: number } | undefined)?.status,
+        details: result.details,
+      });
+    }
+    return reply.send({
+      ok: true,
+      status: result.status,
+      response: result.response,
+      vpToken: result.vpToken,
+      sentTo: result.sentTo,
+      evidence: result.evidence,
+    });
   });
 
   app.get('/api/runs', async () => {

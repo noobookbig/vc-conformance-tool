@@ -8,9 +8,11 @@
  *   3) Collect TestResults, compute summary, and return a Report.
  */
 
+import { SignJWT, type JWK, type KeyLike } from 'jose';
 import { listForMode } from '../wallet/catalog.js';
-import type { TestCase, TestResult, RunContext, Mode, IssuerMetadata } from '../wallet/types.js';
+import type { TestCase, TestResult, RunContext, Mode, IssuerMetadata, DCQLQuery } from '../wallet/types.js';
 import { generateCodeVerifier, codeChallengeS256, randomNonce, generateWalletKey } from '../crypto/keys.js';
+import { validateQrPayload } from '../qr/validate.js';
 
 export type { Mode, IssuerMetadata, TestResult, RunContext } from '../wallet/types.js';
 
@@ -465,6 +467,181 @@ function syntheticValueFor(key: string, datatype: string | undefined): string {
   if (datatype === 'NUMBER' || datatype === 'COUNT') return '0';
   if (datatype === 'BOOLEAN') return 'true';
   return 'test-value';
+}
+
+/* ----------------------- MAS-312.A: VP-via-QR submission ----------------------- */
+
+/**
+ * Shape the runner entry point for the "send-vp-request" flow.
+ *
+ * A tester scans an `openid4vp://` QR with a phone wallet and the wallet
+ * POSTs a signed vp_token to the verifier. The conformance tool needs
+ * to drive the same path on behalf of the wallet simulator, so this
+ * function takes a QR payload, parses it, builds a KB-JWT that
+ * satisfies the embedded dcql_query / presentation_definition, and
+ * POSTs it to the verifier's response_uri.
+ *
+ * Distinct from `runConformance` (which runs the catalog of test
+ * cases). This function is the wire-level one-shot used by the UI
+ * (MAS-312.B) and the QA suite (MAS-312.C). It never fails the way
+ * the catalog does — it always returns a structured result so the
+ * HTTP endpoint can shape the JSON response.
+ */
+export interface QrVpRequest {
+  /** The full `openid4vp://` QR payload. */
+  qrPayload: string;
+  /**
+   * The verifier base URL. The endpoint extracts the `response_uri`
+   * from the QR; `targetVerifier` is only used as a base for
+   * resolving a relative `response_uri` and for surfacing the
+   * target in the error envelope.
+   */
+  targetVerifier: string;
+  /** Optional DCQL override; falls back to the one in the QR. */
+  dcqlQuery?: unknown;
+  /** Optional state to bind the response to. */
+  state?: string;
+}
+
+export type QrVpResult =
+  | { ok: true; status: number; response: unknown; vpToken: string; sentTo: string; evidence: Record<string, unknown> }
+  | { ok: false; error: string; details?: Record<string, unknown> };
+
+/**
+ * Sign a KB-JWT for the VP submission step (typ=kb+jwt, aud=client_id).
+ * The existing `buildKbJwt` helper is locked to `openid4vci-proof+jwt`
+ * (OID4VCI §7.2.1), so we sign directly here. Per OID4VP 1.0 §6.1
+ * the vp_token IS a KB-JWT, and the `aud` claim MUST be the
+ * `client_id` of the verifier.
+ */
+async function buildVpKbJwt(opts: {
+  key: import('../crypto/keys.js').WalletKey;
+  audience: string;
+  nonce: string;
+  iat?: number;
+}): Promise<string> {
+  const iat = Math.floor((opts.iat ?? Date.now()) / 1000);
+  const { importJWK } = await import('jose');
+  const joseAlg = opts.key.alg === 'ES256' ? 'ES256' : 'EdDSA';
+  const priv = await importJWK(opts.key.privateJwk as JWK, joseAlg);
+  return await new SignJWT({
+    iss: opts.key.kid,
+    aud: opts.audience,
+    nonce: opts.nonce,
+    iat,
+  })
+    .setProtectedHeader({ alg: joseAlg, typ: 'kb+jwt', kid: opts.key.kid })
+    .sign(priv as KeyLike | Uint8Array);
+}
+
+/** Resolve the verifier's `response_uri` from the parsed QR. Falls
+ *  back to `${targetVerifier}/response` when the QR does not carry
+ *  one (the in-process mock verifier lives at that path; real
+ *  verifiers always advertise it). */
+function resolveResponseUri(parsed: { details: Record<string, unknown>; normalizedUrl: string }, targetVerifier: string): string {
+  const direct = parsed.details.response_uri;
+  if (typeof direct === 'string' && direct.length > 0) {
+    return new URL(direct).toString();
+  }
+  // Reconstruct from the QR client_id (a `redirect_uri` in OID4VP terms)
+  // so we honour the verifier's actual response endpoint, not a hard-coded
+  // suffix. Strip a trailing `/authorize` from the parsed URL because the
+  // `openid4vp://` request line uses `/authorize` as the path while the
+  // real `response_uri` is the verifier base.
+  try {
+    const base = new URL(parsed.normalizedUrl);
+    const path = base.pathname === '/authorize' || base.pathname === '/' ? '' : base.pathname;
+    const client = new URL(targetVerifier);
+    return `${client.protocol}//${client.host}${path || ''}/response`.replace(/\/+$/, '/response');
+  } catch {
+    const base = targetVerifier.replace(/\/$/, '');
+    return `${base}/response`;
+  }
+}
+
+/**
+ * Run the VP-via-QR flow end-to-end: parse → sign → POST to verifier.
+ *
+ * The shape is deliberately narrow: callers either get a structured
+ * success (`ok: true` with the captured HTTP response) or a structured
+ * failure (`ok: false` with an error code and any verifier-supplied
+ * details). The HTTP endpoint in `routes/api.ts` reshapes this to its
+ * own JSON contract.
+ */
+export async function runConformanceQrVp(req: QrVpRequest): Promise<QrVpResult> {
+  const parsed = validateQrPayload('send-vp-request', req.qrPayload);
+  if (!parsed.ok) {
+    return { ok: false, error: parsed.error, details: { ...(parsed.details ?? {}), stage: 'parse' } };
+  }
+  if (parsed.kind !== 'vp_request') {
+    return { ok: false, error: 'unsupported_qr_kind', details: { kind: parsed.kind } };
+  }
+  const clientId = String(parsed.details.client_id ?? '');
+  if (!clientId) {
+    return { ok: false, error: 'missing_client_id', details: { stage: 'parse' } };
+  }
+  const dcqlQuery = (req.dcqlQuery ?? parsed.details.dcql_query) as DCQLQuery | undefined;
+  if (!dcqlQuery || !Array.isArray(dcqlQuery.credentials) || dcqlQuery.credentials.length === 0) {
+    return { ok: false, error: 'missing_dcql_query', details: { stage: 'parse' } };
+  }
+
+  const responseUri = resolveResponseUri(parsed, req.targetVerifier);
+  const nonce = randomNonce(12);
+  const state = req.state ?? randomNonce(8);
+
+  // Sign the KB-JWT (vp_token). We reuse the same key shape the rest
+  // of the runner uses so the QA report can correlate the
+  // submission with the wallet key the conformance tool exposes
+  // under `/api/wallet/keys`.
+  const key = await generateWalletKey('ES256');
+  const vpToken = await buildVpKbJwt({ key, audience: clientId, nonce });
+
+  const body = {
+    vp_token: vpToken,
+    dcql_query: dcqlQuery,
+    state,
+    client_id: clientId,
+  };
+  let res: Response;
+  try {
+    res = await fetch(responseUri, {
+      method: 'POST',
+      headers: { accept: 'application/json', 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch (e) {
+    return {
+      ok: false,
+      error: 'verifier_unreachable',
+      details: { sentTo: responseUri, message: (e as Error).message },
+    };
+  }
+
+  const text = await res.text();
+  let responseBody: unknown = text;
+  try { responseBody = JSON.parse(text); } catch { /* keep as text */ }
+
+  if (!res.ok) {
+    return {
+      ok: false,
+      error: 'verifier_rejected',
+      details: { sentTo: responseUri, status: res.status, response: responseBody },
+    };
+  }
+
+  return {
+    ok: true,
+    status: res.status,
+    response: responseBody,
+    vpToken,
+    sentTo: responseUri,
+    evidence: {
+      qr: { flow: parsed.flow, client_id: clientId, dcql_query: dcqlQuery },
+      request: { method: 'POST', url: responseUri, body },
+      response: { status: res.status, body: responseBody },
+      key: { alg: key.alg, kid: key.kid, thumbprint: key.thumbprint },
+    },
+  };
 }
 
 export async function runConformance(req: RunRequest, opts: RunOptions = {}): Promise<Report> {

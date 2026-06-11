@@ -127,7 +127,7 @@ describe('filterCatalogByRole', () => {
 
 /**
  * Integration test against the real shipped catalog. These counts are
- * the public contract for the role-filter feature: 90 issuer, 26
+ * the public contract for the role-filter feature: 90 issuer, 27
  * verifier, 95 wallet (holder). If the corrected spec is regenerated
  * and the counts change, this test should be updated to match the
  * new spec — and the CHANGELOG should call out the count change.
@@ -145,12 +145,12 @@ describe('filterCatalogByRole — real shipped catalog', () => {
     cases = loadCatalog(catalogDir);
   });
 
-  it('ships exactly 90 live issuer cases, 26 live verifier cases, 95 live holder (wallet) cases', () => {
+  it('ships exactly 90 live issuer cases, 27 live verifier cases, 95 live holder (wallet) cases', () => {
     const liveIssuer = cases.filter((c) => c.kind === 'live' && c.eut === 'issuer').length;
     const liveVerifier = cases.filter((c) => c.kind === 'live' && c.eut === 'verifier').length;
     const liveHolder = cases.filter((c) => c.kind === 'live' && c.eut === 'holder').length;
     expect(liveIssuer).toBe(90);
-    expect(liveVerifier).toBe(26);
+    expect(liveVerifier).toBe(27);
     expect(liveHolder).toBe(95);
   });
 
@@ -163,9 +163,9 @@ describe('filterCatalogByRole — real shipped catalog', () => {
     }
   });
 
-  it('role=verifier returns the 26 live verifier cases; no other roles leak in', () => {
+  it('role=verifier returns the 27 live verifier cases; no other roles leak in', () => {
     const verifier = filterCatalogByRole(cases, 'verifier');
-    expect(verifier).toHaveLength(26);
+    expect(verifier).toHaveLength(27);
     for (const tc of verifier) {
       expect(tc.kind).toBe('live');
       expect(tc.eut).toBe('verifier');
@@ -181,16 +181,16 @@ describe('filterCatalogByRole — real shipped catalog', () => {
     }
   });
 
-  it('role filter sum (90+26+95 = 211) leaves multi + coverage cases for the default run', () => {
+  it('role filter sum (90+27+95 = 212) leaves multi + coverage cases for the default run', () => {
     const issuer = filterCatalogByRole(cases, 'issuer');
     const verifier = filterCatalogByRole(cases, 'verifier');
     const wallet = filterCatalogByRole(cases, 'wallet');
     const roleTotal = issuer.length + verifier.length + wallet.length;
     const multi = cases.filter((c) => c.kind === 'live' && c.eut === 'multi').length;
-    expect(roleTotal).toBe(211);
+    expect(roleTotal).toBe(212);
     expect(multi).toBe(6);
     // The default (un-filtered) run still executes everything.
-    expect(cases.length).toBe(317);
+    expect(cases.length).toBe(318);
   });
 });
 

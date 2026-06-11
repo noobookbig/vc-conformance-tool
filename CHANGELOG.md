@@ -6,6 +6,80 @@ This project does **not** yet follow SemVer strictly; the major version
 identifies the conformance-test generation (v0.1.0 was the original
 webapp, v2.0.0 is the new engine + UI + server stack).
 
+## Unreleased — MAS-312.A
+
+Backend slice for the VP-via-QR submission flow ([MAS-312](/MAS/issues/MAS-312)).
+No UI changes here (those land in [MAS-312.B](/MAS/issues/MAS-312.B));
+no new wallet credential types (existing ThaiNationalID/ThaiUniversityDegree
+mocks are reused); no conformance against an external EUT (cross-mode
+smoke is enough).
+
+### Added
+
+- **`POST /api/qr/send-vp`** in `apps/web/src/routes/api.ts`. Accepts a
+  `send-vp-request` QR payload, parses it via the existing
+  `validateQrPayload` helper, builds a KB-JWT (typ `kb+jwt`, `aud =
+  client_id`) that satisfies the embedded `dcql_query`, and POSTs the
+  VP to the verifier's `response_uri`. Returns
+  `{ ok: true, status, response, vpToken, sentTo, evidence }` on a
+  verifier 2xx, and `{ ok: false, error, status?, details? }` on any
+  pre-flight or verifier-side error. A verifier 4xx surfaces as
+  HTTP 502 (Bad Gateway) so the UI can distinguish "we never sent
+  anything" (400) from "we sent it and it was rejected" (502). The
+  `details.evidence` block carries the QR metadata, the request line
+  + body, and the verifier's response so the QA report can render a
+  full transaction trace.
+
+- **`runConformanceQrVp` runner entry point** in
+  `apps/web/src/runners/runner.ts`. Distinct from `runConformance`
+  (which runs the catalog of test cases) — this is the wire-level
+  one-shot used by the new HTTP endpoint, the UI
+  ([MAS-312.B](/MAS/issues/MAS-312.B)), and the QA fixture
+  ([MAS-312.C](/MAS/issues/MAS-312.C)). Always returns a structured
+  `QrVpResult` (`ok: true` or `ok: false`) so callers never have to
+  translate an exception into a JSON contract.
+
+- **`response_uri` support in `validateQrPayload`** —
+  `apps/web/src/qr/validate.ts` now surfaces `response_uri` from the
+  QR query string when present (per OID4VP 1.0 §5.1 the verifier MAY
+  pin the response endpoint in the request). The runner honours it
+  and falls back to `${targetVerifier}/response` when the QR omits
+  it. Existing `validateQrPayload` consumers see a new optional
+  `details.response_uri` field — purely additive, no breaking change.
+
+- **New YAML catalog case** `IT.PV.AU.H.V.VB.QRP.001` in
+  `references/testcases/`. `eut: verifier`, `suite: verifier`,
+  `kind: live`. Asserts the VP-via-QR round-trip per
+  OID4VP 1.0 §5.1 + §6.1. The new case brings the live catalog
+  to 218 live / 100 coverage (well under the 50% guard). The
+  `role-filter` test in `apps/conformance-v2/test/role-filter.test.ts`
+  is updated to reflect the +1 verifier role entry.
+
+### Tests
+
+- `apps/web/test/qr-send-vp.test.ts` (new file, 8 tests):
+  - happy-path VP round-trip against an in-process verifier
+  - custom `response_uri` honoured when the QR carries one
+  - 400 on a malformed QR (missing `client_id`) without contacting the verifier
+  - 400 on a QR that omits `request_uri` / `dcql_query` / `presentation_definition`
+  - 502 on a verifier 4xx response
+  - `runConformanceQrVp` standalone: happy path
+  - `runConformanceQrVp` standalone: invalid-QR failure
+  - `validateQrPayload` exposes `client_id` + `dcql_query` on a `send-vp-request` QR
+
+- `apps/conformance-v2/test/qr-send-vp-catalog.test.ts` (new file,
+  2 tests): loads the real `references/testcases/` directory and
+  asserts the new case is present, well-formed, and survives the
+  loader's >50% coverage guard.
+
+- `apps/conformance-v2/test/role-filter.test.ts`: updated the
+  hard-coded counts (90 issuer, 27 verifier, 95 wallet) to reflect
+  the new live verifier case.
+
+  10 new tests on top of the 118 pre-existing web tests
+  and 82 pre-existing v2 tests (128/128 in `apps/web/test/`,
+  84/84 in `apps/conformance-v2/test/`).
+
 ## v2.1.3 — 2026-06-11
 
 Behaviour follow-up to [MAS-305](/MAS/issues/MAS-305) for the
