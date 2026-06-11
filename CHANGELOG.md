@@ -6,6 +6,81 @@ This project does **not** yet follow SemVer strictly; the major version
 identifies the conformance-test generation (v0.1.0 was the original
 webapp, v2.0.0 is the new engine + UI + server stack).
 
+## v2.1.3 — 2026-06-11
+
+Behaviour follow-up to [MAS-305](/MAS/issues/MAS-305) for the
+residual user-reported symptom in [MAS-303](/MAS/issues/MAS-303).
+The v2 web UI's "Run log" and the per-case evidence download
+now render the **actual HTTP transaction** (request method + URL,
+response status + body) for every case — not the
+`{"mock": true, "id": "..."}` placeholder the previous fix left
+behind. No breaking API / wire change: `Report.results[*]` and
+the SSE `case.passed` / `case.failed` payloads gain a new
+non-breaking `evidence: { request, response, mock? }` field;
+the existing `responseBody` field is preserved for backward
+compatibility (it is still the captured response body, exactly
+as MAS-305 left it).
+
+### Changed
+
+- **v2 runner / CLI / server now produce structured `evidence`
+  for every case.** `apps/conformance-v2/src/runner.ts`
+  carries the new optional `evidence` field through on the
+  `case.passed` (analogous to the MAS-305 fix for `responseBody`),
+  `case.skipped`, and `case.failed` branches. `makeServerRunCase`
+  in `apps/conformance-v2/src/server.ts` and `makeRunCase` in
+  `apps/conformance-v2/src/cli.ts` build the object for both
+  the real HTTP path (capturing the request line + status +
+  response body) and the in-process mock path (rendering
+  `<in-process-mock> /case/<id>` as the URL and a `note: "answered
+  by the in-process mock; no HTTP request was sent"` body, with
+  `mock: true`). The CLI's `report.json`, the server's
+  `/api/runs/:id/report?format=json`, and the per-case
+  `/api/runs/:id/evidence/:caseId` download all surface the
+  structured object.
+
+- **v2 web UI renders the request line + response body in the
+  inline "Run log" collapsible.** `apps/conformance-v2/web/src/components/CaseRow.tsx`
+  adds a request line (`GET <url>`) above the response body,
+  with a small `in-process mock` badge when `evidence.mock === true`.
+  `apps/conformance-v2/web/src/components/StopOnErrorBanner.tsx`
+  threads the same evidence through to the banner's copy-able
+  body so the operator sees the full transaction (request line +
+  status + body) for the failing case, not just the response
+  body. The structured evidence also flows through
+  `useRunStream` (so the live SSE view renders the same) and
+  `ReportRoute` (so the post-run report view renders the same).
+  A new `.case-log-request` / `.case-log-method` / `.case-log-url`
+  / `.case-log-mock` CSS block in
+  `apps/conformance-v2/web/src/styles.css` styles the request
+  line and the mock badge.
+
+- **v2 HTML report writer** now emits a `<details>` "request/response"
+  block on every passing case row (in addition to the existing
+  failure-detail block on failed rows), so the
+  `report.html` download also surfaces the structured transaction.
+
+### Tests
+
+- `apps/conformance-v2/test/stop-on-error.test.ts`:
+  - `'a passing case row preserves structured evidence (MAS-306 follow-up)'`
+  - `'a failing case row preserves structured evidence (MAS-306 follow-up)'`
+  - `'a skipped case row preserves structured evidence (MAS-306 follow-up)'`
+  - `'a passing case without evidence still records status but no evidence (MAS-306 follow-up)'`
+- `apps/conformance-v2/test/server.api.test.ts`:
+  - `case.passed` payload now asserted to carry `evidence` (in addition
+    to the legacy `responseStatus` / `responseBody`).
+  - per-case `/api/runs/:id/evidence/:caseId` log now asserted to
+    include the `request:` / `response:` / `mock:` lines and the
+    JSON body.
+- `apps/conformance-v2/web/test/CaseRow.test.tsx`:
+  - `'renders the request line and response body from structured evidence (MAS-306 follow-up)'`
+  - `'shows an "in-process mock" badge on the request line when evidence.mock is true (MAS-306 follow-up)'`
+
+  7 new tests on top of the 76 pre-existing v2 server tests and
+  51 pre-existing v2 web tests (83/83 in `apps/conformance-v2/test/`,
+  53/53 in `apps/conformance-v2/web/test/`).
+
 ## v2.1.2 — 2026-06-11
 
 Behaviour fix on [MAS-305](/MAS/issues/MAS-305) for the user-reported

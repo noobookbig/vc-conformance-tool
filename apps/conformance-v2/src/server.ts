@@ -197,8 +197,18 @@ function resolveWebDist(explicit: string | undefined): string | null {
  *  carry the `responseBody` through (the engine's RunnerEvent does not
  *  include the body — the server captures it in the runCase wrapper and
  *  looks it up at reshape time).
+ *
+ *  MAS-306 follow-up: the optional `evidenceFor` map carries the
+ *  structured request/response (see `CaseEvidence`). The UI's "Run
+ *  log" renders `evidence` so the operator sees the actual HTTP
+ *  transaction — request line, status, body — instead of the legacy
+ *  `{"mock": true, "id": "..."}` placeholder.
  */
-function reshapeEvent(e: RunnerEvent, bodyFor?: Map<string, unknown>): SseEvent {
+function reshapeEvent(
+  e: RunnerEvent,
+  bodyFor?: Map<string, unknown>,
+  evidenceFor?: Map<string, unknown>,
+): SseEvent {
   switch (e.type) {
     case 'run.started':
       return { name: 'run.started', data: { total: e.total, target: e.target } };
@@ -211,6 +221,7 @@ function reshapeEvent(e: RunnerEvent, bodyFor?: Map<string, unknown>): SseEvent 
           status: 'passed',
           responseStatus: e.responseStatus,
           responseBody: bodyFor?.get(e.id),
+          evidence: evidenceFor?.get(e.id),
           durationMs: e.durationMs,
         },
       };
@@ -223,6 +234,7 @@ function reshapeEvent(e: RunnerEvent, bodyFor?: Map<string, unknown>): SseEvent 
           status: 'failed',
           responseStatus: e.responseStatus,
           responseBody: bodyFor?.get(e.id),
+          evidence: evidenceFor?.get(e.id),
           message: e.message,
           durationMs: e.durationMs,
         },
@@ -253,23 +265,55 @@ function reshapeEvent(e: RunnerEvent, bodyFor?: Map<string, unknown>): SseEvent 
 /** Build a runCase function for the server. Mirrors the CLI's behavior:
  *  when useMock is true (or no real target is configured), the in-process
  *  mock returns passed=true. Otherwise it hits the target.
+ *
+ *  MAS-306 follow-up: every call (real or mock) returns a structured
+ *  `evidence` object capturing the request line (method + URL) and the
+ *  response side (status + body). The v2 web UI's "Run log" renders
+ *  this so the operator sees the actual HTTP transaction, not just
+ *  `{"mock": true, "id": "..."}`. The legacy `responseBody` field is
+ *  preserved for backward compatibility — it is still the captured
+ *  response body, exactly as MAS-305 left it.
  */
 function makeServerRunCase(target: RunTarget, useMock: boolean): (tc: TestCase) => Promise<CaseRunResult> {
   if (useMock) {
-    return async (tc) => ({
-      passed: true,
-      responseStatus: 200,
-      responseBody: { mock: true, id: tc.id },
-      message: 'in-process mock',
-    });
+    return async (tc) => {
+      const requestUrl = `<in-process-mock> /case/${encodeURIComponent(tc.id)}`;
+      return {
+        passed: true,
+        responseStatus: 200,
+        responseBody: { mock: true, id: tc.id },
+        message: 'in-process mock',
+        evidence: {
+          request: { method: 'GET', url: requestUrl },
+          response: {
+            status: 200,
+            body: {
+              mock: true,
+              id: tc.id,
+              note: 'answered by the in-process mock; no HTTP request was sent',
+            },
+          },
+          mock: true,
+        },
+      };
+    };
   }
   return async (tc) => {
     const baseUrl = target.issuerMetadataUrl ?? target.targetIssuer ?? target.targetVerifier;
     if (!baseUrl) {
-      return { passed: false, message: 'no target configured and useMock is false', responseStatus: 0 };
+      return {
+        passed: false,
+        message: 'no target configured and useMock is false',
+        responseStatus: 0,
+        evidence: {
+          request: { method: 'GET', url: '(no baseUrl configured)' },
+          response: { status: 0, body: { error: 'no target configured' } },
+        },
+      };
     }
+    const requestUrl = `${baseUrl.replace(/\/$/, '')}/case/${encodeURIComponent(tc.id)}`;
     try {
-      const res = await httpRequest(`${baseUrl.replace(/\/$/, '')}/case/${encodeURIComponent(tc.id)}`, {
+      const res = await httpRequest(requestUrl, {
         method: 'GET',
         timeoutMs: 5000,
       });
@@ -278,12 +322,23 @@ function makeServerRunCase(target: RunTarget, useMock: boolean): (tc: TestCase) 
         responseStatus: res.status,
         responseBody: res.body,
         message: res.status >= 200 && res.status < 300 ? 'ok' : `HTTP ${res.status}`,
+        evidence: {
+          request: { method: 'GET', url: requestUrl },
+          response: { status: res.status, headers: res.headers, body: res.body },
+        },
       };
     } catch (err) {
       return {
         passed: false,
         message: err instanceof HttpError ? `${err.kind}: ${err.message}` : (err as Error).message,
         responseStatus: 0,
+        evidence: {
+          request: { method: 'GET', url: requestUrl },
+          response: {
+            status: 0,
+            body: { error: err instanceof HttpError ? `${err.kind}: ${err.message}` : (err as Error).message },
+          },
+        },
       };
     }
   };
@@ -313,14 +368,14 @@ export async function buildApp(opts: ServerOptions): Promise<{ app: FastifyInsta
 
   // ----- Liveness + SPA placeholder ----------------------------------
   // The reported version is the active image version. Falls back to
-  // '2.1.2' when CONFORMANCE_V2_VERSION is unset (local dev), so the
-  // header reads "v2.1.2" in the UI regardless of how the server was
+  // '2.1.3' when CONFORMANCE_V2_VERSION is unset (local dev), so the
+  // header reads "v2.1.3" in the UI regardless of how the server was
   // started. The Dockerfile pins the build-arg to the same string, so
   // docker-compose and the health endpoint always agree.
   app.get('/api/health', async () => ({
     status: 'ok',
     service: 'conformance-v2',
-    version: process.env.CONFORMANCE_V2_VERSION ?? '2.1.2',
+    version: process.env.CONFORMANCE_V2_VERSION ?? '2.1.3',
   }));
 
   // Resolve the SPA dist directory. When present we register the static
@@ -545,7 +600,14 @@ export async function buildApp(opts: ServerOptions): Promise<{ app: FastifyInsta
 /** Render the per-case evidence log. Pure function — kept here so the
  *  route handler stays a one-liner. The output is intentionally
  *  `text/plain` so it opens in a terminal, an editor, or a browser tab
- *  without a JSON viewer. */
+ *  without a JSON viewer.
+ *
+ *  MAS-306 follow-up: when the case row carries a structured
+ *  `evidence` object (request + response), the log includes the
+ *  request line first so the operator can see what was actually
+ *  sent. The legacy `responseBody` block is kept below for backward
+ *  compatibility with anyone diffing the .log files between
+ *  versions. */
 function toCaseEvidence(
   runId: string,
   result: {
@@ -557,6 +619,11 @@ function toCaseEvidence(
     message?: string;
     responseStatus?: number;
     responseBody?: unknown;
+    evidence?: {
+      request: { method: string; url: string; headers?: Record<string, string> };
+      response: { status: number; headers?: Record<string, string>; body: unknown };
+      mock?: boolean;
+    };
     durationMs: number;
   },
   runStartedAt: string,
@@ -571,11 +638,20 @@ function toCaseEvidence(
   lines.push(`operation:  ${result.operation}`);
   lines.push(`status:     ${status}`);
   lines.push(`durationMs: ${result.durationMs}`);
-  if (result.responseStatus !== undefined) lines.push(`responseStatus: ${result.responseStatus}`);
-  if (result.message) lines.push(`message:    ${result.message}`);
-  if (result.responseBody !== undefined) {
+  if (result.evidence) {
+    const ev = result.evidence;
+    lines.push(`mock:       ${ev.mock === true ? 'true' : 'false'}`);
+    lines.push(`request:    ${ev.request.method} ${ev.request.url}`);
+    lines.push(`response:   HTTP ${ev.response.status}`);
     lines.push(`responseBody:`);
-    lines.push(JSON.stringify(result.responseBody, null, 2));
+    lines.push(JSON.stringify(ev.response.body, null, 2));
+  } else {
+    if (result.responseStatus !== undefined) lines.push(`responseStatus: ${result.responseStatus}`);
+    if (result.message) lines.push(`message:    ${result.message}`);
+    if (result.responseBody !== undefined) {
+      lines.push(`responseBody:`);
+      lines.push(JSON.stringify(result.responseBody, null, 2));
+    }
   }
   return lines.join('\n') + '\n';
 }
@@ -625,11 +701,18 @@ async function runOne(rec: RunRecord, catalogDir: string, store: RunStore): Prom
 
   // The engine's RunnerEvent does not carry responseBody. We capture it
   // here so the SSE payload (and the report) can include it.
+  //
+  // MAS-306 follow-up: also capture `evidence` (the structured
+  // request/response). The UI's "Run log" renders this so the operator
+  // sees the real HTTP transaction, not the legacy
+  // `{"mock": true, "id": "..."}` placeholder.
   const bodyFor = new Map<string, unknown>();
+  const evidenceFor = new Map<string, unknown>();
   const baseRunCase = makeServerRunCase(rec.config.target, useMock);
   const runCase = async (tc: TestCase): Promise<CaseRunResult> => {
     const res = await baseRunCase(tc);
     if (res.responseBody !== undefined) bodyFor.set(tc.id, res.responseBody);
+    if (res.evidence !== undefined) evidenceFor.set(tc.id, res.evidence);
     return res;
   };
 
@@ -637,7 +720,7 @@ async function runOne(rec: RunRecord, catalogDir: string, store: RunStore): Prom
     catalog: cases,
     runCase,
     target: rec.config.target,
-    emit: (e) => store.append(rec, reshapeEvent(e, bodyFor)),
+    emit: (e) => store.append(rec, reshapeEvent(e, bodyFor, evidenceFor)),
   });
 
   rec.report = report;

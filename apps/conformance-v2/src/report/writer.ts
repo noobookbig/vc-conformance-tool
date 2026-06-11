@@ -126,7 +126,14 @@ export function toReportHtml(report: Report): string {
               (r.responseStatus !== undefined ? `\nstatus: ${r.responseStatus}` : '') +
               (r.responseBody !== undefined ? `\nbody: ${JSON.stringify(r.responseBody, null, 2)}` : '')
           )}</pre></details>`
-        : '';
+        : (r.evidence
+            ? `<details><summary>request/response</summary><pre>${escHtml(
+                `${r.evidence.request.method} ${r.evidence.request.url}\n` +
+                  `HTTP ${r.evidence.response.status}\n` +
+                  (r.evidence.mock === true ? '(in-process mock)\n' : '') +
+                  JSON.stringify(r.evidence.response.body, null, 2)
+              )}</pre></details>`
+            : '');
       return `<tr class="${cls}"><td>${statusBadge(r.passed, r.skipped)}</td><td class="id">${escHtml(r.id)}</td><td>${escHtml(r.name)}</td><td>${escHtml(r.operation)}</td><td>${r.durationMs}ms</td><td>${detail}</td></tr>`;
     })
     .join('\n');

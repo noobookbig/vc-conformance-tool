@@ -47,6 +47,26 @@ export interface CaseRunResult {
   message?: string;
   responseStatus?: number;
   responseBody?: unknown;
+  /**
+   * MAS-306 follow-up: the structured "what was sent and what came back"
+   * record for a case. Distinct from `responseBody`, which is only the
+   * captured HTTP response body. The web UI's "Run log" renders
+   * `evidence` so the operator can see the request line (method + URL)
+   * and the response side-by-side. For the in-process mock, `mock: true`
+   * and the request URL still reflects the would-be real call.
+   */
+  evidence?: CaseEvidence;
+}
+
+/** A single HTTP request/response pair captured for a test case. Kept
+ *  small and JSON-serialisable so the per-case evidence download can
+ *  render it directly. `mock: true` on a real call would be a bug —
+ *  the flag is set only when the engine answered the case from its
+ *  in-process mock fixture. */
+export interface CaseEvidence {
+  request: { method: string; url: string; headers?: Record<string, string> };
+  response: { status: number; headers?: Record<string, string>; body: unknown };
+  mock?: boolean;
 }
 
 export interface RunOptions {
@@ -77,6 +97,7 @@ export interface Report {
     message?: string;
     responseStatus?: number;
     responseBody?: unknown;
+    evidence?: CaseEvidence;
     durationMs: number;
   }>;
   summary: {
@@ -150,6 +171,7 @@ export async function runConformance(opts: RunOptions): Promise<Report> {
           message: res.message,
           responseStatus: res.responseStatus,
           responseBody: res.responseBody,
+          evidence: res.evidence,
           durationMs: caseDuration,
         });
         emit({ type: 'case.skipped', id: tc.id, message: res.message });
@@ -167,6 +189,13 @@ export async function runConformance(opts: RunOptions): Promise<Report> {
         // text for a real target) with no body. The evidence cell on the
         // run results page was effectively "the test case id + a stub
         // message" — the user-visible symptom in MAS-303.
+        //
+        // MAS-306 follow-up: also carry `evidence` (the structured
+        // request + response, including a request URL) on a passed
+        // case. The "Run log" in the v2 web UI now renders the request
+        // line + status + body, so the operator can confirm the test
+        // actually exercised the expected endpoint with the expected
+        // method, instead of seeing `{"mock": true, "id": "..."}`.
         results.push({
           id: tc.id,
           name: tc.name,
@@ -176,6 +205,7 @@ export async function runConformance(opts: RunOptions): Promise<Report> {
           message: res.message,
           responseStatus: res.responseStatus,
           responseBody: res.responseBody,
+          evidence: res.evidence,
           durationMs: caseDuration,
         });
         emit({
@@ -198,6 +228,7 @@ export async function runConformance(opts: RunOptions): Promise<Report> {
         message: res.message,
         responseStatus: res.responseStatus,
         responseBody: res.responseBody,
+        evidence: res.evidence,
         durationMs: caseDuration,
       });
       emit({

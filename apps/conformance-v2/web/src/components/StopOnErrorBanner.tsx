@@ -41,8 +41,15 @@ export function StopOnErrorBanner({
   const expectation = failingCase?.message ?? state.abortedError ?? 'assertion mismatch';
   const responseStatus = failingCase?.responseStatus;
   const responseBody = failingCase?.responseBody;
-  const responseBodyText =
-    responseBody !== undefined ? JSON.stringify(responseBody, null, 2) : '';
+  const evidence = failingCase?.evidence;
+  const responseBodyText = evidence
+    ? `${evidence.request.method} ${evidence.request.url}\n` +
+      `HTTP ${evidence.response.status}\n` +
+      (evidence.mock === true ? '(in-process mock)\n' : '') +
+      JSON.stringify(evidence.response.body, null, 2)
+    : responseBody !== undefined
+      ? JSON.stringify(responseBody, null, 2)
+      : '';
 
   const onCopy = async (): Promise<void> => {
     try {

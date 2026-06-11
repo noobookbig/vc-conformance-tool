@@ -91,21 +91,38 @@ function getOpt(args: string[], flag: string): string | undefined {
  *  exercises an in-process mock (the mock lives in the CLI process).
  *  When a real target is configured, it makes one HTTP call per case
  *  and treats a 2xx as passed.
+ *
+ *  MAS-306 follow-up: every call (real or mock) returns a structured
+ *  `evidence` object capturing the request line (method + URL) and
+ *  the response side. The CLI's `report.json` and `report.html`
+ *  writers surface `evidence` so the operator can confirm what was
+ *  actually sent, instead of seeing the legacy
+ *  `{"mock": true, "id": "..."}` placeholder. The `responseBody`
+ *  field is preserved for backward compatibility.
  */
 function makeRunCase(target: RunTarget, useMock: boolean): (tc: TestCase) => Promise<CaseRunResult> {
   if (useMock) {
-    // In-process mock: the case "passes" if the test case id contains
-    // only the bytes our test fixtures expect. The CLI's mock is the
-    // source of truth for which subset of the catalog can pass without
-    // a real target; in practice the operator can use the same target
-    // URLs as v0.1.0 and the cases will pass when the target behaves
-    // correctly. We default to "pass" so a happy-path run shows green.
-    return async (tc) => ({
-      passed: true,
-      responseStatus: 200,
-      responseBody: { mock: true, id: tc.id },
-      message: 'in-process mock',
-    });
+    return async (tc) => {
+      const requestUrl = `<in-process-mock> /case/${encodeURIComponent(tc.id)}`;
+      return {
+        passed: true,
+        responseStatus: 200,
+        responseBody: { mock: true, id: tc.id },
+        message: 'in-process mock',
+        evidence: {
+          request: { method: 'GET', url: requestUrl },
+          response: {
+            status: 200,
+            body: {
+              mock: true,
+              id: tc.id,
+              note: 'answered by the in-process mock; no HTTP request was sent',
+            },
+          },
+          mock: true,
+        },
+      };
+    };
   }
   return async (tc) => {
     const baseUrl = target.issuerMetadataUrl ?? target.targetIssuer ?? target.targetVerifier;
@@ -114,10 +131,15 @@ function makeRunCase(target: RunTarget, useMock: boolean): (tc: TestCase) => Pro
         passed: false,
         message: 'no target configured and useMock is false',
         responseStatus: 0,
+        evidence: {
+          request: { method: 'GET', url: '(no baseUrl configured)' },
+          response: { status: 0, body: { error: 'no target configured' } },
+        },
       };
     }
+    const requestUrl = `${baseUrl.replace(/\/$/, '')}/case/${encodeURIComponent(tc.id)}`;
     try {
-      const res = await httpRequest(`${baseUrl.replace(/\/$/, '')}/case/${encodeURIComponent(tc.id)}`, {
+      const res = await httpRequest(requestUrl, {
         method: 'GET',
         timeoutMs: 5000,
       });
@@ -126,12 +148,23 @@ function makeRunCase(target: RunTarget, useMock: boolean): (tc: TestCase) => Pro
         responseStatus: res.status,
         responseBody: res.body,
         message: res.status >= 200 && res.status < 300 ? 'ok' : `HTTP ${res.status}`,
+        evidence: {
+          request: { method: 'GET', url: requestUrl },
+          response: { status: res.status, headers: res.headers, body: res.body },
+        },
       };
     } catch (err) {
       return {
         passed: false,
         message: err instanceof HttpError ? `${err.kind}: ${err.message}` : (err as Error).message,
         responseStatus: 0,
+        evidence: {
+          request: { method: 'GET', url: requestUrl },
+          response: {
+            status: 0,
+            body: { error: err instanceof HttpError ? `${err.kind}: ${err.message}` : (err as Error).message },
+          },
+        },
       };
     }
   };

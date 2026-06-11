@@ -229,7 +229,7 @@ describe('v2 server: SSE /api/runs/:id/events', () => {
     expect(['run.completed', 'run.aborted']).toContain(last);
   });
 
-  it('case.passed payload shape is { id, mode, status, responseStatus, responseBody }', async () => {
+  it('case.passed payload shape is { id, mode, status, responseStatus, responseBody, evidence } (MAS-306 follow-up)', async () => {
     const { app } = await buildApp(opts);
     const post = await app.inject({
       method: 'POST',
@@ -248,10 +248,18 @@ describe('v2 server: SSE /api/runs/:id/events', () => {
     const first = blocks[0]!;
     const dataLine = first.split('\n').find((l) => l.startsWith('data:'))!;
     const payload = JSON.parse(dataLine.slice(5).trim());
-    for (const key of ['id', 'status', 'responseStatus', 'responseBody']) {
+    for (const key of ['id', 'status', 'responseStatus', 'responseBody', 'evidence']) {
       expect(payload).toHaveProperty(key);
     }
     expect(payload.status).toBe('passed');
+    // The structured evidence object carries the request line and the
+    // response side, with `mock: true` because the run was against
+    // the in-process mock fixture. This is what the v2 web UI's
+    // "Run log" renders in MAS-306.
+    expect(payload.evidence.request.method).toBe('GET');
+    expect(payload.evidence.request.url).toContain('/case/');
+    expect(payload.evidence.response.status).toBe(200);
+    expect(payload.evidence.mock).toBe(true);
   });
 
   it('run.aborted payload includes abortedAt, error, failedCaseId, status, responseStatus, responseBody when the suite halts', async () => {
@@ -327,7 +335,7 @@ describe('v2 server: GET /api/runs/:id/report', () => {
 });
 
 describe('v2 server: GET /api/runs/:id/evidence/:caseId (MAS-302 v2.1)', () => {
-  it('returns a text/plain evidence log with the per-case response body + status', async () => {
+  it('returns a text/plain evidence log with the per-case request line + status + body (MAS-306 follow-up)', async () => {
     const { app } = await buildApp(opts);
     const post = await app.inject({
       method: 'POST',
@@ -350,7 +358,14 @@ describe('v2 server: GET /api/runs/:id/evidence/:caseId (MAS-302 v2.1)', () => {
     expect(res.headers['content-disposition']).toContain(`evidence-${id}-A.log`);
     expect(res.body).toContain('caseId:     A');
     expect(res.body).toContain('status:     PASS');
-    expect(res.body).toContain('responseStatus: 200');
+    // MAS-306 follow-up: the per-case evidence now includes the
+    // structured request line + status (instead of the legacy
+    // `responseStatus: 200` flat field). The body of the response is
+    // still JSON-stringified below the request line.
+    expect(res.body).toContain('request:    GET <in-process-mock> /case/A');
+    expect(res.body).toContain('response:   HTTP 200');
+    expect(res.body).toContain('mock:       true');
+    expect(res.body).toContain('"id": "A"');
   });
 
   it('returns 404 for a caseId that is not in the report', async () => {

@@ -88,12 +88,26 @@ export function CaseRow({ case: c, role: roleProp, runId }: CaseRowProps): JSX.E
   const hasMessage = Boolean(c.message);
   const hasBody = c.responseBody !== undefined;
   const hasStatus = c.responseStatus !== undefined;
-  const hasLog = isResolved && (hasMessage || hasBody || hasStatus);
+  const hasEvidence = c.evidence !== undefined;
+  const hasLog = isResolved && (hasMessage || hasBody || hasStatus || hasEvidence);
   const showEvidence = Boolean(runId) && isResolved;
 
   const onCopy = async (): Promise<void> => {
     try {
-      const text = c.responseBody !== undefined ? JSON.stringify(c.responseBody, null, 2) : '';
+      // Prefer copying the full transaction (request line + status + body)
+      // when structured evidence is available; fall back to the raw
+      // response body so the legacy copy-on-failed path still works.
+      let text = '';
+      if (c.evidence) {
+        const ev = c.evidence;
+        text =
+          `${ev.request.method} ${ev.request.url}\n` +
+          `HTTP ${ev.response.status}\n` +
+          (ev.mock === true ? '(in-process mock)\n' : '') +
+          JSON.stringify(ev.response.body, null, 2);
+      } else if (c.responseBody !== undefined) {
+        text = JSON.stringify(c.responseBody, null, 2);
+      }
       if (text) {
         await navigator.clipboard.writeText(text);
         setCopied(true);
@@ -158,7 +172,30 @@ export function CaseRow({ case: c, role: roleProp, runId }: CaseRowProps): JSX.E
                   {c.message}
                 </p>
               ) : null}
-              {hasBody ? (
+              {hasEvidence ? (
+                <>
+                  <p
+                    className="case-log-request"
+                    data-testid={`case-log-request-${c.id}`}
+                  >
+                    <span className="case-log-method">
+                      {c.evidence?.request.method}
+                    </span>{' '}
+                    <span className="case-log-url">{c.evidence?.request.url}</span>
+                    {c.evidence?.mock === true ? (
+                      <span
+                        className="case-log-mock"
+                        data-testid={`case-log-mock-${c.id}`}
+                      >
+                        {' '}in-process mock
+                      </span>
+                    ) : null}
+                  </p>
+                  <pre data-testid={`case-log-response-${c.id}`}>
+                    {JSON.stringify(c.evidence?.response.body, null, 2)}
+                  </pre>
+                </>
+              ) : hasBody ? (
                 <pre data-testid={`case-log-response-${c.id}`}>
                   {JSON.stringify(c.responseBody, null, 2)}
                 </pre>

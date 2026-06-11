@@ -18,7 +18,7 @@ Test cases are derived from the corrected Thailand VC OID4VCI / OID4VP 1.0
 conformance testcase v2.0 — see `references/testcase-source.md` and
 `references/design.md` for design notes.
 
-## Quick start (v2.1.2)
+## Quick start (v2.1.3)
 
 Build and run the v2 image from local source with Docker Compose from the
 repo root:
@@ -27,10 +27,15 @@ repo root:
 docker compose up -d --build
 docker compose logs -f
 # Server is on http://localhost:8080
-# v2.1.2 preserves the captured response body on passing and skipped
-# cases so the v2 web UI's per-case log + evidence download surface
-# the actual test result, not just the test case id. Wire shape is
-# unchanged. See CHANGELOG.md and MAS-305 for the fix.
+# v2.1.3 (MAS-306 follow-up) renders the actual HTTP transaction
+# (request method + URL, response status + body) in the v2 web UI's
+# per-case "Run log" collapsible and in the per-case evidence
+# download — not the legacy `{"mock": true, "id": "..."}`
+# placeholder. Wire shape gains a non-breaking `evidence: { request,
+# response, mock? }` field on `Report.results[*]` and on the SSE
+# `case.passed` / `case.failed` payloads. The legacy `responseBody`
+# field is preserved for backward compatibility. See CHANGELOG.md
+# and MAS-306 for the fix.
 ```
 
 This is the v2 release flow — same `docker compose up` shape the board used
@@ -41,11 +46,11 @@ The `--build` flag forces a fresh build of the local Dockerfile; on a
 warm Docker cache this is ~30s, on a clean cache it is a few minutes.
 For the v0.1.0 dev compose, see `ops/docker/docker-compose.yml`.
 
-v2.1.2 is **source-only** (the board picked `skip_ghcr` on [MAS-278](/MAS/issues/MAS-278)
+v2.1.3 is **source-only** (the board picked `skip_ghcr` on [MAS-278](/MAS/issues/MAS-278)
 at 13:42:07Z — inherited by every v2.x cut) — there is no GHCR image
-to pull. The image tag is `vc-conformance-v2:2.1.2`. The shipped
-compose file exports `CONFORMANCE_V2_VERSION=2.1.2` so the server's
-`/api/health` reports `version: 2.1.2`.
+to pull. The image tag is `vc-conformance-v2:2.1.3`. The shipped
+compose file exports `CONFORMANCE_V2_VERSION=2.1.3` so the server's
+`/api/health` reports `version: 2.1.3`.
 
 If port `8080` is already in use (e.g. a v0.1.0 container is still running),
 stop it first: `docker stop vc-conformance-test`.

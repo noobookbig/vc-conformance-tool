@@ -177,4 +177,98 @@ describe('runConformance stop-on-error', () => {
     expect(skipped?.responseStatus).toBe(0);
     expect(skipped?.responseBody).toEqual({ reason: 'no fixture' });
   });
+
+  // MAS-306 follow-up: a passing case row in the report must carry the
+  // structured `evidence` (request + response) so the v2 web UI's
+  // "Run log" surfaces the actual HTTP transaction, not the legacy
+  // `{"mock": true, "id": "..."}` placeholder. See MAS-303 for the
+  // user-reported symptom.
+  it('a passing case row preserves structured evidence (MAS-306 follow-up)', async () => {
+    const report = await runConformance({
+      catalog: cases('A'),
+      runCase: async () => ({
+        passed: true,
+        message: 'ok',
+        responseStatus: 200,
+        responseBody: { ok: true },
+        evidence: {
+          request: { method: 'GET', url: 'https://issuer.example/case/A' },
+          response: { status: 200, body: { ok: true } },
+        },
+      }),
+      target: {},
+    });
+    const row = report.results[0];
+    expect(row?.passed).toBe(true);
+    expect(row?.evidence).toEqual({
+      request: { method: 'GET', url: 'https://issuer.example/case/A' },
+      response: { status: 200, body: { ok: true } },
+    });
+  });
+
+  it('a failing case row preserves structured evidence (MAS-306 follow-up)', async () => {
+    const report = await runConformance({
+      catalog: cases('A', 'B'),
+      runCase: async (tc) => {
+        if (tc.id === 'B') {
+          return {
+            passed: false,
+            responseStatus: 500,
+            message: 'assertion mismatch',
+            evidence: {
+              request: { method: 'GET', url: 'https://issuer.example/case/B' },
+              response: { status: 500, body: { error: 'boom' } },
+            },
+          };
+        }
+        return { passed: true, responseStatus: 200 };
+      },
+      target: {},
+    });
+    const failed = report.results.find((r) => r.id === 'B');
+    expect(failed?.passed).toBe(false);
+    expect(failed?.evidence).toEqual({
+      request: { method: 'GET', url: 'https://issuer.example/case/B' },
+      response: { status: 500, body: { error: 'boom' } },
+    });
+  });
+
+  it('a skipped case row preserves structured evidence (MAS-306 follow-up)', async () => {
+    const report = await runConformance({
+      catalog: cases('A', 'B'),
+      runCase: async (tc) => {
+        if (tc.id === 'B') {
+          return {
+            passed: false,
+            skipped: true,
+            message: 'SKIPPED prereq missing',
+            responseStatus: 0,
+            responseBody: { reason: 'no fixture' },
+            evidence: {
+              request: { method: 'GET', url: 'https://issuer.example/case/B' },
+              response: { status: 0, body: { reason: 'no fixture' } },
+            },
+          };
+        }
+        return { passed: true, responseStatus: 200 };
+      },
+      target: {},
+    });
+    const skipped = report.results.find((r) => r.skipped);
+    expect(skipped?.evidence).toEqual({
+      request: { method: 'GET', url: 'https://issuer.example/case/B' },
+      response: { status: 0, body: { reason: 'no fixture' } },
+    });
+  });
+
+  it('a passing case without evidence still records status but no evidence (MAS-306 follow-up)', async () => {
+    const report = await runConformance({
+      catalog: cases('A'),
+      runCase: async () => ({ passed: true, responseStatus: 204 }),
+      target: {},
+    });
+    const row = report.results[0];
+    expect(row?.passed).toBe(true);
+    expect(row?.evidence).toBeUndefined();
+  });
 });

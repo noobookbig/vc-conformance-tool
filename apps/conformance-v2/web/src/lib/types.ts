@@ -29,12 +29,19 @@ export interface RunStartedData {
   };
 }
 
+export interface CaseEvidence {
+  request: { method: string; url: string; headers?: Record<string, string> };
+  response: { status: number; headers?: Record<string, string>; body: unknown };
+  mock?: boolean;
+}
+
 export interface CasePassedData {
   id: string;
   mode: 'live';
   status: 'passed';
   responseStatus?: number;
   responseBody?: unknown;
+  evidence?: CaseEvidence;
   durationMs: number;
 }
 
@@ -44,6 +51,7 @@ export interface CaseFailedData {
   status: 'failed';
   responseStatus?: number;
   responseBody?: unknown;
+  evidence?: CaseEvidence;
   message?: string;
   durationMs: number;
 }
@@ -85,6 +93,7 @@ export interface CaseRow {
   durationMs?: number;
   message?: string;
   responseBody?: unknown;
+  evidence?: CaseEvidence;
 }
 
 export interface RunState {
@@ -123,6 +132,7 @@ export interface ReportResult {
   message?: string;
   responseStatus?: number;
   responseBody?: unknown;
+  evidence?: CaseEvidence;
   durationMs: number;
   mode?: 'live' | 'coverage';
 }

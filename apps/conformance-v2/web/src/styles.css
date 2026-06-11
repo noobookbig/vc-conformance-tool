@@ -1110,6 +1110,36 @@ textarea {
   white-space: pre;
   word-break: normal;
 }
+.case-log-request {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+  align-items: baseline;
+}
+.case-log-method {
+  color: var(--ink);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.case-log-url {
+  color: var(--cyan);
+  word-break: break-all;
+}
+.case-log-mock {
+  display: inline-block;
+  margin-left: var(--s-1);
+  padding: 0 6px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  color: var(--gold);
+}
 .case-row-aside {
   display: flex;
   align-items: center;

@@ -103,4 +103,58 @@ describe('CaseRow', () => {
     render(<CaseRow case={mk({ id: 'G.7', outcome: 'pending' })} />);
     expect(screen.queryByTestId('case-log-G.7')).toBeNull();
   });
+
+  // MAS-306 follow-up: when a case row carries a structured `evidence`
+  // object (request + response), the inline "Run log" renders the
+  // request line above the response body. This is the user-visible
+  // fix for MAS-303 ("Evidence show the test case id not the result
+  // of testing"): the operator can now see the actual HTTP
+  // transaction the engine executed, instead of the
+  // `{"mock": true, "id": "..."}` placeholder.
+  it('renders the request line and response body from structured evidence (MAS-306 follow-up)', () => {
+    render(
+      <CaseRow
+        case={mk({
+          id: 'H.8',
+          outcome: 'passed',
+          responseStatus: 200,
+          responseBody: { mock: true, id: 'H.8' },
+          evidence: {
+            request: { method: 'GET', url: 'https://issuer.example/case/H.8' },
+            response: { status: 200, body: { ok: true } },
+          },
+        })}
+      />,
+    );
+    expect(screen.getByTestId('case-log-H.8')).toBeInTheDocument();
+    const request = screen.getByTestId('case-log-request-H.8');
+    expect(request.textContent).toMatch(/GET/);
+    expect(request.textContent).toMatch(/https:\/\/issuer\.example\/case\/H\.8/);
+    const response = screen.getByTestId('case-log-response-H.8');
+    expect(response.textContent).toContain('"ok"');
+    expect(response.textContent).toContain('true');
+  });
+
+  it('shows an "in-process mock" badge on the request line when evidence.mock is true (MAS-306 follow-up)', () => {
+    render(
+      <CaseRow
+        case={mk({
+          id: 'I.9',
+          outcome: 'passed',
+          responseStatus: 200,
+          responseBody: { mock: true, id: 'I.9' },
+          evidence: {
+            request: { method: 'GET', url: '<in-process-mock> /case/I.9' },
+            response: { status: 200, body: { mock: true, id: 'I.9' } },
+            mock: true,
+          },
+        })}
+      />,
+    );
+    const badge = screen.getByTestId('case-log-mock-I.9');
+    expect(badge.textContent).toMatch(/in-process mock/);
+    const request = screen.getByTestId('case-log-request-I.9');
+    expect(request.textContent).toMatch(/GET/);
+    expect(request.textContent).toMatch(/<in-process-mock> \/case\/I\.9/);
+  });
 });

@@ -102,6 +102,7 @@ function reducer(s: InternalState, action: Action): InternalState {
             responseStatus: data.responseStatus,
             durationMs: data.durationMs,
             responseBody: data.responseBody,
+            evidence: data.evidence,
           };
           next.cases[data.id] = row;
           next.passed = next.passed + 1;
@@ -116,6 +117,7 @@ function reducer(s: InternalState, action: Action): InternalState {
             durationMs: data.durationMs,
             message: data.message,
             responseBody: data.responseBody,
+            evidence: data.evidence,
           };
           next.cases[data.id] = row;
           next.failed = next.failed + 1;

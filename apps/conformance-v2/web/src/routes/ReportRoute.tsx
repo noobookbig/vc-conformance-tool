@@ -55,6 +55,7 @@ function toCaseRow(r: ReportResult, aborted: boolean): CaseRowData {
     durationMs: r.durationMs,
     message: r.message,
     responseBody: r.responseBody,
+    evidence: r.evidence,
   };
 }
 
