@@ -1008,6 +1008,213 @@ textarea {
   color: var(--ink-2);
 }
 
+/* ---------- Case row internals (v2.1) ----------------------------------- */
+/* MAS-302: a resolved case (passed/failed/skipped) shows an inline
+ * collapsible log with the response status + body, and a small
+ * "Evidence" link that downloads the per-case log from
+ * /api/runs/:id/evidence/:caseId. The structure is:
+ *   .case-row-main       (column 2)
+ *     .case-row-head     (id + name + role badge)
+ *     .case-log (details) (collapsible)
+ *       summary          ("Run log · HTTP 200")
+ *       .case-log-body   (message + response body <pre>) */
+.case-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+}
+.case-row-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+.case-log {
+  margin-top: var(--s-1);
+  font-family: var(--mono);
+  font-size: 12px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-xs);
+  background: var(--bg-2);
+  overflow: hidden;
+}
+.case-row.is-failed .case-log {
+  border-color: var(--rose);
+  background: rgba(255, 91, 122, 0.05);
+}
+.case-row.is-passed .case-log {
+  border-color: var(--green);
+  background: rgba(0, 212, 200, 0.04);
+}
+.case-row.is-skipped .case-log {
+  border-color: var(--gold);
+  background: rgba(255, 184, 0, 0.05);
+}
+.case-log > summary {
+  cursor: pointer;
+  padding: var(--s-1) var(--s-2);
+  display: flex;
+  gap: var(--s-2);
+  align-items: center;
+  color: var(--ink-2);
+  user-select: none;
+  list-style: none;
+}
+.case-log > summary::-webkit-details-marker {
+  display: none;
+}
+.case-log > summary::before {
+  content: '▸';
+  font-size: 10px;
+  color: var(--ink-3);
+  transition: transform var(--dur-1) var(--ease);
+}
+.case-log[open] > summary::before {
+  transform: rotate(90deg);
+}
+.case-log-label {
+  font-weight: 500;
+}
+.case-log-status {
+  margin-left: auto;
+  color: var(--ink-3);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.case-log-body {
+  padding: 0 var(--s-2) var(--s-2) var(--s-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+.case-log-message {
+  margin: 0;
+  color: var(--ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--sans);
+  font-size: 13px;
+}
+.case-log-body pre {
+  margin: 0;
+  padding: var(--s-2);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xs);
+  overflow: auto;
+  max-height: 240px;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 11px;
+  white-space: pre;
+  word-break: normal;
+}
+.case-row-aside {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.evidence-link {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: var(--s-1) var(--s-2);
+}
+
+/* ---------- Entity under test (v2.1) ------------------------------------ */
+/* MAS-302: the form has a single "Entity under test" radio group that
+ * drives the endpoint field's label/placeholder. Styling mirrors the
+ * role chips (cyan/magenta/lime) so the operator sees the entity as a
+ * primary role choice rather than a free-form text box. */
+.entity-fieldset {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: var(--s-3);
+  margin: 0 0 var(--s-3) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  background: var(--bg-elev);
+}
+.entity-legend {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0 var(--s-2);
+}
+.entity-radios {
+  display: flex;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+.entity-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: var(--bg-2);
+  font-size: 14px;
+  color: var(--ink-2);
+  transition: border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease),
+    box-shadow var(--dur-1) var(--ease);
+}
+.entity-radio:hover {
+  border-color: var(--line-3);
+  background: rgba(0, 229, 255, 0.03);
+}
+.entity-radio input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.entity-radio-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ink-3);
+  box-shadow: inset 0 0 0 2px var(--bg-2);
+  transition: background var(--dur-1) var(--ease), box-shadow var(--dur-1) var(--ease);
+}
+.entity-radio.is-active {
+  border-color: var(--line-3);
+  color: var(--ink);
+  background: rgba(0, 229, 255, 0.04);
+}
+.entity-radio.role-issuer.is-active {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 1px var(--cyan), 0 0 12px rgba(0, 229, 255, 0.18);
+}
+.entity-radio.role-issuer.is-active .entity-radio-dot {
+  background: var(--cyan);
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+}
+.entity-radio.role-verifier.is-active {
+  border-color: var(--magenta);
+  box-shadow: 0 0 0 1px var(--magenta), 0 0 12px rgba(255, 43, 214, 0.18);
+}
+.entity-radio.role-verifier.is-active .entity-radio-dot {
+  background: var(--magenta);
+  box-shadow: 0 0 8px rgba(255, 43, 214, 0.6);
+}
+.entity-radio.role-wallet.is-active {
+  border-color: var(--lime);
+  box-shadow: 0 0 0 1px var(--lime), 0 0 12px rgba(155, 255, 58, 0.18);
+}
+.entity-radio.role-wallet.is-active .entity-radio-dot {
+  background: var(--lime);
+  box-shadow: 0 0 8px rgba(155, 255, 58, 0.6);
+}
+
 /* ---------- Role split (Suite) ----------------------------------------- */
 /* The role split panel is the centrepiece of the Suite view. It shows
  * the catalog distribution and lets the operator pick a focus. The

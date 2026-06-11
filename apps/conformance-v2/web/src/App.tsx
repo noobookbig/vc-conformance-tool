@@ -114,7 +114,7 @@ function Sidebar(): JSX.Element {
       </span>
       <div style={{ flex: 1 }} />
       <div className="hint" style={{ fontSize: 12, color: 'var(--ink-3)' }}>
-        v2.0.0 — Suite → Run → Report.
+        v2.1.0 — Suite → Run → Report.
       </div>
     </nav>
   );

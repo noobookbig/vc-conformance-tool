@@ -97,6 +97,16 @@ export const api = {
     return `${getApiBase()}/api/runs/${encodeURIComponent(id)}/report?format=${format}`;
   },
 
+  /**
+   * Per-case evidence log URL (MAS-302). The server returns
+   * `text/plain` with a Content-Disposition: attachment header so a
+   * click downloads `evidence-<runId>-<caseId>.log`. Browsers that
+   * prefer opening inline will still render the body in a new tab.
+   */
+  evidenceUrl(id: string, caseId: string): string {
+    return `${getApiBase()}/api/runs/${encodeURIComponent(id)}/evidence/${encodeURIComponent(caseId)}`;
+  },
+
   eventsUrl(id: string): string {
     return `${getApiBase()}/api/runs/${encodeURIComponent(id)}/events`;
   },

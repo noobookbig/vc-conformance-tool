@@ -14,9 +14,21 @@
  * Wallet) show the live count per role and let the operator surface
  * which role a run will exercise. Selecting a chip is purely cosmetic
  * on the UI side — the CLI is the source of truth (see MAS-292).
+ *
+ * Entity-driven endpoint (MAS-302, v2.1): the "Endpoint" field is
+ * labeled against the entity under test (Issuer / Verifier / Wallet).
+ * There is no separate "verifier" textbox — the verifier endpoint is
+ * the same field, just relabeled when the entity flips. The wallet URL
+ * is shown alongside the entity endpoint for the cross-modes
+ * ("Issuer with wallet", "Verifier with wallet"); when the entity is
+ * Wallet itself, the wallet URL collapses into the single endpoint
+ * field to avoid two textboxes with the same value. The
+ * `data-testid` and `<label for>` on the entity endpoint switch
+ * with the entity selector so existing test surfaces that key off
+ * `input-issuerMetadataUrl` (MAS-260) keep working.
  */
 
-import { useState, useCallback, useEffect, type FormEvent } from 'react';
+import { useState, useCallback, useEffect, useMemo, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, buildConfigYaml } from '../lib/api';
 import type { HealthResponse } from '../lib/types';
@@ -28,12 +40,66 @@ type PrecheckState =
   | { kind: 'ok' }
   | { kind: 'bad'; reason: string };
 
+/** Entity under test — drives the endpoint field label. */
+type EntityUnderTest = 'issuer' | 'verifier' | 'wallet';
+
+interface EntitySpec {
+  key: EntityUnderTest;
+  label: string;
+  /** Short caption shown next to the endpoint input. */
+  caption: string;
+  /** Endpoint placeholder, e.g. `https://issuer.example`. */
+  placeholder: string;
+  /** YAML key on the run config this endpoint maps to. */
+  yamlKey: 'targetIssuer' | 'targetVerifier' | 'wallet';
+  /** CSS role class for the small badge. */
+  roleClass: PrimaryRole;
+}
+
+const ENTITY_SPEC: Record<EntityUnderTest, EntitySpec> = {
+  issuer: {
+    key: 'issuer',
+    label: 'Issuer',
+    caption: 'Issuer endpoint',
+    placeholder: 'https://issuer.example',
+    yamlKey: 'targetIssuer',
+    roleClass: 'issuer',
+  },
+  verifier: {
+    key: 'verifier',
+    label: 'Verifier',
+    caption: 'Verifier endpoint',
+    placeholder: 'https://verifier.example',
+    yamlKey: 'targetVerifier',
+    roleClass: 'verifier',
+  },
+  wallet: {
+    key: 'wallet',
+    label: 'Wallet',
+    caption: 'Wallet endpoint',
+    placeholder: 'https://wallet.example',
+    yamlKey: 'wallet',
+    roleClass: 'wallet',
+  },
+};
+
+/** "Issuer with wallet" / "Verifier with wallet" / "Wallet alone" —
+ *  derived from the entity + the wallet URL field. */
+function describeEntityMode(
+  entity: EntityUnderTest,
+  walletUrl: string,
+): string {
+  if (entity === 'wallet') return 'Wallet alone';
+  if (walletUrl.trim()) return `${ENTITY_SPEC[entity].label} with wallet`;
+  return `${ENTITY_SPEC[entity].label} only`;
+}
+
 export function SuiteRoute(): JSX.Element {
   const nav = useNavigate();
+  const [entityUnderTest, setEntityUnderTest] = useState<EntityUnderTest>('issuer');
+  const [entityUrl, setEntityUrl] = useState('');
+  const [walletUrl, setWalletUrl] = useState('');
   const [issuerMetadataUrl, setIssuerMetadataUrl] = useState('');
-  const [targetIssuer, setTargetIssuer] = useState('');
-  const [targetVerifier, setTargetVerifier] = useState('');
-  const [wallet, setWallet] = useState('');
   const [credentialConfigurationId, setCredentialConfigurationId] = useState('');
   const [useMock, setUseMock] = useState(true);
   const [stopOnError, setStopOnError] = useState(true);
@@ -52,8 +118,32 @@ export function SuiteRoute(): JSX.Element {
       .catch(() => setHealth(null));
   }, []);
 
+  // The cross-mode "wallet" field is hidden when the entity IS wallet
+  // (would be a duplicate of the entity URL). It shows for issuer and
+  // verifier to express "issuer with wallet" / "verifier with wallet".
+  const showWalletField = entityUnderTest !== 'wallet';
+
+  // Resolve which YAML keys get the values, depending on the entity
+  // selector. Keeping this in a memo makes the onSubmit handler small.
+  const targetYaml = useMemo(() => {
+    const spec = ENTITY_SPEC[entityUnderTest];
+    const out: {
+      targetIssuer?: string;
+      targetVerifier?: string;
+      wallet?: string;
+    } = {};
+    out[spec.yamlKey] = entityUrl || undefined;
+    // Cross-mode: if entity != wallet and wallet URL is set, attach
+    // the wallet URL too. For entity == wallet the entity URL itself
+    // already maps to `wallet`; no second assignment.
+    if (entityUnderTest !== 'wallet' && walletUrl.trim()) {
+      out.wallet = walletUrl.trim();
+    }
+    return out;
+  }, [entityUnderTest, entityUrl, walletUrl]);
+
   const hasAnyTarget = Boolean(
-    issuerMetadataUrl || targetIssuer || targetVerifier || wallet,
+    issuerMetadataUrl || entityUrl || walletUrl,
   );
 
   const runPrecheck = useCallback(async (): Promise<PrecheckState> => {
@@ -64,9 +154,9 @@ export function SuiteRoute(): JSX.Element {
     }
     // The server's precheck runs server-side at run-start; the UI surfaces
     // a lightweight "is the target reachable?" probe so a bad URL is
-    // caught at the form level. We do a HEAD/GET against the issuer
-    // metadata URL when present, else the issuer URL.
-    const probeUrl = issuerMetadataUrl || targetIssuer || targetVerifier || wallet;
+    // caught at the form level. We do a HEAD/GET against the entity
+    // endpoint (or, when set, the optional issuer metadata URL).
+    const probeUrl = issuerMetadataUrl || entityUrl || walletUrl;
     if (!probeUrl) {
       setPrecheck({ kind: 'ok' });
       return { kind: 'ok' };
@@ -85,7 +175,7 @@ export function SuiteRoute(): JSX.Element {
       setPrecheck({ kind: 'bad', reason });
       return { kind: 'bad', reason };
     }
-  }, [useMock, hasAnyTarget, issuerMetadataUrl, targetVerifier, wallet, targetIssuer]);
+  }, [useMock, hasAnyTarget, issuerMetadataUrl, entityUrl, walletUrl]);
 
   const canSubmit =
     !submitting &&
@@ -107,9 +197,9 @@ export function SuiteRoute(): JSX.Element {
       }
       const cfg = buildConfigYaml({
         issuerMetadataUrl: issuerMetadataUrl || undefined,
-        targetIssuer: targetIssuer || undefined,
-        targetVerifier: targetVerifier || undefined,
-        wallet: wallet || undefined,
+        targetIssuer: targetYaml.targetIssuer,
+        targetVerifier: targetYaml.targetVerifier,
+        wallet: targetYaml.wallet,
         credentialConfigurationId: credentialConfigurationId || undefined,
         useMock,
       });
@@ -124,6 +214,9 @@ export function SuiteRoute(): JSX.Element {
     }
   };
 
+  const spec = ENTITY_SPEC[entityUnderTest];
+  const entityModeLabel = describeEntityMode(entityUnderTest, walletUrl);
+
   return (
     <section aria-labelledby="suite-h">
       <header className="view-header">
@@ -133,8 +226,9 @@ export function SuiteRoute(): JSX.Element {
             Configure a conformance <em>run.</em>
           </h2>
           <p>
-            Pick a target. The precheck probes reachability before the run
-            starts; stop-on-error is the default and is mandatory in v2.
+            Pick the entity under test. The precheck probes reachability
+            before the run starts; stop-on-error is the default and is
+            mandatory in v2.
           </p>
         </div>
         <span
@@ -226,68 +320,127 @@ export function SuiteRoute(): JSX.Element {
       </div>
 
       <form className="panel" onSubmit={onSubmit} data-testid="suite-form">
-        <div className="field">
-          <label htmlFor="issuerMetadataUrl">Issuer metadata URL</label>
-          <input
-            id="issuerMetadataUrl"
-            type="url"
-            placeholder="https://issuer.example/.well-known/openid-credential-issuer"
-            value={issuerMetadataUrl}
-            onChange={(e) => setIssuerMetadataUrl(e.target.value)}
-            data-testid="input-issuerMetadataUrl"
-          />
-          <span className="help">
-            Optional. If set, the precheck probes this URL first.
-          </span>
+        <fieldset className="entity-fieldset" data-testid="entity-fieldset">
+          <legend className="entity-legend">Entity under test</legend>
+          <p className="help" data-testid="entity-mode-label">
+            {entityModeLabel}. The endpoint textbox below is labeled
+            against this entity.
+          </p>
+          <div
+            className="entity-radios"
+            role="radiogroup"
+            aria-label="Entity under test"
+          >
+            {(['issuer', 'verifier', 'wallet'] as EntityUnderTest[]).map((e) => {
+              const isActive = entityUnderTest === e;
+              return (
+                <label
+                  key={e}
+                  className={`entity-radio role-${ENTITY_SPEC[e].roleClass} ${isActive ? 'is-active' : ''}`}
+                  data-testid={`entity-radio-${e}`}
+                >
+                  <input
+                    type="radio"
+                    name="entityUnderTest"
+                    value={e}
+                    checked={isActive}
+                    onChange={() => setEntityUnderTest(e)}
+                    data-testid={`entity-radio-input-${e}`}
+                  />
+                  <span className="entity-radio-dot" aria-hidden="true" />
+                  <span className="entity-radio-label">{ENTITY_SPEC[e].label}</span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+
+        <div className="grid-2">
+          <div className="field">
+            <label htmlFor="entityUrl" data-testid="entity-endpoint-label">
+              {spec.caption}
+            </label>
+            <input
+              id="entityUrl"
+              type="url"
+              placeholder={spec.placeholder}
+              value={entityUrl}
+              onChange={(e) => setEntityUrl(e.target.value)}
+              data-testid="input-entityUrl"
+              aria-describedby="entity-endpoint-help"
+            />
+            <span className="help" id="entity-endpoint-help">
+              Endpoint for the {spec.label.toLowerCase()} being tested.
+            </span>
+          </div>
+          {showWalletField ? (
+            <div className="field">
+              <label htmlFor="wallet">Wallet URL</label>
+              <input
+                id="wallet"
+                type="url"
+                placeholder="https://wallet.example"
+                value={walletUrl}
+                onChange={(e) => setWalletUrl(e.target.value)}
+                data-testid="input-wallet"
+              />
+              <span className="help">
+                Cross-target: our wallet drives {spec.label.toLowerCase()}.
+              </span>
+            </div>
+          ) : (
+            <div className="field">
+              <label htmlFor="credentialConfigurationId">
+                Credential configuration id
+              </label>
+              <input
+                id="credentialConfigurationId"
+                type="text"
+                placeholder="ThaiNationalID"
+                value={credentialConfigurationId}
+                onChange={(e) => setCredentialConfigurationId(e.target.value)}
+                data-testid="input-credentialConfigurationId"
+              />
+            </div>
+          )}
         </div>
 
         <div className="grid-2">
           <div className="field">
-            <label htmlFor="targetIssuer">Target issuer base URL</label>
+            <label htmlFor="issuerMetadataUrl">Issuer metadata URL</label>
             <input
-              id="targetIssuer"
+              id="issuerMetadataUrl"
               type="url"
-              placeholder="https://issuer.example"
-              value={targetIssuer}
-              onChange={(e) => setTargetIssuer(e.target.value)}
-              data-testid="input-targetIssuer"
+              placeholder="https://issuer.example/.well-known/openid-credential-issuer"
+              value={issuerMetadataUrl}
+              onChange={(e) => setIssuerMetadataUrl(e.target.value)}
+              data-testid="input-issuerMetadataUrl"
             />
+            <span className="help">
+              Optional. If set, the precheck probes this URL first.
+            </span>
           </div>
           <div className="field">
-            <label htmlFor="targetVerifier">Target verifier base URL</label>
-            <input
-              id="targetVerifier"
-              type="url"
-              placeholder="https://verifier.example"
-              value={targetVerifier}
-              onChange={(e) => setTargetVerifier(e.target.value)}
-              data-testid="input-targetVerifier"
-            />
-          </div>
-        </div>
-
-        <div className="grid-2">
-          <div className="field">
-            <label htmlFor="wallet">Wallet URL</label>
-            <input
-              id="wallet"
-              type="url"
-              placeholder="https://wallet.example"
-              value={wallet}
-              onChange={(e) => setWallet(e.target.value)}
-              data-testid="input-wallet"
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="credentialConfigurationId">Credential configuration id</label>
-            <input
-              id="credentialConfigurationId"
-              type="text"
-              placeholder="ThaiNationalID"
-              value={credentialConfigurationId}
-              onChange={(e) => setCredentialConfigurationId(e.target.value)}
-              data-testid="input-credentialConfigurationId"
-            />
+            {showWalletField ? (
+              <>
+                <label htmlFor="credentialConfigurationId">
+                  Credential configuration id
+                </label>
+                <input
+                  id="credentialConfigurationId"
+                  type="text"
+                  placeholder="ThaiNationalID"
+                  value={credentialConfigurationId}
+                  onChange={(e) => setCredentialConfigurationId(e.target.value)}
+                  data-testid="input-credentialConfigurationId"
+                />
+              </>
+            ) : (
+              <span className="help">
+                Wallet endpoint is the entity URL above; no separate
+                wallet field needed.
+              </span>
+            )}
           </div>
         </div>
 

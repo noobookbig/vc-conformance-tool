@@ -325,3 +325,63 @@ describe('v2 server: GET /api/runs/:id/report', () => {
     expect(res.statusCode).toBe(400);
   });
 });
+
+describe('v2 server: GET /api/runs/:id/evidence/:caseId (MAS-302 v2.1)', () => {
+  it('returns a text/plain evidence log with the per-case response body + status', async () => {
+    const { app } = await buildApp(opts);
+    const post = await app.inject({
+      method: 'POST',
+      url: '/api/runs',
+      payload: { config: 'useMock: true\n' },
+    });
+    const { id } = post.json();
+    // wait for completion so the report (and per-case evidence) is ready
+    const deadline = Date.now() + 5000;
+    while (Date.now() < deadline) {
+      const r = await app.inject({ method: 'GET', url: `/api/runs/${id}` });
+      const s = r.json();
+      if (s.status === 'completed' || s.status === 'aborted') break;
+      await new Promise((r) => setTimeout(r, 25));
+    }
+    const res = await app.inject({ method: 'GET', url: `/api/runs/${id}/evidence/A` });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['content-type']).toMatch(/text\/plain/);
+    expect(res.headers['content-disposition']).toMatch(/attachment/);
+    expect(res.headers['content-disposition']).toContain(`evidence-${id}-A.log`);
+    expect(res.body).toContain('caseId:     A');
+    expect(res.body).toContain('status:     PASS');
+    expect(res.body).toContain('responseStatus: 200');
+  });
+
+  it('returns 404 for a caseId that is not in the report', async () => {
+    const { app } = await buildApp(opts);
+    const post = await app.inject({
+      method: 'POST',
+      url: '/api/runs',
+      payload: { config: 'useMock: true\n' },
+    });
+    const { id } = post.json();
+    const deadline = Date.now() + 5000;
+    while (Date.now() < deadline) {
+      const r = await app.inject({ method: 'GET', url: `/api/runs/${id}` });
+      const s = r.json();
+      if (s.status === 'completed' || s.status === 'aborted') break;
+      await new Promise((r) => setTimeout(r, 25));
+    }
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/runs/${id}/evidence/does-not-exist`,
+    });
+    expect(res.statusCode).toBe(404);
+    expect(res.json().error).toBe('case_not_found');
+  });
+
+  it('returns 404 for an unknown run id', async () => {
+    const { app } = await buildApp(opts);
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/runs/does-not-exist/evidence/A',
+    });
+    expect(res.statusCode).toBe(404);
+  });
+});

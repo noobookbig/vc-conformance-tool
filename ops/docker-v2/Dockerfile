@@ -15,11 +15,11 @@
 # a narrower context the UI stage will fail with a missing-tsconfig error.
 #
 # Versioning:
-#   - IMAGE_VERSION build arg, default 2.0.0. Surfaced in the image as
+#   - IMAGE_VERSION build arg, default 2.1.0. Surfaced in the image as
 #     CONFORMANCE_V2_VERSION so /api/health can report it.
 
 ARG NODE_VERSION=22-alpine
-ARG IMAGE_VERSION=2.0.0
+ARG IMAGE_VERSION=2.1.0
 
 # ----------------------------------------------------------------------------
 # Stage 1: build the Vite SPA. We keep only the built dist/ directory;
@@ -58,7 +58,7 @@ RUN --mount=type=cache,target=/root/.npm \
 # a subcommand.
 # ----------------------------------------------------------------------------
 FROM node:${NODE_VERSION} AS runtime
-ARG IMAGE_VERSION=2.0.0
+ARG IMAGE_VERSION=2.1.0
 WORKDIR /app
 
 # Security: non-root user for the node process. The entrypoint wrapper

@@ -312,10 +312,15 @@ export async function buildApp(opts: ServerOptions): Promise<{ app: FastifyInsta
   const store = new RunStore();
 
   // ----- Liveness + SPA placeholder ----------------------------------
+  // The reported version is the active image version. Falls back to
+  // '2.1.0' when CONFORMANCE_V2_VERSION is unset (local dev), so the
+  // header reads "v2.1.0" in the UI regardless of how the server was
+  // started. The Dockerfile pins the build-arg to the same string, so
+  // docker-compose and the health endpoint always agree.
   app.get('/api/health', async () => ({
     status: 'ok',
     service: 'conformance-v2',
-    version: '2.0.0',
+    version: process.env.CONFORMANCE_V2_VERSION ?? '2.1.0',
   }));
 
   // Resolve the SPA dist directory. When present we register the static
@@ -503,7 +508,76 @@ export async function buildApp(opts: ServerOptions): Promise<{ app: FastifyInsta
     }
   );
 
+  // ----- Per-case evidence (v2.1) -----------------------------------
+  // MAS-302: the UI's "evidence" link on each testcase row points here.
+  // The body is a plain-text log line for the case (status, message,
+  // response status + body, duration). We stream it as text/plain with
+  // a Content-Disposition hint so the browser downloads it as
+  // `evidence-<runId>-<caseId>.log` when the operator clicks the link.
+  // The endpoint is intentionally tolerant: a case id that has not yet
+  // resolved returns 404 with a stable error code so the UI can show a
+  // "log not ready" hint without thrashing.
+  app.get<{ Params: { id: string; caseId: string } }>(
+    '/api/runs/:id/evidence/:caseId',
+    async (req, reply) => {
+      const rec = store.get(req.params.id);
+      if (!rec) return reply.code(404).send({ error: 'not_found' });
+      if (!rec.report) {
+        return reply.code(409).send({ error: 'not_ready', message: 'run has not produced a report yet' });
+      }
+      const result = rec.report.results.find((r) => r.id === req.params.caseId);
+      if (!result) {
+        return reply.code(404).send({ error: 'case_not_found', caseId: req.params.caseId });
+      }
+      const body = toCaseEvidence(rec.id, result, rec.startedAt);
+      reply.header('content-type', 'text/plain; charset=utf-8');
+      reply.header(
+        'content-disposition',
+        `attachment; filename="evidence-${rec.id}-${result.id}.log"`,
+      );
+      return body;
+    },
+  );
+
   return { app, store };
+}
+
+/** Render the per-case evidence log. Pure function — kept here so the
+ *  route handler stays a one-liner. The output is intentionally
+ *  `text/plain` so it opens in a terminal, an editor, or a browser tab
+ *  without a JSON viewer. */
+function toCaseEvidence(
+  runId: string,
+  result: {
+    id: string;
+    name: string;
+    operation: string;
+    passed: boolean;
+    skipped: boolean;
+    message?: string;
+    responseStatus?: number;
+    responseBody?: unknown;
+    durationMs: number;
+  },
+  runStartedAt: string,
+): string {
+  const status = result.passed ? 'PASS' : result.skipped ? 'SKIPPED' : 'FAIL';
+  const lines: string[] = [];
+  lines.push(`# conformance-v2 evidence`);
+  lines.push(`run:        ${runId}`);
+  lines.push(`startedAt:  ${runStartedAt}`);
+  lines.push(`caseId:     ${result.id}`);
+  lines.push(`name:       ${result.name}`);
+  lines.push(`operation:  ${result.operation}`);
+  lines.push(`status:     ${status}`);
+  lines.push(`durationMs: ${result.durationMs}`);
+  if (result.responseStatus !== undefined) lines.push(`responseStatus: ${result.responseStatus}`);
+  if (result.message) lines.push(`message:    ${result.message}`);
+  if (result.responseBody !== undefined) {
+    lines.push(`responseBody:`);
+    lines.push(JSON.stringify(result.responseBody, null, 2));
+  }
+  return lines.join('\n') + '\n';
 }
 
 /** Drive one run end-to-end: precheck → runner → store final report. */

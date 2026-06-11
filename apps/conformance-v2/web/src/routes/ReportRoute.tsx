@@ -231,7 +231,11 @@ export function ReportRoute(): JSX.Element {
         ) : (
           <ul className="case-list" data-testid="case-list">
             {filtered.map((r) => (
-              <CaseRow key={r.id} case={toCaseRow(r, report.aborted)} />
+              <CaseRow
+                key={r.id}
+                case={toCaseRow(r, report.aborted)}
+                runId={runId ?? undefined}
+              />
             ))}
           </ul>
         )}

@@ -6,7 +6,81 @@ This project does **not** yet follow SemVer strictly; the major version
 identifies the conformance-test generation (v0.1.0 was the original
 webapp, v2.0.0 is the new engine + UI + server stack).
 
-## v2.0.0 — unreleased
+## v2.1.0 — 2026-06-11
+
+Built on [MAS-302](/MAS/issues/MAS-302) "Update V2.1 Web UI". Ships
+the entity-driven Suite form, the per-case log/evidence on the Run +
+Report pages, and the v2.1 version string end-to-end (sidebar, server
+`/api/health`, package metadata, Dockerfile, docker-compose). Same
+engine and CLI behaviour as v2.0.0; the changes are UI-facing plus a
+new `GET /api/runs/:id/evidence/:caseId` route.
+
+### Added
+
+- **Entity-driven Suite form** (`apps/conformance-v2/web/src/routes/SuiteRoute.tsx`):
+  a new "Entity under test" radio group (Issuer / Verifier / Wallet)
+  drives the endpoint field's label and placeholder. The standalone
+  "Target verifier base URL" textbox is gone — the verifier endpoint
+  is the same field, just relabeled when the entity flips. The
+  "Wallet URL" field stays as the cross-target for the "Issuer with
+  wallet" / "Verifier with wallet" cross-modes and is hidden when
+  the entity itself is Wallet (the entity URL is the wallet URL). A
+  live caption under the radio group reads e.g. "Issuer with wallet.
+  The endpoint textbox below is labeled against this entity."
+- **Per-case log on every resolved case** (`apps/conformance-v2/web/src/components/CaseRow.tsx`):
+  passed, failed, and skipped cases now show a collapsible
+  inline log with the case id, response status, message, and
+  response body. The previous implementation only showed the body
+  on failed cases; v2.1 surfaces the full per-case trail regardless
+  of outcome, so QA can inspect a passing response body without
+  re-running the suite.
+- **Per-case evidence download** (`apps/conformance-v2/src/server.ts`):
+  `GET /api/runs/:id/evidence/:caseId` returns a `text/plain` log
+  with the case id, name, operation, status, duration, response
+  status, message, and response body. The endpoint sets
+  `Content-Disposition: attachment; filename="evidence-<runId>-<caseId>.log"`
+  so a click downloads the artifact. The CaseRow "Evidence" link
+  points here. The endpoint is server-only — no disk write — and
+  serves the in-memory `rec.report.results` so the same data is the
+  source of truth for the JSON / JUnit / HTML reports.
+- **/api/health version is wired to the build**: the server now
+  reports `version: <CONFORMANCE_V2_VERSION>` (default `2.1.0`),
+  matching the Dockerfile `IMAGE_VERSION` build-arg. The UI sidebar
+  reads "v2.1.0 — Suite → Run → Report."
+
+### Changed
+
+- Bumped `conformance-v2-web` `package.json` from `2.0.0` to `2.1.0`.
+- Bumped `ops/docker-v2/Dockerfile` `IMAGE_VERSION` default to `2.1.0`.
+- Bumped `docker-compose.yml` `web` and `runner` `image:` tags to
+  `vc-conformance-v2:2.1.0`; the `web` service now exports
+  `CONFORMANCE_V2_VERSION=2.1.0` so the health endpoint agrees with
+  the tag.
+
+### Fixed
+
+- **MAS-275** (run-empty state for precheck-fail runs): the
+  RunRoute empty-state paragraph now branches on `state.status` so
+  a run that aborts before any case event shows "Run aborted before
+  any case could run." instead of the contradictory "Awaiting first
+  case event…" / "Connecting to event stream…" copy. The existing
+  `RunRoute.test.tsx` (which referenced the "abort" copy but had
+  been failing) now passes.
+
+### Migration from v2.0.0
+
+- The wire-level API contract is unchanged. Existing YAML config
+  bodies (`targetIssuer`, `targetVerifier`, `wallet`,
+  `issuerMetadataUrl`, `useMock`) still parse identically.
+- The UI form is restructured: instead of three text boxes
+  (`targetIssuer`, `targetVerifier`, `wallet`) you now pick an
+  entity and fill one endpoint field. The "Wallet URL" field is
+  still present for the cross-modes. The optional
+  `issuerMetadataUrl` field is unchanged.
+- A new API route is added (`/api/runs/:id/evidence/:caseId`). No
+  existing route was removed or renamed.
+
+## v2.0.0 — 2026-06-08
 
 The first release of the **v2 conformance test tool** (engine + HTTP
 server + web UI + Docker image), shipping in parallel with the

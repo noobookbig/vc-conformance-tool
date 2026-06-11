@@ -203,7 +203,13 @@ export function RunRoute(): JSX.Element {
 
       {orderedCases.length === 0 ? (
         <p className="empty" data-testid="run-empty">
-          {status === 'open' ? 'Awaiting first case event…' : 'Connecting to event stream…'}
+          {state?.status === 'aborted' || state?.status === 'failed'
+            ? 'Run aborted before any case could run. See the banner above for the reason.'
+            : state?.status === 'completed'
+              ? 'Run completed with no cases emitted.'
+              : status === 'open'
+                ? 'Awaiting first case event…'
+                : 'Connecting to event stream…'}
         </p>
       ) : (
         <>
@@ -253,7 +259,7 @@ export function RunRoute(): JSX.Element {
           ) : (
             <ul className="case-list" data-testid="case-list">
               {visibleCases.map((c) => (
-                <CaseRow key={c.id} case={c} />
+                <CaseRow key={c.id} case={c} runId={runId ?? undefined} />
               ))}
             </ul>
           )}
