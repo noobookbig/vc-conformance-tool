@@ -1,6 +1,6 @@
 /**
- * SuiteRoute — the entry point where the operator picks a config and a
- * target, sees a precheck indicator, and clicks Run.
+ * SuiteRoute — the entry point where the operator picks a config, sees
+ * the role split across the v2 catalog, and clicks Run.
  *
  * `useMock: true` short-circuits the precheck (no target to reach). When
  * the operator has not entered a target, the form starts in mock mode
@@ -9,12 +9,18 @@
  * The "Continue on error" toggle is intentionally framed as the
  * non-default — stop-on-error is mandatory in v2 and the spec language
  * says so.
+ *
+ * Role split: the catalog chips above the form (Issuer / Verifier /
+ * Wallet) show the live count per role and let the operator surface
+ * which role a run will exercise. Selecting a chip is purely cosmetic
+ * on the UI side — the CLI is the source of truth (see MAS-292).
  */
 
 import { useState, useCallback, useEffect, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, buildConfigYaml } from '../lib/api';
 import type { HealthResponse } from '../lib/types';
+import { PRIMARY_ROLES, ROLE_META, type PrimaryRole } from '../lib/roles';
 
 type PrecheckState =
   | { kind: 'idle' }
@@ -32,6 +38,7 @@ export function SuiteRoute(): JSX.Element {
   const [useMock, setUseMock] = useState(true);
   const [stopOnError, setStopOnError] = useState(true);
   const [continueOnError, setContinueOnError] = useState(false);
+  const [roleFocus, setRoleFocus] = useState<PrimaryRole | 'all'>('all');
   const [precheck, setPrecheck] = useState<PrecheckState>({ kind: 'idle' });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,7 +85,7 @@ export function SuiteRoute(): JSX.Element {
       setPrecheck({ kind: 'bad', reason });
       return { kind: 'bad', reason };
     }
-  }, [useMock, hasAnyTarget, issuerMetadataUrl, targetIssuer, targetVerifier, wallet]);
+  }, [useMock, hasAnyTarget, issuerMetadataUrl, targetVerifier, wallet, targetIssuer]);
 
   const canSubmit =
     !submitting &&
@@ -108,6 +115,7 @@ export function SuiteRoute(): JSX.Element {
       });
       void stopOnError; // wire-stable: stopOnError is a v2 invariant
       void continueOnError; // (not configurable in v2; reserved for v3)
+      void roleFocus; // (UI-side filter only; CLI is source of truth — see MAS-292)
       const res = await api.createRun(cfg);
       nav(`/runs/${encodeURIComponent(res.id)}`);
     } catch (err) {
@@ -151,6 +159,71 @@ export function SuiteRoute(): JSX.Element {
           )}
         </span>
       </header>
+
+      <div
+        className="panel role-split"
+        data-testid="role-split"
+        role="group"
+        aria-label="Catalog role split"
+      >
+        <div className="role-split-head">
+          <span className="eyebrow">Catalog · Role split</span>
+          <p className="hint">
+            317 cases across the v2.0 conformance catalog. Pick a role to
+            see how the run will exercise the suite; the CLI's
+            <code> --role</code> flag is the source of truth.
+          </p>
+        </div>
+        <div className="role-chips" role="tablist" aria-label="Role focus">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={roleFocus === 'all'}
+            className={`role-chip role-chip-all ${roleFocus === 'all' ? 'is-active' : ''}`}
+            onClick={() => setRoleFocus('all')}
+            data-testid="role-chip-all"
+          >
+            <span className="role-chip-label">All</span>
+            <span className="role-chip-count">317</span>
+            <span className="role-chip-caption">full catalog</span>
+          </button>
+          {PRIMARY_ROLES.map((r) => {
+            const meta = ROLE_META[r];
+            const isActive = roleFocus === r;
+            return (
+              <button
+                key={r}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                className={`role-chip role-chip-${r} ${isActive ? 'is-active' : ''}`}
+                onClick={() => setRoleFocus(r)}
+                data-testid={`role-chip-${r}`}
+                title={meta.description}
+              >
+                <span className="role-chip-glow" aria-hidden="true" />
+                <span className="role-chip-label">{meta.label}</span>
+                <span className="role-chip-count">{meta.count}</span>
+                <span className="role-chip-caption">cases</span>
+              </button>
+            );
+          })}
+        </div>
+        {roleFocus !== 'all' ? (
+          <p
+            className={`role-detail role-detail-${roleFocus}`}
+            data-testid="role-detail"
+          >
+            <span className={`role-badge role-${roleFocus}`} aria-hidden="true">
+              {ROLE_META[roleFocus].label}
+            </span>
+            <span>{ROLE_META[roleFocus].description}</span>
+            <span className="role-detail-meta">
+              <code>{ROLE_META[roleFocus].count}</code> cases
+            </span>
+          </p>
+        ) : null}
+      </div>
 
       <form className="panel" onSubmit={onSubmit} data-testid="suite-form">
         <div className="field">

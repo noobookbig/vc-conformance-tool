@@ -91,6 +91,7 @@ function reducer(s: InternalState, action: Action): InternalState {
           next.status = 'running';
           next.total = data.total;
           next.startedAt = new Date().toISOString();
+          next.target = data.target;
           break;
         }
         case 'case.passed': {

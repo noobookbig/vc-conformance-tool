@@ -95,6 +95,9 @@ export interface RunState {
   failed: number;
   skipped: number;
   cases: Record<string, CaseRow>;
+  /** Target fields captured from `run.started` so the UI can derive
+   *  which role the run is exercising (issuer / verifier / wallet). */
+  target?: RunStartedData['target'];
   /** Populated when the run aborts. */
   abortedAt?: string;
   abortedError?: string;

@@ -1,59 +1,98 @@
 /* ===========================================================================
  * Conformance v2 — Web UI
  *
- * Visual language is intentionally aligned with the v0.1.0 webapp:
- *  - Fraunces (serif) for headings + KPI labels with italic em-dashes
- *  - IBM Plex Sans Thai for body text
- *  - JetBrains Mono for ids, durations, log prefixes
- *  - Teal / gold / parchment palette, deepened for AA contrast
- *  - 4/8/12/16/24/40 px spacing rhythm
- *  - prefers-reduced-motion respected throughout
+ * Visual language: "neon lab console" — dark base with a subtle grid,
+ * per-role accent glows (cyan / magenta / lime), Kanit as the primary
+ * face for warmth and Thai support, JetBrains Mono for ids and metrics.
  *
- * Status colors are colour-blind safe by pairing an icon + text label
- * with any chromatic cue; do not rely on green/red alone.
+ *  - Base font: Kanit (Google Fonts, 300/400/500/600/700)
+ *  - Mono:      JetBrains Mono (for ids, durations, status chips)
+ *  - Surfaces:  Deep blue-black with a hairline grid background — calm
+ *               enough to read for long QA sessions, futuristic enough
+ *               to read as a verification tool, not a marketing site.
+ *  - Role accents:
+ *      issuer   → cyan    #00e5ff   (hue 187)
+ *      verifier → magenta #ff2bd6   (hue 312)
+ *      wallet   → lime    #9bff3a   (hue  88)
+ *  - Status colors (passed / failed / skipped) are colour-blind safe
+ *    by pairing an icon + text label with any chromatic cue; never
+ *    rely on green/red alone.
+ *  - 4/8/12/16/24/40/64 px spacing rhythm (--s-1..--s-8).
+ *  - prefers-reduced-motion respected throughout.
+ *
+ * Token map. Use the variables, not literal values, in any new code.
+ *   --bg / --bg-2 / --bg-3   surfaces (panels, sidebar, body)
+ *   --ink / --ink-2 / --ink-3 text on dark
+ *   --line / --line-2        hairline borders
+ *   --teal / --teal-2        primary accent (preserved alias from v0.1)
+ *   --cyan / --magenta / --lime   role accents
+ *   --green / --rose / --gold     status colors
  * =========================================================================== */
 
 :root {
-  /* Surfaces */
-  --bg: #f3ecdc;
-  --bg-2: #ece3cc;
-  --bg-3: #fbf6ea;
-  --bg-elev: #fffaee;
-  --ink: #15140f;
-  --ink-2: #4a443a;
-  --ink-3: #837b6d;
-  --line: #d6ccb6;
-  --line-2: #c2b69c;
-  --line-3: #ada38a;
+  color-scheme: dark;
 
-  /* Accents */
-  --teal: #0a6464;
-  --teal-2: #064e4e;
-  --teal-3: #cfe7e6;
-  --gold: #a8761e;
-  --gold-2: #c79338;
-  --gold-3: #f1e3bf;
-  --rose: #9a2a2a;
-  --rose-2: #7a1f1f;
-  --rose-3: #f3d6d2;
-  --green: #256a32;
-  --green-2: #1d5126;
-  --green-3: #d3e6d6;
-  --blue: #1d4e89;
-  --blue-3: #cfe1f0;
+  /* Surfaces (deep blue-black; warm enough to print well in dark) */
+  --bg: #07090f;
+  --bg-2: #0c1119;
+  --bg-3: #11172294;
+  --bg-elev: #131a25;
+  --ink: #eaf0ff;
+  --ink-2: #a4b0c7;
+  --ink-3: #6b7791;
+  --line: #1d2535;
+  --line-2: #2a3447;
+  --line-3: #3a4660;
+
+  /* Primary (preserved alias so existing .teal / .btn-primary keep working) */
+  --teal: #00e5ff;
+  --teal-2: #5af2ff;
+  --teal-3: #06242a;
+
+  /* Role accents — the heart of the visual role separation */
+  --cyan: #00e5ff;
+  --cyan-2: #5af2ff;
+  --cyan-3: #06242a;
+  --cyan-glow: 0 0 0 1px rgba(0, 229, 255, 0.35),
+    0 0 18px rgba(0, 229, 255, 0.35),
+    0 0 48px rgba(0, 229, 255, 0.18);
+
+  --magenta: #ff2bd6;
+  --magenta-2: #ff66e3;
+  --magenta-3: #2a0a25;
+  --magenta-glow: 0 0 0 1px rgba(255, 43, 214, 0.35),
+    0 0 18px rgba(255, 43, 214, 0.35),
+    0 0 48px rgba(255, 43, 214, 0.18);
+
+  --lime: #9bff3a;
+  --lime-2: #c0ff7a;
+  --lime-3: #162a0a;
+  --lime-glow: 0 0 0 1px rgba(155, 255, 58, 0.35),
+    0 0 18px rgba(155, 255, 58, 0.35),
+    0 0 48px rgba(155, 255, 58, 0.18);
+
+  /* Status (passed / failed / skipped) — neon-tinted for dark */
+  --green: #34d399;
+  --green-2: #6ee7b7;
+  --green-3: #0a2a1e;
+  --rose: #ff5b7a;
+  --rose-2: #ff8094;
+  --rose-3: #2a0a14;
+  --gold: #f4c542;
+  --gold-2: #ffd75e;
+  --gold-3: #2a1d05;
 
   /* Shape & shadow */
-  --shadow-sm: 0 1px 0 rgba(20, 18, 10, 0.04), 0 1px 2px rgba(20, 18, 10, 0.04);
-  --shadow:    0 1px 0 rgba(20, 18, 10, 0.05), 0 10px 28px -16px rgba(20, 18, 10, 0.18);
-  --shadow-lg: 0 1px 0 rgba(20, 18, 10, 0.06), 0 30px 60px -28px rgba(20, 18, 10, 0.30);
+  --shadow-sm: 0 0 0 1px rgba(0, 229, 255, 0.05), 0 6px 18px -10px rgba(0, 0, 0, 0.6);
+  --shadow: 0 0 0 1px rgba(0, 229, 255, 0.06), 0 18px 48px -22px rgba(0, 0, 0, 0.75);
+  --shadow-lg: 0 0 0 1px rgba(0, 229, 255, 0.08), 0 36px 80px -30px rgba(0, 0, 0, 0.85);
   --radius: 14px;
   --radius-sm: 9px;
   --radius-xs: 5px;
 
   /* Type */
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-  --sans: 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --serif: 'Fraunces', 'IBM Plex Sans Thai', Georgia, serif;
+  --sans: 'Kanit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   /* Spacing scale (4/8 rhythm) */
   --s-1: 4px;
@@ -71,40 +110,6 @@
   --dur-2: 220ms;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #14120d;
-    --bg-2: #1b1812;
-    --bg-3: #221d15;
-    --bg-elev: #28231a;
-    --ink: #f3ecda;
-    --ink-2: #b9b0a0;
-    --ink-3: #807868;
-    --line: #2c2820;
-    --line-2: #3a3528;
-    --line-3: #4d4636;
-
-    --teal: #4ec1c1;
-    --teal-2: #6ad7d7;
-    --teal-3: #1d3a3a;
-    --gold: #dca94a;
-    --gold-2: #e6bd65;
-    --gold-3: #3a2e15;
-    --rose: #d96666;
-    --rose-2: #e07c7c;
-    --rose-3: #3a1e1e;
-    --green: #5cae6e;
-    --green-2: #75c187;
-    --green-3: #1d2e1f;
-    --blue: #6ea4d8;
-    --blue-3: #1c2c3c;
-
-    --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow: 0 1px 0 rgba(0, 0, 0, 0.4), 0 10px 28px -16px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 1px 0 rgba(0, 0, 0, 0.5), 0 30px 60px -28px rgba(0, 0, 0, 0.7);
-  }
-}
-
 * {
   box-sizing: border-box;
 }
@@ -118,10 +123,19 @@ body,
 body {
   margin: 0;
   font-family: var(--sans);
+  font-weight: 400;
   font-size: 15px;
   line-height: 1.55;
   color: var(--ink);
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(1200px 600px at 80% -10%, rgba(0, 229, 255, 0.06), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, rgba(255, 43, 214, 0.05), transparent 60%),
+    linear-gradient(0deg, rgba(155, 255, 58, 0.018) 0, transparent 30%),
+    linear-gradient(transparent 95%, rgba(255, 255, 255, 0.025) 95%),
+    linear-gradient(90deg, transparent 95%, rgba(255, 255, 255, 0.025) 95%);
+  background-size: auto, auto, auto, 24px 24px, 24px 24px;
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -184,7 +198,9 @@ textarea {
   justify-content: space-between;
   gap: var(--s-3);
   padding: var(--s-3) var(--s-5);
-  background: var(--bg-3);
+  background: rgba(7, 9, 15, 0.85);
+  backdrop-filter: saturate(160%) blur(10px);
+  -webkit-backdrop-filter: saturate(160%) blur(10px);
   border-bottom: 1px solid var(--line);
   position: sticky;
   top: 0;
@@ -216,11 +232,12 @@ textarea {
 }
 .brand h1 {
   margin: 0;
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-weight: 600;
-  font-size: 20px;
-  letter-spacing: -0.01em;
+  font-size: 18px;
+  letter-spacing: 0.01em;
   color: var(--ink);
+  text-transform: uppercase;
 }
 .brand h1 .dim {
   color: var(--ink-3);
@@ -229,10 +246,14 @@ textarea {
 .brand h1 em {
   font-style: italic;
   color: var(--teal);
+  text-shadow: 0 0 18px rgba(0, 229, 255, 0.5);
 }
 .brand p {
   margin: 0;
-  font-size: 12px;
+  font-size: 11px;
+  font-family: var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--ink-2);
 }
 
@@ -242,22 +263,29 @@ textarea {
   gap: var(--s-2);
   padding: var(--s-1) var(--s-3);
   border-radius: 999px;
-  background: var(--bg-2);
-  border: 1px solid var(--line);
+  background: rgba(0, 229, 255, 0.06);
+  border: 1px solid rgba(0, 229, 255, 0.25);
   font-size: 12px;
   color: var(--ink-2);
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 .health .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: var(--ink-3);
+  box-shadow: 0 0 0 0 transparent;
+  transition: background var(--dur-1) var(--ease), box-shadow var(--dur-1) var(--ease);
 }
 .health.is-ok .dot {
   background: var(--green);
+  box-shadow: 0 0 8px var(--green);
 }
 .health.is-bad .dot {
   background: var(--rose);
+  box-shadow: 0 0 8px var(--rose);
 }
 
 .sidebar {
@@ -285,14 +313,14 @@ textarea {
   font-weight: 500;
 }
 .nav-link:hover {
-  background: var(--bg-3);
+  background: rgba(0, 229, 255, 0.04);
   color: var(--ink);
 }
 .nav-link.is-active {
-  background: var(--bg-elev);
-  border-color: var(--line);
+  background: rgba(0, 229, 255, 0.08);
+  border-color: rgba(0, 229, 255, 0.3);
   color: var(--ink);
-  box-shadow: var(--shadow-sm);
+  box-shadow: inset 2px 0 0 var(--cyan);
 }
 /* Disabled "next step" hint. Not a link: no hover state, no pointer
  * cursor, dimmed to make the affordance obvious. Distinct from the
@@ -309,13 +337,14 @@ textarea {
 }
 .nav-link .icon {
   flex: 0 0 16px;
-  color: var(--teal);
+  color: var(--cyan);
 }
 .nav-link .nav-num {
   margin-left: auto;
   font-family: var(--mono);
   font-size: 11px;
   color: var(--ink-3);
+  letter-spacing: 0.06em;
 }
 
 .main {
@@ -406,6 +435,12 @@ textarea {
   .filter-group select {
     width: 100%;
   }
+  .role-chips {
+    grid-template-columns: 1fr 1fr;
+  }
+  .role-chips .role-chip:first-child {
+    grid-column: 1 / -1;
+  }
 }
 
 /* ---------- View header -------------------------------------------------- */
@@ -419,21 +454,25 @@ textarea {
 .eyebrow {
   font-family: var(--mono);
   font-size: 11px;
-  letter-spacing: 0.08em;
+  font-weight: 500;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--cyan);
 }
 .view-header h2 {
   margin: var(--s-1) 0 var(--s-2);
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-weight: 600;
   font-size: 30px;
   letter-spacing: -0.01em;
   color: var(--ink);
+  line-height: 1.15;
 }
 .view-header h2 em {
-  font-style: italic;
-  color: var(--teal);
+  font-style: normal;
+  font-weight: 700;
+  color: var(--cyan);
+  text-shadow: 0 0 14px rgba(0, 229, 255, 0.5);
 }
 .view-header p {
   margin: 0;
@@ -443,18 +482,30 @@ textarea {
 
 /* ---------- Cards / panels ---------------------------------------------- */
 .panel {
-  background: var(--bg-3);
+  position: relative;
+  background: linear-gradient(180deg, rgba(0, 229, 255, 0.025), transparent 50%),
+    var(--bg-elev);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: var(--s-5);
   margin-bottom: var(--s-4);
   box-shadow: var(--shadow-sm);
 }
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 30%);
+}
 .panel h3 {
   margin: 0 0 var(--s-3);
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-weight: 600;
   font-size: 18px;
+  color: var(--ink);
+  letter-spacing: 0.01em;
 }
 .panel .hint {
   color: var(--ink-3);
@@ -480,10 +531,11 @@ textarea {
   margin-bottom: var(--s-3);
 }
 .field label {
-  font-size: 12px;
-  font-weight: 600;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
   color: var(--ink-2);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 .field input,
@@ -492,18 +544,27 @@ textarea {
   padding: var(--s-2) var(--s-3);
   border: 1px solid var(--line-2);
   border-radius: var(--radius-sm);
-  background: var(--bg-elev);
+  background: var(--bg-2);
   color: var(--ink);
   font-size: 14px;
   width: 100%;
-  transition: border-color var(--dur-1) var(--ease), box-shadow var(--dur-1) var(--ease);
+  font-family: var(--sans);
+  transition: border-color var(--dur-1) var(--ease), box-shadow var(--dur-1) var(--ease),
+    background var(--dur-1) var(--ease);
+}
+.field input:hover,
+.field textarea:hover,
+.field select:hover {
+  border-color: var(--line-3);
 }
 .field input:focus,
 .field textarea:focus,
 .field select:focus {
   outline: none;
-  border-color: var(--teal);
-  box-shadow: 0 0 0 3px var(--teal-3);
+  border-color: var(--cyan);
+  background: rgba(0, 229, 255, 0.04);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.18),
+    0 0 18px rgba(0, 229, 255, 0.18);
 }
 .field .help {
   font-size: 12px;
@@ -537,11 +598,12 @@ textarea {
  * Strong border + ink-strong text so it stands out from the v2 invariants. */
 .toggle.toggle-primary {
   padding: var(--s-1) var(--s-3);
-  border: 1px solid var(--teal-2);
+  border: 1px solid var(--teal);
   border-radius: var(--radius-sm);
   background: var(--teal-3);
   color: var(--ink);
   font-weight: 600;
+  box-shadow: 0 0 18px -6px var(--teal);
 }
 .toggle.toggle-primary .toggle-label {
   color: var(--ink);
@@ -551,12 +613,28 @@ textarea {
   padding: 0 var(--s-2);
   border-radius: 999px;
   background: var(--teal);
-  color: var(--bg-3);
+  color: var(--bg);
   font-family: var(--mono);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+.toggle.toggle-primary .toggle-label {
+  color: var(--ink);
+}
+.toggle.toggle-primary .mock-badge {
+  display: inline-block;
+  padding: 0 var(--s-2);
+  border-radius: 999px;
+  background: var(--cyan);
+  color: var(--bg);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.45);
 }
 
 /* Inactive v2 invariants — no border, lighter text. */
@@ -580,8 +658,8 @@ textarea {
 .mock-callout {
   margin: 0;
   padding: var(--s-2) var(--s-3);
-  background: var(--gold-3);
-  border: 1px solid var(--gold);
+  background: rgba(244, 197, 66, 0.08);
+  border: 1px solid rgba(244, 197, 66, 0.35);
   border-left: 4px solid var(--gold);
   border-radius: var(--radius-sm);
   font-size: 13px;
@@ -604,48 +682,57 @@ textarea {
   border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 500;
+  font-family: var(--sans);
   transition: background var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease),
-    transform var(--dur-1) var(--ease);
+    transform var(--dur-1) var(--ease), box-shadow var(--dur-1) var(--ease);
 }
 .btn:hover:not(:disabled) {
-  background: var(--bg-3);
-  border-color: var(--teal);
+  background: rgba(0, 229, 255, 0.05);
+  border-color: rgba(0, 229, 255, 0.5);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.18);
 }
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 .btn-primary {
-  background: var(--teal);
-  color: var(--bg-3);
-  border-color: var(--teal-2);
+  background: var(--cyan);
+  color: var(--bg);
+  border-color: var(--cyan-2);
+  font-weight: 600;
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.15);
 }
 .btn-primary:hover:not(:disabled) {
-  background: var(--teal-2);
-  border-color: var(--teal-2);
+  background: var(--cyan-2);
+  border-color: var(--cyan-2);
+  box-shadow: 0 0 22px rgba(0, 229, 255, 0.5),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 .btn-ghost {
   background: transparent;
   border-color: transparent;
 }
 .btn-ghost:hover:not(:disabled) {
-  background: var(--bg-2);
-  border-color: var(--line);
+  background: rgba(0, 229, 255, 0.06);
+  border-color: rgba(0, 229, 255, 0.2);
 }
 .btn-danger {
   background: var(--rose);
-  color: var(--bg-3);
+  color: var(--bg);
   border-color: var(--rose-2);
+  box-shadow: 0 0 14px rgba(255, 91, 122, 0.35);
 }
 .btn-danger:hover:not(:disabled) {
   background: var(--rose-2);
+  box-shadow: 0 0 22px rgba(255, 91, 122, 0.5);
 }
 
 /* ---------- Stop-on-error banner --------------------------------------- */
 .soe-banner {
-  background: var(--rose-3);
-  border: 2px solid var(--rose-2);
-  border-left: 6px solid var(--rose-2);
+  background: linear-gradient(180deg, rgba(255, 91, 122, 0.12), rgba(255, 91, 122, 0.05));
+  border: 1px solid rgba(255, 91, 122, 0.45);
+  border-left: 4px solid var(--rose);
   border-radius: var(--radius);
   padding: var(--s-4) var(--s-5);
   margin-bottom: var(--s-4);
@@ -660,21 +747,23 @@ textarea {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--rose-2);
-  color: var(--bg-3);
+  background: var(--rose);
+  color: var(--bg);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-family: var(--mono);
   flex-shrink: 0;
+  box-shadow: 0 0 14px rgba(255, 91, 122, 0.6);
 }
 .soe-banner .heading {
-  font-family: var(--serif);
-  font-weight: 600;
+  font-family: var(--sans);
+  font-weight: 700;
   font-size: 18px;
   margin: 0 0 var(--s-1);
   color: var(--rose-2);
+  letter-spacing: 0.01em;
 }
 .soe-banner .body {
   font-size: 14px;
@@ -708,7 +797,7 @@ textarea {
 .soe-banner pre {
   margin: var(--s-2) 0 0;
   padding: var(--s-3);
-  background: var(--bg-3);
+  background: var(--bg-2);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   font-family: var(--mono);
@@ -741,11 +830,13 @@ textarea {
   border-radius: 999px;
   overflow: hidden;
   border: 1px solid var(--line);
+  position: relative;
 }
 .progress .bar > span {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, var(--teal), var(--teal-2));
+  background: linear-gradient(90deg, var(--cyan), var(--magenta));
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.5);
   transition: width var(--dur-2) var(--ease);
 }
 .progress .label {
@@ -754,6 +845,7 @@ textarea {
   color: var(--ink-2);
   min-width: 100px;
   text-align: right;
+  letter-spacing: 0.04em;
 }
 
 /* ---------- Case rows --------------------------------------------------- */
@@ -775,6 +867,37 @@ textarea {
   background: var(--bg-elev);
   border-radius: var(--radius-sm);
   font-size: 13px;
+  position: relative;
+  transition: border-color var(--dur-1) var(--ease), box-shadow var(--dur-1) var(--ease);
+}
+.case-row:hover {
+  border-color: var(--line-3);
+  background: rgba(0, 229, 255, 0.03);
+}
+/* Role-tinted left bar — keeps the role signal visible at a glance
+ * without making the row a colored slab. */
+.case-row.has-role::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--ink-3);
+  box-shadow: 0 0 8px transparent;
+}
+.case-row.role-issuer::before {
+  background: var(--cyan);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
+}
+.case-row.role-verifier::before {
+  background: var(--magenta);
+  box-shadow: 0 0 10px rgba(255, 43, 214, 0.6);
+}
+.case-row.role-wallet::before {
+  background: var(--lime);
+  box-shadow: 0 0 10px rgba(155, 255, 58, 0.6);
 }
 .case-row .status {
   width: 24px;
@@ -790,14 +913,17 @@ textarea {
 .case-row .status.passed {
   background: var(--green-3);
   color: var(--green-2);
+  box-shadow: inset 0 0 0 1px var(--green);
 }
 .case-row .status.failed {
   background: var(--rose-3);
   color: var(--rose-2);
+  box-shadow: inset 0 0 0 1px var(--rose);
 }
 .case-row .status.skipped {
   background: var(--gold-3);
   color: var(--gold-2);
+  box-shadow: inset 0 0 0 1px var(--gold);
 }
 .case-row .status.pending,
 .case-row .status.running {
@@ -819,17 +945,49 @@ textarea {
   font-size: 11px;
   color: var(--ink-3);
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 .case-row .duration {
   font-family: var(--mono);
   font-size: 11px;
   color: var(--ink-3);
+  letter-spacing: 0.04em;
 }
+
+/* Role badge — small pill on the case row that reinforces the
+ * left-bar tint. Sits inline with the name so the role reads with the
+ * id on the same line. */
+.role-badge {
+  display: inline-block;
+  margin-left: var(--s-2);
+  padding: 1px var(--s-2);
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+  vertical-align: 2px;
+}
+.role-badge.role-issuer {
+  color: var(--cyan);
+  background: rgba(0, 229, 255, 0.08);
+}
+.role-badge.role-verifier {
+  color: var(--magenta);
+  background: rgba(255, 43, 214, 0.08);
+}
+.role-badge.role-wallet {
+  color: var(--lime);
+  background: rgba(155, 255, 58, 0.08);
+}
+
 .case-row.is-failed .body {
   margin-top: var(--s-2);
   padding: var(--s-2);
-  background: var(--bg-2);
-  border: 1px solid var(--line);
+  background: var(--bg);
+  border: 1px solid var(--rose);
   border-radius: var(--radius-xs);
   font-family: var(--mono);
   font-size: 12px;
@@ -837,6 +995,7 @@ textarea {
   word-break: break-word;
   max-height: 200px;
   overflow: auto;
+  color: var(--ink);
 }
 .case-row.is-failed {
   grid-template-columns: 28px 1fr;
@@ -847,6 +1006,269 @@ textarea {
   gap: var(--s-3);
   font-size: 12px;
   color: var(--ink-2);
+}
+
+/* ---------- Role split (Suite) ----------------------------------------- */
+/* The role split panel is the centrepiece of the Suite view. It shows
+ * the catalog distribution and lets the operator pick a focus. The
+ * chips are large enough to read at arm's length — counts are the
+ * dominant figure, label is secondary, caption is tertiary. */
+.role-split {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.role-split-head .eyebrow {
+  display: block;
+  margin-bottom: var(--s-1);
+}
+.role-split-head .hint {
+  margin: 0;
+  max-width: 70ch;
+}
+.role-split-head .hint code {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--cyan);
+  background: rgba(0, 229, 255, 0.08);
+  padding: 0 4px;
+  border-radius: 4px;
+}
+
+.role-chips {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--s-3);
+}
+
+.role-chip {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  gap: 2px;
+  align-content: center;
+  text-align: left;
+  padding: var(--s-3) var(--s-4);
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-family: var(--sans);
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease),
+    box-shadow var(--dur-1) var(--ease), transform var(--dur-1) var(--ease);
+}
+.role-chip:hover {
+  border-color: var(--line-3);
+  background: rgba(0, 229, 255, 0.04);
+  transform: translateY(-1px);
+}
+.role-chip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--cyan);
+}
+.role-chip-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity var(--dur-2) var(--ease);
+}
+.role-chip-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.role-chip-count {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 1;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.role-chip-caption {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+}
+
+.role-chip-all .role-chip-label {
+  color: var(--ink-2);
+}
+
+/* Active state per role — uses the role's own glow. */
+.role-chip-all.is-active {
+  border-color: rgba(0, 229, 255, 0.4);
+  background: rgba(0, 229, 255, 0.06);
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.25),
+    0 0 24px rgba(0, 229, 255, 0.18);
+}
+.role-chip-issuer.is-active {
+  border-color: rgba(0, 229, 255, 0.5);
+  background: rgba(0, 229, 255, 0.06);
+  box-shadow: var(--cyan-glow);
+}
+.role-chip-issuer .role-chip-count {
+  color: var(--cyan);
+  text-shadow: 0 0 14px rgba(0, 229, 255, 0.45);
+}
+.role-chip-issuer .role-chip-glow {
+  background: radial-gradient(60% 80% at 100% 0%, rgba(0, 229, 255, 0.18), transparent 70%);
+  opacity: 1;
+}
+
+.role-chip-verifier.is-active {
+  border-color: rgba(255, 43, 214, 0.5);
+  background: rgba(255, 43, 214, 0.06);
+  box-shadow: var(--magenta-glow);
+}
+.role-chip-verifier .role-chip-count {
+  color: var(--magenta);
+  text-shadow: 0 0 14px rgba(255, 43, 214, 0.45);
+}
+.role-chip-verifier .role-chip-glow {
+  background: radial-gradient(60% 80% at 100% 0%, rgba(255, 43, 214, 0.18), transparent 70%);
+  opacity: 1;
+}
+
+.role-chip-wallet.is-active {
+  border-color: rgba(155, 255, 58, 0.5);
+  background: rgba(155, 255, 58, 0.06);
+  box-shadow: var(--lime-glow);
+}
+.role-chip-wallet .role-chip-count {
+  color: var(--lime);
+  text-shadow: 0 0 14px rgba(155, 255, 58, 0.45);
+}
+.role-chip-wallet .role-chip-glow {
+  background: radial-gradient(60% 80% at 100% 0%, rgba(155, 255, 58, 0.18), transparent 70%);
+  opacity: 1;
+}
+
+.role-detail {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--radius-sm);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--ink-2);
+  flex-wrap: wrap;
+}
+.role-detail .role-detail-meta {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+.role-detail .role-detail-meta code {
+  color: var(--ink);
+  font-weight: 700;
+}
+.role-detail-issuer {
+  border-color: rgba(0, 229, 255, 0.25);
+}
+.role-detail-verifier {
+  border-color: rgba(255, 43, 214, 0.25);
+}
+.role-detail-wallet {
+  border-color: rgba(155, 255, 58, 0.25);
+}
+
+/* Role pill — used on the Run view to surface the active role. */
+.role-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-1) var(--s-3) var(--s-1) var(--s-2);
+  border-radius: 999px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line-2);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.role-pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+.role-pill-label {
+  color: var(--ink-3);
+}
+.role-pill-value {
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.role-pill.role-issuer {
+  border-color: rgba(0, 229, 255, 0.4);
+  background: rgba(0, 229, 255, 0.06);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.18);
+}
+.role-pill.role-issuer .role-pill-dot {
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan);
+}
+.role-pill.role-issuer .role-pill-value {
+  color: var(--cyan);
+}
+.role-pill.role-verifier {
+  border-color: rgba(255, 43, 214, 0.4);
+  background: rgba(255, 43, 214, 0.06);
+  box-shadow: 0 0 12px rgba(255, 43, 214, 0.18);
+}
+.role-pill.role-verifier .role-pill-dot {
+  background: var(--magenta);
+  box-shadow: 0 0 8px var(--magenta);
+}
+.role-pill.role-verifier .role-pill-value {
+  color: var(--magenta);
+}
+.role-pill.role-wallet {
+  border-color: rgba(155, 255, 58, 0.4);
+  background: rgba(155, 255, 58, 0.06);
+  box-shadow: 0 0 12px rgba(155, 255, 58, 0.18);
+}
+.role-pill.role-wallet .role-pill-dot {
+  background: var(--lime);
+  box-shadow: 0 0 8px var(--lime);
+}
+.role-pill.role-wallet .role-pill-value {
+  color: var(--lime);
+}
+
+.run-header-aside {
+  align-items: center;
+}
+
+/* Run view: when an active role is detected, the page's focus ring
+ * picks up that role's accent. Subtle — does not overwhelm content. */
+.run-view.role-active.role-issuer {
+  background: linear-gradient(180deg, rgba(0, 229, 255, 0.04), transparent 220px);
+  background-attachment: local;
+}
+.run-view.role-active.role-verifier {
+  background: linear-gradient(180deg, rgba(255, 43, 214, 0.04), transparent 220px);
+  background-attachment: local;
+}
+.run-view.role-active.role-wallet {
+  background: linear-gradient(180deg, rgba(155, 255, 58, 0.04), transparent 220px);
+  background-attachment: local;
 }
 
 /* ---------- Report filters --------------------------------------------- */
@@ -868,6 +1290,7 @@ textarea {
   letter-spacing: 0.04em;
   color: var(--ink-3);
   font-weight: 600;
+  font-family: var(--mono);
 }
 .filter-group select,
 .filter-group input {
@@ -895,16 +1318,17 @@ textarea {
   border: 1px solid var(--line);
   background: var(--bg-2);
   color: var(--ink-2);
+  letter-spacing: 0.04em;
 }
 .chip.passed {
   background: var(--green-3);
   color: var(--green-2);
-  border-color: var(--green-2);
+  border-color: var(--green);
 }
 .chip.failed {
   background: var(--rose-3);
   color: var(--rose-2);
-  border-color: var(--rose-2);
+  border-color: var(--rose);
 }
 .chip.skipped {
   background: var(--gold-3);
@@ -939,9 +1363,10 @@ textarea {
   width: 14px;
   height: 14px;
   border: 2px solid var(--line-2);
-  border-top-color: var(--teal);
+  border-top-color: var(--cyan);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
 }
 @keyframes spin {
   to {
@@ -966,6 +1391,8 @@ textarea {
   border: 1px solid var(--line);
   background: var(--bg-2);
   color: var(--ink-2);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   /* Keep the rounded pill shape intact on long error messages / URLs.
      The detailed reason is exposed via the title attribute and the
      inline .run-hint line below the Run button (see MAS-261), so we
@@ -981,14 +1408,16 @@ textarea {
   line-height: 1;
 }
 .precheck.ok {
-  border-color: var(--green-2);
+  border-color: var(--green);
   color: var(--green-2);
   background: var(--green-3);
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.2);
 }
 .precheck.bad {
-  border-color: var(--rose-2);
+  border-color: var(--rose);
   color: var(--rose-2);
   background: var(--rose-3);
+  box-shadow: 0 0 10px rgba(255, 91, 122, 0.2);
 }
 .precheck.checking {
   border-color: var(--gold);
@@ -1002,4 +1431,394 @@ textarea {
   margin: var(--s-2) 0 0 0;
   font-size: 12px;
   color: var(--rose-2);
+}
+
+/* ===========================================================================
+ * v2.0 neon-futuristic theme — role split, badges, run header
+ * ===========================================================================
+ *
+ * The role split is the central UX signal in v2: the catalog is grouped
+ * by Entity Under Test (Issuer / Verifier / Wallet) and the UI surfaces
+ * the grouping on the Suite route, the Run header, and per-case rows.
+ *
+ * - `.role-split` — the catalog-overview panel on SuiteRoute
+ * - `.role-chips` — the four buttons (All + 3 roles) with a neon glow on
+ *   the selected one
+ * - `.role-chip-glow` — the corner flare that gives the active chip its
+ *   "lit" feel (set via `--role-color` per chip)
+ * - `.role-badge` — the small pill that appears next to a case id
+ * - `.role-detail` — the explainer that opens under the chip set when a
+ *   specific role is focused
+ * - `.role-band` — a thin coloured stripe on the Run route header that
+ *   sets the scene for the live run
+ * - `.case-row.role-<x>` — the 2px left border tint per case row
+ * - `.progress-fill` is overridden in the run header to use the active
+ *   role's gradient when the run header is tinted
+ */
+
+.role-split {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.role-split-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+.role-split-head .hint {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 13px;
+  max-width: 68ch;
+}
+.role-split-head .hint code {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.role-chips {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--s-3);
+}
+@media (max-width: 900px) {
+  .role-chips {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.role-chips-compact .role-chip {
+  min-height: 0;
+  padding: var(--s-2) var(--s-3);
+}
+.role-chips-compact .role-chip-count {
+  font-size: 22px;
+}
+.role-chips-compact {
+  margin-bottom: var(--s-3);
+}
+
+.role-chip {
+  --role-color: var(--ink-2);
+  --role-soft: rgba(168, 184, 208, 0.1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-1);
+  padding: var(--s-3) var(--s-4);
+  background: var(--bg-2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  text-align: left;
+  font-family: var(--sans);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color var(--dur-1) var(--ease),
+              background var(--dur-1) var(--ease),
+              transform var(--dur-1) var(--ease),
+              box-shadow var(--dur-1) var(--ease);
+  overflow: hidden;
+  min-height: 88px;
+}
+.role-chip:hover:not(.is-active) {
+  border-color: var(--line-2);
+  background: var(--bg-3);
+  transform: translateY(-1px);
+}
+.role-chip:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-teal);
+}
+.role-chip.is-active {
+  border-color: var(--role-color);
+  background: linear-gradient(180deg, var(--role-soft) 0%, transparent 100%), var(--bg-3);
+  box-shadow:
+    0 0 0 1px var(--role-color),
+    0 0 24px -6px var(--role-color);
+}
+.role-chip-glow {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--role-color);
+  filter: blur(18px);
+  opacity: 0;
+  transition: opacity var(--dur-2) var(--ease);
+  pointer-events: none;
+}
+.role-chip.is-active .role-chip-glow {
+  opacity: 0.45;
+}
+.role-chip-label {
+  font-size: 12px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.role-chip.is-active .role-chip-label {
+  color: var(--role-color);
+}
+.role-chip-count {
+  font-family: var(--serif);
+  font-size: 32px;
+  line-height: 1;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.role-chip-caption {
+  font-size: 11px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+}
+
+.role-chip-issuer {
+  --role-color: var(--role-cyan);
+  --role-soft: var(--role-cyan-soft);
+}
+.role-chip-verifier {
+  --role-color: var(--role-magenta);
+  --role-soft: var(--role-magenta-soft);
+}
+.role-chip-wallet {
+  --role-color: var(--role-lime);
+  --role-soft: var(--role-lime-soft);
+}
+.role-chip-all {
+  --role-color: var(--teal);
+  --role-soft: rgba(0, 229, 255, 0.12);
+}
+
+.role-detail {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--radius-sm);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--role-color, var(--teal));
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.role-detail-issuer {
+  --role-color: var(--role-cyan);
+}
+.role-detail-verifier {
+  --role-color: var(--role-magenta);
+}
+.role-detail-wallet {
+  --role-color: var(--role-lime);
+}
+.role-detail .role-detail-meta {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink-3);
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+}
+.role-detail .role-detail-meta code {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ---------- Role badge (small pill on case rows + drawer) -------------- */
+.role-badge {
+  --role-color: var(--teal);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid var(--role-color);
+  color: var(--role-color);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+  box-shadow: 0 0 12px -2px var(--role-color);
+}
+.role-badge.role-issuer {
+  --role-color: var(--role-cyan);
+  background: var(--role-cyan-soft);
+}
+.role-badge.role-verifier {
+  --role-color: var(--role-magenta);
+  background: var(--role-magenta-soft);
+}
+.role-badge.role-wallet {
+  --role-color: var(--role-lime);
+  background: var(--role-lime-soft);
+}
+
+/* ---------- Per-case-row left border tint ----------------------------- */
+.case-row.role-issuer {
+  border-left: 2px solid var(--role-cyan);
+}
+.case-row.role-verifier {
+  border-left: 2px solid var(--role-magenta);
+}
+.case-row.role-wallet {
+  border-left: 2px solid var(--role-lime);
+}
+.case-row.has-role {
+  padding-left: calc(var(--s-3) + 2px);
+}
+
+/* ---------- Run route role header band -------------------------------- */
+.run-role-band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  margin: 0 0 var(--s-4);
+  background: var(--bg-3);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--role-color, var(--teal));
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.run-role-band.run-role-issuer {
+  --role-color: var(--role-cyan);
+  --role-soft: var(--role-cyan-soft);
+  background: linear-gradient(90deg, var(--role-soft) 0%, transparent 70%), var(--bg-3);
+}
+.run-role-band.run-role-verifier {
+  --role-color: var(--role-magenta);
+  --role-soft: var(--role-magenta-soft);
+  background: linear-gradient(90deg, var(--role-soft) 0%, transparent 70%), var(--bg-3);
+}
+.run-role-band.run-role-wallet {
+  --role-color: var(--role-lime);
+  --role-soft: var(--role-lime-soft);
+  background: linear-gradient(90deg, var(--role-soft) 0%, transparent 70%), var(--bg-3);
+}
+.run-role-band.run-role-all {
+  --role-color: var(--teal);
+  --role-soft: rgba(0, 229, 255, 0.10);
+  background: linear-gradient(90deg, var(--role-soft) 0%, transparent 70%), var(--bg-3);
+}
+.run-role-band .run-role-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+.run-role-band .run-role-name {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.run-role-band .run-role-stats {
+  margin-left: auto;
+  display: flex;
+  gap: var(--s-3);
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-2);
+  flex-wrap: wrap;
+}
+.run-role-band .run-role-stats .stat-pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+.run-role-band .run-role-stats .stat-pill.role-count {
+  border-color: var(--role-color);
+  color: var(--role-color);
+}
+
+/* The progress bar fill can be tinted to the focused role when present. */
+.progress .bar > span.is-role-issuer {
+  background: linear-gradient(90deg, var(--role-cyan), var(--role-cyan));
+}
+.progress .bar > span.is-role-verifier {
+  background: linear-gradient(90deg, var(--role-magenta), var(--role-magenta));
+}
+.progress .bar > span.is-role-wallet {
+  background: linear-gradient(90deg, var(--role-lime), var(--role-lime));
+}
+
+/* Reduced motion: disable chip glow transitions. */
+@media (prefers-reduced-motion: reduce) {
+  .role-chip,
+  .role-chip-glow {
+    transition: none;
+  }
+}
+
+/* ---------- Role pill in the run header aside ------------------------- */
+.role-pill {
+  --role-color: var(--teal);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.role-pill .role-pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--role-color);
+  box-shadow: 0 0 10px var(--role-color);
+}
+.role-pill .role-pill-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+.role-pill .role-pill-value {
+  font-family: var(--serif);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.role-pill.role-issuer {
+  --role-color: var(--role-cyan);
+  border-color: var(--role-cyan);
+  box-shadow: var(--glow-cyan);
+}
+.role-pill.role-verifier {
+  --role-color: var(--role-magenta);
+  border-color: var(--role-magenta);
+  box-shadow: var(--glow-magenta);
+}
+.role-pill.role-wallet {
+  --role-color: var(--role-lime);
+  border-color: var(--role-lime);
+  box-shadow: var(--glow-lime);
 }

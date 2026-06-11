@@ -128,20 +128,22 @@ function Topbar(): JSX.Element {
           className="logo"
           aria-hidden="true"
           style={{
-            width: 32,
-            height: 32,
-            borderRadius: 7,
-            background: 'linear-gradient(135deg, var(--teal), var(--gold))',
+            width: 36,
+            height: 36,
+            borderRadius: 8,
+            background: 'linear-gradient(135deg, var(--cyan) 0%, var(--magenta) 60%, var(--lime) 100%)',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--bg-3)',
-            fontFamily: 'var(--serif)',
-            fontWeight: 600,
-            fontSize: 18,
+            color: 'var(--bg)',
+            fontFamily: 'var(--sans)',
+            fontWeight: 700,
+            fontSize: 16,
+            letterSpacing: '0.02em',
+            boxShadow: '0 0 18px rgba(0, 229, 255, 0.35), inset 0 0 0 1px rgba(255,255,255,0.18)',
           }}
         >
-          vc
+          VC
         </div>
         <div className="brand-text">
           <h1>
