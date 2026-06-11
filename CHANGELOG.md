@@ -6,6 +6,48 @@ This project does **not** yet follow SemVer strictly; the major version
 identifies the conformance-test generation (v0.1.0 was the original
 webapp, v2.0.0 is the new engine + UI + server stack).
 
+## v2.1.2 — 2026-06-11
+
+Behaviour fix on [MAS-305](/MAS/issues/MAS-305) for the user-reported
+symptom in [MAS-303](/MAS/issues/MAS-303). The v2 web UI's "Run log"
+and the per-case evidence download now show the actual captured
+response for a passing case — not just the test case id + a stub
+message. No API or wire shape change: the `Report.results[*]` entries
+gain an extra non-breaking field for passing cases.
+
+### Fixed
+
+- **v2 runner dropped `responseBody` on a passing case** —
+  `apps/conformance-v2/src/runner.ts` line 159-168. The
+  `case.passed` branch pushed a result row with `responseStatus`
+  but no `responseBody`, even when the `runCase` function
+  returned one. The same omission affected the `case.skipped`
+  branch. As a result `report.json` had
+  `responseBody: undefined` on every passing row, the inline
+  collapsible log on the run-results page rendered only the
+  placeholder message ("in-process mock" for the in-process
+  mock, or the assertion text for a real target) with no body,
+  and the per-case evidence `.log` download
+  (`GET /api/runs/:id/evidence/:caseId`) was missing its
+  `responseBody:` block.
+
+  The fix preserves `responseBody` (and `responseStatus`, on the
+  skipped branch) so the inline log + evidence download both
+  surface the captured response. The CaseRow component already
+  renders the body via `JSON.stringify(c.responseBody, null, 2)`
+  inside the `.case-log-body` `<pre>` — it was simply never fed
+  the value on a passing case.
+
+### Tests
+
+- `apps/conformance-v2/test/stop-on-error.test.ts`:
+  - `'a passing case row preserves responseBody and responseStatus (MAS-305)'`
+  - `'a passing case without a responseBody still records status but no body (MAS-305)'`
+  - `'a skipped case row preserves responseBody when the runCase provided one (MAS-305)'`
+
+  3 new tests on top of the 70 pre-existing v2 server tests
+  (76/76 in `apps/conformance-v2/test/`).
+
 ## v2.1.1 — 2026-06-11
 
 Packaging fix on [MAS-306](/MAS/issues/MAS-306) (releases the v2.1.1

@@ -148,6 +148,8 @@ export async function runConformance(opts: RunOptions): Promise<Report> {
           passed: false,
           skipped: true,
           message: res.message,
+          responseStatus: res.responseStatus,
+          responseBody: res.responseBody,
           durationMs: caseDuration,
         });
         emit({ type: 'case.skipped', id: tc.id, message: res.message });
@@ -156,6 +158,15 @@ export async function runConformance(opts: RunOptions): Promise<Report> {
 
       if (res.passed) {
         passed++;
+        // MAS-305: preserve `responseBody` (and `responseStatus`) on a
+        // passed case so the v2 web UI's per-case log/evidence surfaces
+        // show the captured response, not just the test case id. Before
+        // this fix, a passed case in the report.json had no responseBody,
+        // and the inline evidence log rendered the placeholder message
+        // ("in-process mock" for the in-process mock, or the assertion
+        // text for a real target) with no body. The evidence cell on the
+        // run results page was effectively "the test case id + a stub
+        // message" — the user-visible symptom in MAS-303.
         results.push({
           id: tc.id,
           name: tc.name,
@@ -164,6 +175,7 @@ export async function runConformance(opts: RunOptions): Promise<Report> {
           skipped: false,
           message: res.message,
           responseStatus: res.responseStatus,
+          responseBody: res.responseBody,
           durationMs: caseDuration,
         });
         emit({

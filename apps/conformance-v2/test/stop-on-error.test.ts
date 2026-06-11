@@ -117,4 +117,64 @@ describe('runConformance stop-on-error', () => {
     expect(report.summary.passed).toBe(2);
     expect(report.summary.skipped).toBe(1);
   });
+
+  // MAS-305: a passed case row in the report must carry `responseBody`
+  // (and `responseStatus`) so the v2 web UI's per-case evidence log
+  // surfaces the actual captured response. Before the fix the runner
+  // dropped `responseBody` on the pass branch, so the report.json for
+  // a passing run had `responseBody: undefined` on every row and the
+  // UI's "Run log" / "Failure log" collapsible rendered only the
+  // placeholder message — i.e. the evidence cell on the run results
+  // page showed essentially the test case id + a stub, instead of the
+  // captured response. See MAS-303 for the user-reported symptom.
+  it('a passing case row preserves responseBody and responseStatus (MAS-305)', async () => {
+    const report = await runConformance({
+      catalog: cases('A'),
+      runCase: async () => ({
+        passed: true,
+        message: 'ok',
+        responseStatus: 200,
+        responseBody: { mock: true, captured: 'value' },
+      }),
+      target: {},
+    });
+    const row = report.results[0];
+    expect(row?.passed).toBe(true);
+    expect(row?.responseStatus).toBe(200);
+    expect(row?.responseBody).toEqual({ mock: true, captured: 'value' });
+  });
+
+  it('a passing case without a responseBody still records status but no body (MAS-305)', async () => {
+    const report = await runConformance({
+      catalog: cases('A'),
+      runCase: async () => ({ passed: true, responseStatus: 204 }),
+      target: {},
+    });
+    const row = report.results[0];
+    expect(row?.passed).toBe(true);
+    expect(row?.responseStatus).toBe(204);
+    expect(row?.responseBody).toBeUndefined();
+  });
+
+  it('a skipped case row preserves responseBody when the runCase provided one (MAS-305)', async () => {
+    const report = await runConformance({
+      catalog: cases('A', 'B'),
+      runCase: async (tc) => {
+        if (tc.id === 'B') {
+          return {
+            passed: false,
+            skipped: true,
+            message: 'SKIPPED prereq missing',
+            responseStatus: 0,
+            responseBody: { reason: 'no fixture' },
+          };
+        }
+        return { passed: true, responseStatus: 200 };
+      },
+      target: {},
+    });
+    const skipped = report.results.find((r) => r.skipped);
+    expect(skipped?.responseStatus).toBe(0);
+    expect(skipped?.responseBody).toEqual({ reason: 'no fixture' });
+  });
 });

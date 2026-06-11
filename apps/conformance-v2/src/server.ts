@@ -313,14 +313,14 @@ export async function buildApp(opts: ServerOptions): Promise<{ app: FastifyInsta
 
   // ----- Liveness + SPA placeholder ----------------------------------
   // The reported version is the active image version. Falls back to
-  // '2.1.0' when CONFORMANCE_V2_VERSION is unset (local dev), so the
-  // header reads "v2.1.0" in the UI regardless of how the server was
+  // '2.1.2' when CONFORMANCE_V2_VERSION is unset (local dev), so the
+  // header reads "v2.1.2" in the UI regardless of how the server was
   // started. The Dockerfile pins the build-arg to the same string, so
   // docker-compose and the health endpoint always agree.
   app.get('/api/health', async () => ({
     status: 'ok',
     service: 'conformance-v2',
-    version: process.env.CONFORMANCE_V2_VERSION ?? '2.1.0',
+    version: process.env.CONFORMANCE_V2_VERSION ?? '2.1.2',
   }));
 
   // Resolve the SPA dist directory. When present we register the static
