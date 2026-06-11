@@ -6,6 +6,7 @@
   "description": "v2 web UI: Vite + React SPA (Suite, Run, Report) for the conformance test tool",
   "scripts": {
     "dev": "vite",
+    "prebuild": "bash ../../../scripts/refresh-case-roles.sh",
     "build": "tsc -b --noEmit && vite build",
     "preview": "vite preview --port 8080 --host 0.0.0.0",
     "test": "vitest run",

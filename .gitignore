@@ -5,7 +5,11 @@ coverage/
 *.log
 .env
 .env.*
-data/
+# data/ is intentionally NOT a blanket ignore — the v2 webapp ships a
+# build-time `case-roles.json` in apps/conformance-v2/web/src/lib/data/
+# that must be tracked (it's imported by roles.ts at tsc time). Per
+# runtime data dirs are listed explicitly below.
+apps/web/data/
 reports/
 out/
 .wallet/

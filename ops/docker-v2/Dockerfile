@@ -34,6 +34,14 @@ COPY apps/conformance-v2/web/package.json apps/conformance-v2/web/package-lock.j
 # The SPA build needs the engine's source to resolve TS imports across
 # the workspace sibling. We copy the minimum surface that Vite reaches.
 COPY apps/conformance-v2 ./apps/conformance-v2
+# The catalog → case-roles.json generator. We copy the script + the
+# catalog it reads so the ui-build stage can regenerate the JSON in
+# sync with the catalog before tsc runs (roles.ts imports the JSON).
+COPY scripts/refresh-case-roles.sh ./scripts/refresh-case-roles.sh
+COPY references/testcases ./references/testcases
+
+RUN chmod +x ./scripts/refresh-case-roles.sh && \
+    bash ./scripts/refresh-case-roles.sh
 
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --no-audit --no-fund --prefix apps/conformance-v2/web
